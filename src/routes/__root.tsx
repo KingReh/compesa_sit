@@ -84,6 +84,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:description", content: "Gestão centralizada de colaboradores terceirizados da GPM/COMPESA." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
+    ],
     links: [
       {
         rel: "stylesheet",
