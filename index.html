@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <!-- Suppress benign development websocket errors before Vite client loads -->
+    <script>
+      (function() {
+        const isWsError = (msg) => {
+          if (!msg) return false;
+          const lower = String(msg).toLowerCase();
+          return lower.includes('websocket') || 
+                 lower.includes('ws://') || 
+                 lower.includes('wss://') || 
+                 lower.includes('failed to connect') ||
+                 lower.includes('connection refused') ||
+                 lower.includes('closed without opened');
+        };
+
+        window.addEventListener('unhandledrejection', (event) => {
+          const reason = event.reason;
+          let msg = '';
+          if (reason) {
+            msg = reason.message || (typeof reason === 'string' ? reason : String(reason));
+          }
+          if (isWsError(msg)) {
+            event.preventDefault();
+            event.stopPropagation();
+            console.warn('[Vite Browser Sync Tracker - Ignored Rejection]:', msg);
+          }
+        });
+
+        window.addEventListener('error', (event) => {
+          const msg = event.message || (event.error && event.error.message);
+          if (isWsError(msg)) {
+            event.preventDefault();
+            event.stopPropagation();
+            console.warn('[Vite Browser Sync Tracker - Ignored Error]:', msg);
+          }
+        }, true);
+      })();
+    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <title>SIT - Sistemas Integrados Terceirizados</title>
+    
+    <!-- PWA Config & Theme Color -->
+    <meta name="theme-color" content="#034289" />
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    
+    <!-- iOS / Safari PWA support -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="SIT" />
+    <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+
