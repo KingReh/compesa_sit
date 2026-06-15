@@ -47,7 +47,7 @@ export function EmployeeForm({
   });
 
   async function onSubmit(values: EmployeeFormValues) {
-    const payload = Object.fromEntries(
+    const payload: any = Object.fromEntries(
       Object.entries(values).map(([k, v]) => [k, v === "" ? null : v]),
     );
     const op = id

@@ -9,38 +9,152 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedImportarRouteImport } from './routes/_authenticated/importar'
+import { Route as AuthenticatedFeriasRouteImport } from './routes/_authenticated/ferias'
+import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedColaboradoresIndexRouteImport } from './routes/_authenticated/colaboradores/index'
+import { Route as AuthenticatedColaboradoresNovoRouteImport } from './routes/_authenticated/colaboradores/novo'
+import { Route as AuthenticatedColaboradoresIdRouteImport } from './routes/_authenticated/colaboradores/$id'
 
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedImportarRoute = AuthenticatedImportarRouteImport.update({
+  id: '/importar',
+  path: '/importar',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedFeriasRoute = AuthenticatedFeriasRouteImport.update({
+  id: '/ferias',
+  path: '/ferias',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedColaboradoresIndexRoute =
+  AuthenticatedColaboradoresIndexRouteImport.update({
+    id: '/colaboradores/',
+    path: '/colaboradores/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedColaboradoresNovoRoute =
+  AuthenticatedColaboradoresNovoRouteImport.update({
+    id: '/colaboradores/novo',
+    path: '/colaboradores/novo',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedColaboradoresIdRoute =
+  AuthenticatedColaboradoresIdRouteImport.update({
+    id: '/colaboradores/$id',
+    path: '/colaboradores/$id',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
+  '/dashboard': typeof AuthenticatedDashboardRoute
+  '/ferias': typeof AuthenticatedFeriasRoute
+  '/importar': typeof AuthenticatedImportarRoute
+  '/colaboradores/$id': typeof AuthenticatedColaboradoresIdRoute
+  '/colaboradores/novo': typeof AuthenticatedColaboradoresNovoRoute
+  '/colaboradores/': typeof AuthenticatedColaboradoresIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
+  '/dashboard': typeof AuthenticatedDashboardRoute
+  '/ferias': typeof AuthenticatedFeriasRoute
+  '/importar': typeof AuthenticatedImportarRoute
+  '/colaboradores/$id': typeof AuthenticatedColaboradoresIdRoute
+  '/colaboradores/novo': typeof AuthenticatedColaboradoresNovoRoute
+  '/colaboradores': typeof AuthenticatedColaboradoresIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/auth': typeof AuthRoute
+  '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/ferias': typeof AuthenticatedFeriasRoute
+  '/_authenticated/importar': typeof AuthenticatedImportarRoute
+  '/_authenticated/colaboradores/$id': typeof AuthenticatedColaboradoresIdRoute
+  '/_authenticated/colaboradores/novo': typeof AuthenticatedColaboradoresNovoRoute
+  '/_authenticated/colaboradores/': typeof AuthenticatedColaboradoresIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/dashboard'
+    | '/ferias'
+    | '/importar'
+    | '/colaboradores/$id'
+    | '/colaboradores/novo'
+    | '/colaboradores/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/auth'
+    | '/dashboard'
+    | '/ferias'
+    | '/importar'
+    | '/colaboradores/$id'
+    | '/colaboradores/novo'
+    | '/colaboradores'
+  id:
+    | '__root__'
+    | '/'
+    | '/_authenticated'
+    | '/auth'
+    | '/_authenticated/dashboard'
+    | '/_authenticated/ferias'
+    | '/_authenticated/importar'
+    | '/_authenticated/colaboradores/$id'
+    | '/_authenticated/colaboradores/novo'
+    | '/_authenticated/colaboradores/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  AuthRoute: typeof AuthRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,11 +162,76 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/importar': {
+      id: '/_authenticated/importar'
+      path: '/importar'
+      fullPath: '/importar'
+      preLoaderRoute: typeof AuthenticatedImportarRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/ferias': {
+      id: '/_authenticated/ferias'
+      path: '/ferias'
+      fullPath: '/ferias'
+      preLoaderRoute: typeof AuthenticatedFeriasRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/dashboard': {
+      id: '/_authenticated/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof AuthenticatedDashboardRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/colaboradores/': {
+      id: '/_authenticated/colaboradores/'
+      path: '/colaboradores'
+      fullPath: '/colaboradores/'
+      preLoaderRoute: typeof AuthenticatedColaboradoresIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/colaboradores/novo': {
+      id: '/_authenticated/colaboradores/novo'
+      path: '/colaboradores/novo'
+      fullPath: '/colaboradores/novo'
+      preLoaderRoute: typeof AuthenticatedColaboradoresNovoRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/colaboradores/$id': {
+      id: '/_authenticated/colaboradores/$id'
+      path: '/colaboradores/$id'
+      fullPath: '/colaboradores/$id'
+      preLoaderRoute: typeof AuthenticatedColaboradoresIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
+interface AuthenticatedRouteRouteChildren {
+  AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedFeriasRoute: typeof AuthenticatedFeriasRoute
+  AuthenticatedImportarRoute: typeof AuthenticatedImportarRoute
+  AuthenticatedColaboradoresIdRoute: typeof AuthenticatedColaboradoresIdRoute
+  AuthenticatedColaboradoresNovoRoute: typeof AuthenticatedColaboradoresNovoRoute
+  AuthenticatedColaboradoresIndexRoute: typeof AuthenticatedColaboradoresIndexRoute
+}
+
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedFeriasRoute: AuthenticatedFeriasRoute,
+  AuthenticatedImportarRoute: AuthenticatedImportarRoute,
+  AuthenticatedColaboradoresIdRoute: AuthenticatedColaboradoresIdRoute,
+  AuthenticatedColaboradoresNovoRoute: AuthenticatedColaboradoresNovoRoute,
+  AuthenticatedColaboradoresIndexRoute: AuthenticatedColaboradoresIndexRoute,
+}
+
+const AuthenticatedRouteRouteWithChildren =
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  AuthRoute: AuthRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
