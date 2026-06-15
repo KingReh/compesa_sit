@@ -14,7 +14,137 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      employees: {
+        Row: {
+          contrato: string | null
+          coordenacao: string | null
+          cpf: string
+          created_at: string
+          created_by: string | null
+          data_admissao: string | null
+          escala: string | null
+          especialidade: string | null
+          id: string
+          lotacao: string | null
+          matricula: string
+          nome_completo: string
+          observacoes: string | null
+          status: string
+          telefone: string | null
+          updated_at: string
+        }
+        Insert: {
+          contrato?: string | null
+          coordenacao?: string | null
+          cpf: string
+          created_at?: string
+          created_by?: string | null
+          data_admissao?: string | null
+          escala?: string | null
+          especialidade?: string | null
+          id?: string
+          lotacao?: string | null
+          matricula: string
+          nome_completo: string
+          observacoes?: string | null
+          status?: string
+          telefone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          contrato?: string | null
+          coordenacao?: string | null
+          cpf?: string
+          created_at?: string
+          created_by?: string | null
+          data_admissao?: string | null
+          escala?: string | null
+          especialidade?: string | null
+          id?: string
+          lotacao?: string | null
+          matricula?: string
+          nome_completo?: string
+          observacoes?: string | null
+          status?: string
+          telefone?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          email: string | null
+          full_name: string | null
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      vacations: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          data_fim: string
+          data_inicio: string
+          dias: number | null
+          employee_id: string
+          id: string
+          observacoes: string | null
+          status: string
+          tipo: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          data_fim: string
+          data_inicio: string
+          dias?: number | null
+          employee_id: string
+          id?: string
+          observacoes?: string | null
+          status?: string
+          tipo?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          data_fim?: string
+          data_inicio?: string
+          dias?: number | null
+          employee_id?: string
+          id?: string
+          observacoes?: string | null
+          status?: string
+          tipo?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vacations_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
