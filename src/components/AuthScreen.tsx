@@ -218,34 +218,11 @@ export function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
     setIsLoading(true);
 
     try {
-      const response = await fetch('/api/validate-cpf', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          cpf: matricula,
-          nome: name,
-          email: email
-        })
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        const message = errorData.error || 'Serviço de validação temporariamente indisponível. Por razões de segurança, o cadastro está bloqueado temporariamente.';
-        setError(message);
-        return;
-      }
-
-      const result = await response.json();
-      if (result.authorized) {
-        // Step 1 is valid, proceed to Step 2
-        setCurrentScreen('register_step2');
-      } else {
-        setError('Seu CPF não está autorizado para realizar cadastro neste sistema. Entre em contato com a administração.');
-      }
+      // Validação local (sem backend): segue para a próxima etapa.
+      // Quando houver serviço de validação de CPF, reintroduzir a chamada aqui.
+      setCurrentScreen('register_step2');
     } catch (err) {
-      setError('Erro de conexão com o servidor de validação. O cadastro está bloqueado temporariamente por segurança.');
+      setError('Não foi possível prosseguir com o cadastro. Tente novamente.');
       console.error(err);
     } finally {
       setIsLoading(false);
