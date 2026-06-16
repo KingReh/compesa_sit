@@ -45,27 +45,34 @@ createRoot(document.getElementById('root')!).render(
   </StrictMode>,
 );
 
-// Register Progressive Web App Service Worker
-if ('serviceWorker' in navigator && process.env.NODE_ENV === 'production') {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js')
-      .then((reg) => {
-        console.log('[Service Worker] Registro realizado com sucesso. Escopo:', reg.scope);
-      })
-      .catch((err) => {
-        console.error('[Service Worker] Erro ao registrar:', err);
-      });
-  });
-} else if ('serviceWorker' in navigator) {
-  // Em desenvolvimento, também registramos para testes, mas garantindo que recarregue se mudado
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js')
-      .then((reg) => {
-        console.log('[Service Worker] Registro de desenvolvimento bem-sucedido:', reg.scope);
-      })
-      .catch((err) => {
-        console.warn('[Service Worker] Registro de desenvolvimento ignorado/falhou:', err);
-      });
-  });
+// Register PWA Service Worker — never inside Lovable preview/iframe/dev,
+// and unregister any stale SW + clear caches in those contexts.
+if ('serviceWorker' in navigator) {
+  const host = window.location.hostname;
+  const inIframe = window.self !== window.top;
+  const isLovablePreview =
+    host.startsWith('id-preview--') ||
+    host.startsWith('preview--') ||
+    host.endsWith('.lovableproject.com') ||
+    host.endsWith('.lovable.app') ||
+    host.endsWith('.lovable.dev');
+  const killSwitch = new URLSearchParams(window.location.search).get('sw') === 'off';
+  const shouldRegister = import.meta.env.PROD && !inIframe && !isLovablePreview && !killSwitch;
+
+  if (shouldRegister) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js')
+        .then((reg) => console.log('[SW] Registrado. Escopo:', reg.scope))
+        .catch((err) => console.warn('[SW] Falha ao registrar:', err));
+    });
+  } else {
+    // Cleanup: remove any previously installed SW + caches in preview/dev
+    navigator.serviceWorker.getRegistrations().then((regs) => {
+      regs.forEach((r) => r.unregister());
+    }).catch(() => {});
+    if (typeof caches !== 'undefined') {
+      caches.keys().then((keys) => keys.forEach((k) => caches.delete(k))).catch(() => {});
+    }
+  }
 }
 
