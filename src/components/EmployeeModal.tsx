@@ -79,7 +79,7 @@ export function EmployeeModal({ isOpen, onClose, onSave, employeeToEdit, coorden
     if (nameInputRef.current && cursorRef.current.start !== null) {
       const len = nameInputRef.current.value.length;
       const start = Math.min(cursorRef.current.start, len);
-      const end = Math.min(cursorRef.current.end, len);
+      const end = Math.min(cursorRef.current.end ?? 0, len);
       nameInputRef.current.setSelectionRange(start, end);
       cursorRef.current = { start: null, end: null };
     }

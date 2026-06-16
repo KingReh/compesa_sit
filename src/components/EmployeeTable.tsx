@@ -559,7 +559,7 @@ export function EmployeeTable({ employees, unidades, searchQuery, onEdit, onDele
                       <div className="text-[10.5px] sm:text-[11px] font-semibold text-white/95 truncate group-hover/copy:text-brand-accent transition-colors flex items-center gap-1.5 min-w-0">
                         <span className="truncate">{employee.nome}</span>
                         {employee.autorizadoDirigir && (
-                          <Car className="h-3 w-3 text-emerald-400 shrink-0" title="Motorista Autorizado" />
+                          <Car className="h-3 w-3 text-emerald-400 shrink-0" aria-label="Motorista Autorizado" />
                         )}
                       </div>
                     </td>
