@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Plus, Building2, LayoutDashboard, UserPlus, FileText, Settings, Users, Calendar, LogOut, UserCheck } from 'lucide-react';
+import { Search, Plus, Building2, LayoutDashboard, UserPlus, FileText, Settings, Users, Calendar, LogOut, UserCheck, Download } from 'lucide-react';
 import { Employee, Coordenacao, Contrato, Unidade, Empresa, AuthSession } from './types';
 import { Dashboard } from './components/Dashboard';
 import { EmployeeTable } from './components/EmployeeTable';
@@ -477,14 +477,21 @@ export default function App() {
                     <FileText className="w-5 h-5 shrink-0" />
                     <span className="text-sm">Relatórios</span>
                  </button>
-                 <button 
-                  onClick={() => setCurrentView('configuracao')}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors text-left ${currentView === 'configuracao' ? 'bg-black/20 text-white font-medium shadow-inner' : 'text-brand-muted hover:text-white hover:bg-black/10'}`}
-                 >
-                    <Settings className="w-5 h-5 shrink-0" />
-                    <span className="text-sm">Configuração</span>
-                 </button>
-               </div>
+                  <button 
+                   onClick={() => setCurrentView('configuracao')}
+                   className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors text-left ${currentView === 'configuracao' ? 'bg-black/20 text-white font-medium shadow-inner' : 'text-brand-muted hover:text-white hover:bg-black/10'}`}
+                  >
+                     <Settings className="w-5 h-5 shrink-0" />
+                     <span className="text-sm">Configuração</span>
+                  </button>
+                  <button 
+                   onClick={() => window.dispatchEvent(new CustomEvent('reopen-pwa-prompt'))}
+                   className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors text-left text-brand-muted hover:text-white hover:bg-black/10"
+                  >
+                     <Download className="w-5 h-5 shrink-0" />
+                     <span className="text-sm">Instalar App</span>
+                  </button>
+                </div>
             </nav>
 
             {/* Injetando o Widget do Mapa de Lotações */}
