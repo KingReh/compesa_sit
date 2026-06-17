@@ -161,7 +161,7 @@ export function PWAInstallPrompt() {
                 <span className="typ-subtitle text-xs block text-brand-accent font-bold">APLICATIVO INSTALÁVEL</span>
                 <h4 className="typ-card-title text-base font-extrabold text-white mt-0.5 leading-tight">SIT no seu Celular</h4>
                 <p className="text-xs text-brand-muted mt-2 leading-relaxed">
-                  Adicione o <strong>SIT - Sistemas Integrados Terceirizados</strong> à sua tela inicial para acesso instantâneo, em seu disposiivo de trabalho.
+                  Adicione o <strong>SIT - Sistemas Integrados Terceirizados</strong> à sua tela inicial para acesso instantâneo, em seu dispositivo de trabalho.
                 </p>
 
                 <div className="flex gap-3 mt-4">
