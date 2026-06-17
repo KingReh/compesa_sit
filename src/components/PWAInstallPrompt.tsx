@@ -76,6 +76,20 @@ export function PWAInstallPrompt() {
     };
   }, []);
 
+  // Listen for external reopen request (e.g., from sidebar menu)
+  useEffect(() => {
+    const handleReopen = () => {
+      const installed = window.matchMedia('(display-mode: standalone)').matches
+        || (window.navigator as any).standalone
+        || document.referrer.includes('android-app://');
+      if (installed) return;
+      localStorage.removeItem('@sit:pwa-prompt-dismissed');
+      setIsOpen(true);
+    };
+    window.addEventListener('reopen-pwa-prompt', handleReopen);
+    return () => window.removeEventListener('reopen-pwa-prompt', handleReopen);
+  }, []);
+
   const handleInstallClick = async () => {
     if (!deferredPrompt) return;
 
