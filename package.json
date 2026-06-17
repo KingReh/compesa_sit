@@ -5,8 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "tsx server.ts",
+    "verify:icons": "node scripts/verify-manifest-icons.mjs",
+    "prebuild": "node scripts/verify-manifest-icons.mjs",
     "build": "vite build && esbuild server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs",
-    "build:dev": "vite build --mode development",
+    "build:dev": "node scripts/verify-manifest-icons.mjs && vite build --mode development",
     "start": "node dist/server.cjs",
     "preview": "vite preview",
     "clean": "rm -rf dist server.js",
