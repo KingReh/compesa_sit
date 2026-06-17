@@ -186,7 +186,7 @@ export function PWAInstallPrompt() {
               </div>
 
               <p className="text-xs text-brand-muted leading-relaxed">
-                Siga estes passos simples para adicionar o **SIT** na tela inicial do seu iPhone ou iPad:
+                Siga estes passos simples para adicionar o <strong>SIT</strong> na tela inicial do seu iPhone ou iPad:
               </p>
 
               <ol className="space-y-3.5 text-xs text-white pl-1">
