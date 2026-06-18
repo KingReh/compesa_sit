@@ -119,6 +119,18 @@ export function Reports({ employees, coordenacoes, contratos, unidades, empresas
     }
   });
   const [vacationPlans, setVacationPlans] = useState<VacationPlan[]>([]);
+  const [exportMenuOpen, setExportMenuOpen] = useState<boolean>(false);
+
+  // Close export menu on outside click
+  useEffect(() => {
+    if (!exportMenuOpen) return;
+    const handler = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest('[data-export-menu]')) setExportMenuOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [exportMenuOpen]);
 
   // Persist filter preferences
   useEffect(() => {
