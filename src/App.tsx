@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Plus, Building2, LayoutDashboard, UserPlus, FileText, Settings, Users, Calendar, LogOut, UserCheck, Download } from 'lucide-react';
+import { Search, Plus, Building2, LayoutDashboard, UserPlus, FileText, Settings, Users, Calendar, LogOut, UserCheck, Download, CheckCircle2 } from 'lucide-react';
 import { Employee, Coordenacao, Contrato, Unidade, Empresa, AuthSession } from './types';
 import { Dashboard } from './components/Dashboard';
 import { EmployeeTable } from './components/EmployeeTable';
@@ -65,6 +65,7 @@ export default function App() {
       return 'painel';
     }
   });
+  const [installToast, setInstallToast] = useState(false);
 
   // Persist currentView changes
   useEffect(() => {
@@ -74,6 +75,13 @@ export default function App() {
       console.error(e);
     }
   }, [currentView]);
+
+  // Auto-hide install toast
+  useEffect(() => {
+    if (!installToast) return;
+    const timer = setTimeout(() => setInstallToast(false), 4000);
+    return () => clearTimeout(timer);
+  }, [installToast]);
   
   // Modals state
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
@@ -485,7 +493,14 @@ export default function App() {
                      <span className="text-sm">Configuração</span>
                   </button>
                   <button 
-                   onClick={() => window.dispatchEvent(new CustomEvent('reopen-pwa-prompt'))}
+                    onClick={() => {
+                      const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone || document.referrer.includes('android-app://');
+                      if (isStandalone) {
+                        setInstallToast(true);
+                      } else {
+                        window.dispatchEvent(new CustomEvent('reopen-pwa-prompt'));
+                      }
+                    }}
                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors text-left text-brand-muted hover:text-white hover:bg-black/10"
                   >
                      <Download className="w-5 h-5 shrink-0" />
@@ -549,6 +564,19 @@ export default function App() {
 
       <PWAInstallPrompt />
       <CorporateFABMenu empresas={empresas} onNavigateToConfig={() => setCurrentView('configuracao')} />
+
+      {/* Toast: app already installed */}
+      {installToast && (
+        <div className="fixed bottom-6 right-6 z-50 animate-fade-in">
+          <div className="sit-panel p-4 flex items-center gap-3 shadow-2xl border border-green-500/30 bg-green-950/90 backdrop-blur-xl text-white rounded-xl">
+            <CheckCircle2 className="w-5 h-5 text-green-400 shrink-0" />
+            <div>
+              <p className="text-sm font-bold text-white">App já instalado</p>
+              <p className="text-xs text-green-200/80">O SIT está sendo executado no modo aplicativo.</p>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );
