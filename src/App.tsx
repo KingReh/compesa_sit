@@ -65,6 +65,7 @@ export default function App() {
       return 'painel';
     }
   });
+  const [installToast, setInstallToast] = useState(false);
 
   // Persist currentView changes
   useEffect(() => {
