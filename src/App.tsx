@@ -493,7 +493,14 @@ export default function App() {
                      <span className="text-sm">Configuração</span>
                   </button>
                   <button 
-                   onClick={() => window.dispatchEvent(new CustomEvent('reopen-pwa-prompt'))}
+                    onClick={() => {
+                      const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone || document.referrer.includes('android-app://');
+                      if (isStandalone) {
+                        setInstallToast(true);
+                      } else {
+                        window.dispatchEvent(new CustomEvent('reopen-pwa-prompt'));
+                      }
+                    }}
                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors text-left text-brand-muted hover:text-white hover:bg-black/10"
                   >
                      <Download className="w-5 h-5 shrink-0" />
