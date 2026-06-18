@@ -23,9 +23,14 @@ import {
   Check,
   Car,
   UserRound,
-  MapPin
+  MapPin,
+  Download,
+  FileText,
+  FileSpreadsheet,
+  ChevronDown
 } from 'lucide-react';
 import { Employee, Coordenacao, Contrato, Unidade, Empresa, VacationPlan } from '../types';
+import { exportReportToPDF, exportReportToXLSX, exportReportToODS } from '../utils/exportReports';
 // @ts-ignore
 import carBlueprintImg from '../assets/images/blue_car_blueprint_1781386584651.jpg';
 
