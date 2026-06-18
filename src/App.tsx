@@ -565,6 +565,19 @@ export default function App() {
       <PWAInstallPrompt />
       <CorporateFABMenu empresas={empresas} onNavigateToConfig={() => setCurrentView('configuracao')} />
 
+      {/* Toast: app already installed */}
+      {installToast && (
+        <div className="fixed bottom-6 right-6 z-50 animate-fade-in">
+          <div className="sit-panel p-4 flex items-center gap-3 shadow-2xl border border-green-500/30 bg-green-950/90 backdrop-blur-xl text-white rounded-xl">
+            <CheckCircle2 className="w-5 h-5 text-green-400 shrink-0" />
+            <div>
+              <p className="text-sm font-bold text-white">App já instalado</p>
+              <p className="text-xs text-green-200/80">O SIT está sendo executado no modo aplicativo.</p>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
