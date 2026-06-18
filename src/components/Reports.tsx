@@ -23,9 +23,14 @@ import {
   Check,
   Car,
   UserRound,
-  MapPin
+  MapPin,
+  Download,
+  FileText,
+  FileSpreadsheet,
+  ChevronDown
 } from 'lucide-react';
 import { Employee, Coordenacao, Contrato, Unidade, Empresa, VacationPlan } from '../types';
+import { exportReportToPDF, exportReportToXLSX, exportReportToODS } from '../utils/exportReports';
 // @ts-ignore
 import carBlueprintImg from '../assets/images/blue_car_blueprint_1781386584651.jpg';
 
@@ -114,6 +119,18 @@ export function Reports({ employees, coordenacoes, contratos, unidades, empresas
     }
   });
   const [vacationPlans, setVacationPlans] = useState<VacationPlan[]>([]);
+  const [exportMenuOpen, setExportMenuOpen] = useState<boolean>(false);
+
+  // Close export menu on outside click
+  useEffect(() => {
+    if (!exportMenuOpen) return;
+    const handler = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest('[data-export-menu]')) setExportMenuOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [exportMenuOpen]);
 
   // Persist filter preferences
   useEffect(() => {
@@ -613,6 +630,79 @@ export function Reports({ employees, coordenacoes, contratos, unidades, empresas
               <span className="sm:hidden font-black uppercase text-[10px] tracking-wider">Limpar Filtros</span>
             </button>
           )}
+
+          {/* Export menu */}
+          <div className="relative w-full sm:w-auto sm:mt-4" data-export-menu>
+            <button
+              onClick={() => setExportMenuOpen(o => !o)}
+              className="p-2 bg-brand-accent/10 hover:bg-brand-accent/20 text-brand-accent rounded-lg border border-brand-accent/20 text-xs transition-colors shrink-0 flex items-center justify-center gap-2 h-9 sm:h-[34px] w-full sm:w-auto px-3 font-black uppercase tracking-wider"
+              title="Exportar dados"
+              aria-haspopup="menu"
+              aria-expanded={exportMenuOpen}
+            >
+              <Download className="w-3.5 h-3.5" />
+              <span className="text-[10px]">Exportar</span>
+              <ChevronDown className={`w-3 h-3 transition-transform ${exportMenuOpen ? 'rotate-180' : ''}`} />
+            </button>
+            {exportMenuOpen && (
+              <div
+                role="menu"
+                className="absolute right-0 mt-2 z-30 w-56 rounded-xl border border-white/10 bg-[#0a1d3a] shadow-2xl overflow-hidden animate-fade-in"
+              >
+                <button
+                  role="menuitem"
+                  onClick={() => {
+                    setExportMenuOpen(false);
+                    exportReportToPDF({
+                      selectedYear, selectedCompanyFilter, selectedCoordFilter,
+                      filteredEmployees, vacationPlans, stats
+                    });
+                  }}
+                  className="w-full flex items-center gap-3 px-4 py-2.5 text-xs text-white hover:bg-brand-accent/10 transition-colors text-left"
+                >
+                  <FileText className="w-4 h-4 text-rose-400 shrink-0" />
+                  <div className="flex flex-col">
+                    <span className="font-bold">Exportar PDF</span>
+                    <span className="text-[10px] text-brand-muted">Documento para impressão</span>
+                  </div>
+                </button>
+                <button
+                  role="menuitem"
+                  onClick={() => {
+                    setExportMenuOpen(false);
+                    exportReportToXLSX({
+                      selectedYear, selectedCompanyFilter, selectedCoordFilter,
+                      filteredEmployees, vacationPlans, stats
+                    });
+                  }}
+                  className="w-full flex items-center gap-3 px-4 py-2.5 text-xs text-white hover:bg-brand-accent/10 transition-colors text-left border-t border-white/5"
+                >
+                  <FileSpreadsheet className="w-4 h-4 text-emerald-400 shrink-0" />
+                  <div className="flex flex-col">
+                    <span className="font-bold">Exportar XLSX</span>
+                    <span className="text-[10px] text-brand-muted">Microsoft Excel</span>
+                  </div>
+                </button>
+                <button
+                  role="menuitem"
+                  onClick={() => {
+                    setExportMenuOpen(false);
+                    exportReportToODS({
+                      selectedYear, selectedCompanyFilter, selectedCoordFilter,
+                      filteredEmployees, vacationPlans, stats
+                    });
+                  }}
+                  className="w-full flex items-center gap-3 px-4 py-2.5 text-xs text-white hover:bg-brand-accent/10 transition-colors text-left border-t border-white/5"
+                >
+                  <FileSpreadsheet className="w-4 h-4 text-sky-400 shrink-0" />
+                  <div className="flex flex-col">
+                    <span className="font-bold">Exportar ODS</span>
+                    <span className="text-[10px] text-brand-muted">LibreOffice / OpenDocument</span>
+                  </div>
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
