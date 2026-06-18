@@ -75,6 +75,13 @@ export default function App() {
       console.error(e);
     }
   }, [currentView]);
+
+  // Auto-hide install toast
+  useEffect(() => {
+    if (!installToast) return;
+    const timer = setTimeout(() => setInstallToast(false), 4000);
+    return () => clearTimeout(timer);
+  }, [installToast]);
   
   // Modals state
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
