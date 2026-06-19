@@ -405,7 +405,7 @@ export default function App() {
         <div className="mx-auto max-w-[1400px] px-3 sm:px-6 lg:px-8 flex flex-col lg:flex-row gap-3 sm:gap-6 animate-slide-up">
           
           {/* Sidebar */}
-          <aside className="w-full lg:w-72 flex-shrink-0 space-y-6">
+          <aside className="w-full lg:w-72 flex-shrink-0 space-y-3 sm:space-y-6">
             
             {/* Logged User Info */}
             <div className="sit-panel p-5 relative overflow-hidden animate-fade-in" id="sidebar-user-card">
