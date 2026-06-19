@@ -238,3 +238,86 @@ body {
   background: rgba(255, 255, 255, 0.2);
   border-radius: 4px;
 }
+
+/* =====================================================================
+   MOBILE RESPONSIVENESS LAYER
+   Preserves the entire visual identity (colors, gradients, panels,
+   typography scale, shadows). Only compacts spacing, font-size and
+   information density on small screens, and prevents horizontal overflow.
+   ===================================================================== */
+
+/* Hard guard against horizontal overflow caused by stray wide children */
+html, body, #root {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+@media (max-width: 640px) {
+  /* --- Typography: proportional shrink, legibility preserved --- */
+  .typ-hero          { font-size: 1.05rem; line-height: 1.2; }
+  .typ-section-title { font-size: 0.98rem; }
+  .typ-subtitle      { font-size: 0.6rem; letter-spacing: 0.04em; }
+  .typ-stat          { font-size: 1.5rem; }
+  .typ-brand         { font-size: 1rem; }
+  .typ-brand-sub     { font-size: 0.5rem; letter-spacing: 0.08em; }
+  .typ-card-title    { font-size: 0.8rem; }
+  .typ-card-desc     { font-size: 0.7rem; line-height: 1.35; }
+  .typ-badge         { font-size: 0.6rem; }
+  .typ-mono-meta     { font-size: 0.7rem; }
+  .typ-form-label    { font-size: 0.7rem; }
+
+  /* --- Panel density: compact paddings & rounded corners --- */
+  .sit-panel       { border-radius: 0.85rem; }
+  .sit-panel-glass { border-radius: 0.85rem; }
+  .sit-panel-inner { border-radius: 0.6rem; }
+
+  /* Compact common Tailwind paddings used inside panels on mobile.
+     Only targets .sit-panel* to avoid affecting unrelated UI. */
+  .sit-panel.p-8,
+  .sit-panel-glass.p-8 { padding: 1rem !important; }
+  .sit-panel.p-6,
+  .sit-panel-glass.p-6 { padding: 0.875rem !important; }
+  .sit-panel.p-5,
+  .sit-panel-glass.p-5 { padding: 0.75rem !important; }
+  .sit-panel.p-4,
+  .sit-panel-glass.p-4 { padding: 0.625rem !important; }
+
+  /* Tighten outer page chrome */
+  main { padding-bottom: 1.25rem; }
+  header.pt-8 { padding-top: 1rem; }
+  header.pb-4 { padding-bottom: 0.5rem; }
+
+  /* Inputs */
+  .sit-input { font-size: 0.8rem; }
+
+  /* Custom scrollbars even thinner on mobile */
+  ::-webkit-scrollbar { width: 3px; height: 3px; }
+
+  /* Prevent descendants from blowing out the viewport */
+  .sit-panel,
+  .sit-panel-glass,
+  .sit-panel-inner { max-width: 100%; }
+
+  /* Tables: keep scroll container, but make rows denser */
+  table { font-size: 0.72rem; }
+  th, td { padding-top: 0.4rem !important; padding-bottom: 0.4rem !important; }
+
+  /* Image / chart wrappers should never overflow */
+  img, svg, canvas, video { max-width: 100%; height: auto; }
+
+  /* Recharts/SVG containers occasionally exceed parent width on mobile */
+  .recharts-responsive-container,
+  .recharts-wrapper { max-width: 100% !important; }
+}
+
+/* Extra-small phones: a final pass for sub-380px screens */
+@media (max-width: 380px) {
+  .typ-hero      { font-size: 0.98rem; }
+  .typ-stat      { font-size: 1.3rem; }
+  .typ-brand     { font-size: 0.92rem; }
+  .sit-panel.p-6,
+  .sit-panel-glass.p-6 { padding: 0.75rem !important; }
+  .sit-panel.p-5,
+  .sit-panel-glass.p-5 { padding: 0.65rem !important; }
+}
+
