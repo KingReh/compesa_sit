@@ -169,8 +169,7 @@ export function exportReportToPDF(data: ReportExportData) {
 
   doc.setFontSize(9);
   doc.setFont('helvetica', 'normal');
-  const filterLine = `Ano: ${data.selectedYear}  •  Empresa: ${data.selectedCompanyFilter || 'Todas'}  •  Coordenação: ${data.selectedCoordFilter || 'Todas'}  •  Gerado em ${new Date().toLocaleString('pt-BR')}`;
-  doc.text(filterLine, pageWidth / 2, 58, { align: 'center' });
+  doc.text(`Gerado em ${new Date().toLocaleString('pt-BR')}`, pageWidth / 2, 58, { align: 'center' });
 
   const themeOpts = {
     theme: 'grid' as const,
@@ -194,10 +193,30 @@ export function exportReportToPDF(data: ReportExportData) {
     });
   };
 
-  // Resumo (KPIs as table)
+  // Filtros aplicados
+  doc.setFontSize(11);
+  doc.setFont('helvetica', 'bold');
+  doc.text('Filtros Aplicados', 30, 78);
   autoTable(doc, {
     ...themeOpts,
-    startY: 75,
+    startY: 84,
+    head: [['Filtro', 'Valor']],
+    body: [
+      ['Ano', String(data.selectedYear)],
+      ['Empresa', data.selectedCompanyFilter || 'Todas'],
+      ['Coordenação', data.selectedCoordFilter || 'Todas'],
+      ['Registros após filtragem', String(data.filteredEmployees.length)],
+    ],
+  });
+
+  // Resumo (KPIs as table)
+  doc.setFontSize(11);
+  doc.setFont('helvetica', 'bold');
+  const kpiY = ((doc as any).lastAutoTable?.finalY ?? 84) + 18;
+  doc.text('Indicadores', 30, kpiY);
+  autoTable(doc, {
+    ...themeOpts,
+    startY: kpiY + 6,
     head: [['Indicador', 'Valor']],
     body: data.stats ? [
       ['Total de Funcionários', String(data.stats.total)],
