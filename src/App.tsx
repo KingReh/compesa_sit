@@ -272,13 +272,13 @@ export default function App() {
       return (
         <div className="animate-fade-in">
           {/* Top Panel (Actions & Title) */}
-          <div className="sit-panel p-6 mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+          <div className="sit-panel p-4 sm:p-6 mb-4 sm:mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-6">
             <div>
                <p className="typ-subtitle mb-1">Portal Geral Corporativo</p>
                <h2 className="typ-hero mt-1">SIT - Painel Executivo</h2>
                <p className="typ-card-desc mt-1">Console consolidado para monitoramento de efetivo, alocações e conformidade de equipes.</p>
             </div>
-            <div className="flex flex-col flex-1 sm:flex-row items-center justify-end gap-4 w-full">
+            <div className="flex flex-col flex-1 sm:flex-row items-center justify-end gap-2 sm:gap-4 w-full">
                 <div className="relative w-full sm:max-w-xs">
                   <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-brand-muted">
                     <Search className="h-4 w-4" aria-hidden="true" />
@@ -288,14 +288,14 @@ export default function App() {
                     placeholder="Pesquisar..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="sit-input block w-full rounded-lg py-2.5 pl-10 pr-4 sm:text-sm"
+                    className="sit-input block w-full rounded-lg py-2 sm:py-2.5 pl-10 pr-4 text-xs sm:text-sm"
                   />
                 </div>
                 <button
                   onClick={handleOpenNew}
-                  className="sit-button-primary w-full sm:w-auto inline-flex justify-center items-center gap-x-2 rounded-lg px-5 py-2.5 text-sm font-bold shadow-sm shrink-0"
+                  className="sit-button-primary w-full sm:w-auto inline-flex justify-center items-center gap-x-2 rounded-lg px-4 sm:px-5 py-2 sm:py-2.5 text-sm font-bold shadow-sm shrink-0"
                 >
-                  <Plus className="-ml-0.5 h-5 w-5" aria-hidden="true" />
+                  <Plus className="-ml-0.5 h-4 w-4 sm:h-5 sm:w-5" aria-hidden="true" />
                   <span className="typ-card-title !text-white">Cadastrar</span>
                 </button>
             </div>
@@ -366,7 +366,7 @@ export default function App() {
       
       {/* Header NavBar */}
       <header className="pt-8 pb-4">
-        <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-[1400px] px-3 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-brand-bg shadow-lg shadow-black/10">
@@ -402,10 +402,10 @@ export default function App() {
 
       {/* Main Content with Sidebar */}
       <main className="flex-1 pb-8">
-        <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8 flex flex-col lg:flex-row gap-6 animate-slide-up">
+        <div className="mx-auto max-w-[1400px] px-3 sm:px-6 lg:px-8 flex flex-col lg:flex-row gap-3 sm:gap-6 animate-slide-up">
           
           {/* Sidebar */}
-          <aside className="w-full lg:w-72 flex-shrink-0 space-y-6">
+          <aside className="w-full lg:w-72 flex-shrink-0 space-y-3 sm:space-y-6">
             
             {/* Logged User Info */}
             <div className="sit-panel p-5 relative overflow-hidden animate-fade-in" id="sidebar-user-card">
