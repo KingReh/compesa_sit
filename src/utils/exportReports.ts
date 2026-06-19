@@ -51,6 +51,35 @@ function getTimestamp(): string {
   return `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}`;
 }
 
+function sanitizeFileName(name: string): string {
+  return name
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-zA-Z0-9\-_]/g, '_')
+    .replace(/_+/g, '_')
+    .replace(/^_+|_+$/g, '');
+}
+
+function buildFileName(data: ReportExportData): string {
+  const parts: string[] = ['relatorio_sit'];
+  parts.push(String(data.selectedYear));
+
+  if (data.selectedCompanyFilter) {
+    parts.push(sanitizeFileName(data.selectedCompanyFilter));
+  } else {
+    parts.push('Todas_Empresas');
+  }
+
+  if (data.selectedCoordFilter) {
+    parts.push(sanitizeFileName(data.selectedCoordFilter));
+  } else {
+    parts.push('Todas_Coordenacoes');
+  }
+
+  parts.push(getTimestamp());
+  return parts.join('_');
+}
+
 function buildSheets(data: ReportExportData) {
   const { selectedYear, selectedCompanyFilter, selectedCoordFilter, filteredEmployees, vacationPlans, stats } = data;
 
@@ -150,12 +179,12 @@ function buildWorkbook(data: ReportExportData) {
 
 export function exportReportToXLSX(data: ReportExportData) {
   const wb = buildWorkbook(data);
-  XLSX.writeFile(wb, `relatorio_sit_${getTimestamp()}.xlsx`, { bookType: 'xlsx' });
+  XLSX.writeFile(wb, `${buildFileName(data)}.xlsx`, { bookType: 'xlsx' });
 }
 
 export function exportReportToODS(data: ReportExportData) {
   const wb = buildWorkbook(data);
-  XLSX.writeFile(wb, `relatorio_sit_${getTimestamp()}.ods`, { bookType: 'ods' });
+  XLSX.writeFile(wb, `${buildFileName(data)}.ods`, { bookType: 'ods' });
 }
 
 export function exportReportToPDF(data: ReportExportData) {
@@ -265,5 +294,5 @@ export function exportReportToPDF(data: ReportExportData) {
     doc.text(`Página ${i} de ${pageCount}`, pageWidth - 30, doc.internal.pageSize.getHeight() - 20, { align: 'right' });
   }
 
-  doc.save(`relatorio_sit_${getTimestamp()}.pdf`);
+  doc.save(`${buildFileName(data)}.pdf`);
 }
