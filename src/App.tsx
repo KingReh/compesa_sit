@@ -272,7 +272,7 @@ export default function App() {
       return (
         <div className="animate-fade-in">
           {/* Top Panel (Actions & Title) */}
-          <div className="sit-panel p-6 mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+          <div className="sit-panel p-4 sm:p-6 mb-4 sm:mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-6">
             <div>
                <p className="typ-subtitle mb-1">Portal Geral Corporativo</p>
                <h2 className="typ-hero mt-1">SIT - Painel Executivo</h2>
