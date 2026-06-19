@@ -402,7 +402,7 @@ export default function App() {
 
       {/* Main Content with Sidebar */}
       <main className="flex-1 pb-8">
-        <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8 flex flex-col lg:flex-row gap-6 animate-slide-up">
+        <div className="mx-auto max-w-[1400px] px-3 sm:px-6 lg:px-8 flex flex-col lg:flex-row gap-3 sm:gap-6 animate-slide-up">
           
           {/* Sidebar */}
           <aside className="w-full lg:w-72 flex-shrink-0 space-y-6">
