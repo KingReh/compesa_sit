@@ -179,12 +179,12 @@ function buildWorkbook(data: ReportExportData) {
 
 export function exportReportToXLSX(data: ReportExportData) {
   const wb = buildWorkbook(data);
-  XLSX.writeFile(wb, `relatorio_sit_${getTimestamp()}.xlsx`, { bookType: 'xlsx' });
+  XLSX.writeFile(wb, `${buildFileName(data)}.xlsx`, { bookType: 'xlsx' });
 }
 
 export function exportReportToODS(data: ReportExportData) {
   const wb = buildWorkbook(data);
-  XLSX.writeFile(wb, `relatorio_sit_${getTimestamp()}.ods`, { bookType: 'ods' });
+  XLSX.writeFile(wb, `${buildFileName(data)}.ods`, { bookType: 'ods' });
 }
 
 export function exportReportToPDF(data: ReportExportData) {
@@ -294,5 +294,5 @@ export function exportReportToPDF(data: ReportExportData) {
     doc.text(`Página ${i} de ${pageCount}`, pageWidth - 30, doc.internal.pageSize.getHeight() - 20, { align: 'right' });
   }
 
-  doc.save(`relatorio_sit_${getTimestamp()}.pdf`);
+  doc.save(`${buildFileName(data)}.pdf`);
 }
