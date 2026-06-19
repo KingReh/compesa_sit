@@ -278,7 +278,7 @@ export default function App() {
                <h2 className="typ-hero mt-1">SIT - Painel Executivo</h2>
                <p className="typ-card-desc mt-1">Console consolidado para monitoramento de efetivo, alocações e conformidade de equipes.</p>
             </div>
-            <div className="flex flex-col flex-1 sm:flex-row items-center justify-end gap-4 w-full">
+            <div className="flex flex-col flex-1 sm:flex-row items-center justify-end gap-2 sm:gap-4 w-full">
                 <div className="relative w-full sm:max-w-xs">
                   <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-brand-muted">
                     <Search className="h-4 w-4" aria-hidden="true" />
@@ -288,14 +288,14 @@ export default function App() {
                     placeholder="Pesquisar..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="sit-input block w-full rounded-lg py-2.5 pl-10 pr-4 sm:text-sm"
+                    className="sit-input block w-full rounded-lg py-2 sm:py-2.5 pl-10 pr-4 text-xs sm:text-sm"
                   />
                 </div>
                 <button
                   onClick={handleOpenNew}
-                  className="sit-button-primary w-full sm:w-auto inline-flex justify-center items-center gap-x-2 rounded-lg px-5 py-2.5 text-sm font-bold shadow-sm shrink-0"
+                  className="sit-button-primary w-full sm:w-auto inline-flex justify-center items-center gap-x-2 rounded-lg px-4 sm:px-5 py-2 sm:py-2.5 text-sm font-bold shadow-sm shrink-0"
                 >
-                  <Plus className="-ml-0.5 h-5 w-5" aria-hidden="true" />
+                  <Plus className="-ml-0.5 h-4 w-4 sm:h-5 sm:w-5" aria-hidden="true" />
                   <span className="typ-card-title !text-white">Cadastrar</span>
                 </button>
             </div>
