@@ -366,7 +366,7 @@ export default function App() {
       
       {/* Header NavBar */}
       <header className="pt-8 pb-4">
-        <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-[1400px] px-3 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-brand-bg shadow-lg shadow-black/10">
