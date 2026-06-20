@@ -710,25 +710,26 @@ export function Reports({ employees, coordenacoes, contratos, unidades, empresas
       <div className="flex border-b border-white/10 shrink-0 overflow-x-auto whitespace-nowrap scrollbar-none -mx-4 px-4 sm:mx-0 sm:px-0">
         <button
           onClick={() => setActiveSubTab('dashboard')}
-          className={`flex items-center gap-2 px-6 py-3 border-b-2 font-bold text-xs uppercase tracking-widest transition-all shrink-0 ${
+          className={`flex-1 sm:flex-none flex items-center justify-center gap-1.5 sm:gap-2 px-2 sm:px-6 py-2.5 sm:py-3 border-b-2 font-bold text-[10px] sm:text-xs uppercase tracking-wider sm:tracking-widest transition-all min-w-0 ${
             activeSubTab === 'dashboard' 
               ? 'border-brand-accent text-white bg-white/5' 
               : 'border-transparent text-brand-muted hover:text-white'
           }`}
         >
-          <BarChart3 className="w-4 h-4 text-brand-accent" />
-          <span>Dashboard</span>
+          <BarChart3 className="w-4 h-4 text-brand-accent shrink-0" />
+          <span className="truncate">Dashboard</span>
         </button>
         <button
           onClick={() => setActiveSubTab('ferias')}
-          className={`flex items-center gap-2 px-6 py-3 border-b-2 font-bold text-xs uppercase tracking-widest transition-all shrink-0 ${
+          className={`flex-1 sm:flex-none flex items-center justify-center gap-1.5 sm:gap-2 px-2 sm:px-6 py-2.5 sm:py-3 border-b-2 font-bold text-[10px] sm:text-xs uppercase tracking-wider sm:tracking-widest transition-all min-w-0 ${
             activeSubTab === 'ferias' 
               ? 'border-brand-accent text-white bg-white/5' 
               : 'border-transparent text-brand-muted hover:text-white'
           }`}
         >
-          <Calendar className="w-4 h-4 text-brand-accent" />
-          <span>Planejamento de Férias ({selectedYear})</span>
+          <Calendar className="w-4 h-4 text-brand-accent shrink-0" />
+          <span className="truncate sm:hidden">Férias ({selectedYear})</span>
+          <span className="truncate hidden sm:inline">Planejamento de Férias ({selectedYear})</span>
         </button>
 
       </div>
