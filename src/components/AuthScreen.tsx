@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { User as AppUser, UserProfile, AuthSession } from '../types';
 import { hashPassword, evaluatePasswordStrength } from '../utils/crypto';
+import { formatEmployeeName } from '../utils';
 
 // In-memory/localStorage constants
 const USERS_STORAGE_KEY = '@sit:users';
