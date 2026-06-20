@@ -617,50 +617,54 @@ export function RegistrationPanel({
     <div className="animate-fade-in flex flex-col gap-6">
       
       {/* Tabs */}
-      <div className="flex bg-black/20 p-1 rounded-lg w-fit mb-2">
+      <div className="flex bg-black/20 p-1 rounded-lg w-full sm:w-fit mb-2">
         <button
           onClick={() => setActiveTab('coordenacoes')}
-          className={`flex items-center gap-2 px-6 py-2.5 rounded-md transition-colors ${
-            activeTab === 'coordenacoes' 
-            ? 'bg-brand-accent text-brand-bg font-semibold shadow-sm' 
+          className={`flex flex-1 sm:flex-none items-center justify-center gap-1 sm:gap-2 px-2 sm:px-6 py-2 sm:py-2.5 rounded-md transition-colors text-xs sm:text-sm whitespace-nowrap ${
+            activeTab === 'coordenacoes'
+            ? 'bg-brand-accent text-brand-bg font-semibold shadow-sm'
             : 'text-white hover:bg-black/20'
           }`}
         >
-          <Building className="w-4 h-4" />
-          Coordenações
+          <Building className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+          <span className="sm:hidden">Coords</span>
+          <span className="hidden sm:inline">Coordenações</span>
         </button>
         <button
           onClick={() => setActiveTab('contratos')}
-          className={`flex items-center gap-2 px-6 py-2.5 rounded-md transition-colors ${
-            activeTab === 'contratos' 
-            ? 'bg-brand-accent text-brand-bg font-semibold shadow-sm' 
+          className={`flex flex-1 sm:flex-none items-center justify-center gap-1 sm:gap-2 px-2 sm:px-6 py-2 sm:py-2.5 rounded-md transition-colors text-xs sm:text-sm whitespace-nowrap ${
+            activeTab === 'contratos'
+            ? 'bg-brand-accent text-brand-bg font-semibold shadow-sm'
             : 'text-white hover:bg-black/20'
           }`}
         >
-          <FileSignature className="w-4 h-4" />
-          Contratos
+          <FileSignature className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+          <span className="sm:hidden">Contr.</span>
+          <span className="hidden sm:inline">Contratos</span>
         </button>
         <button
           onClick={() => setActiveTab('unidades')}
-          className={`flex items-center gap-2 px-6 py-2.5 rounded-md transition-colors ${
-            activeTab === 'unidades' 
-            ? 'bg-brand-accent text-brand-bg font-semibold shadow-sm' 
+          className={`flex flex-1 sm:flex-none items-center justify-center gap-1 sm:gap-2 px-2 sm:px-6 py-2 sm:py-2.5 rounded-md transition-colors text-xs sm:text-sm whitespace-nowrap ${
+            activeTab === 'unidades'
+            ? 'bg-brand-accent text-brand-bg font-semibold shadow-sm'
             : 'text-white hover:bg-black/20'
           }`}
         >
-          <MapPin className="w-4 h-4" />
-          Unidades
+          <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+          <span className="sm:hidden">Unids</span>
+          <span className="hidden sm:inline">Unidades</span>
         </button>
         <button
           onClick={() => setActiveTab('empresas')}
-          className={`flex items-center gap-2 px-6 py-2.5 rounded-md transition-colors ${
-            activeTab === 'empresas' 
-            ? 'bg-brand-accent text-brand-bg font-semibold shadow-sm' 
+          className={`flex flex-1 sm:flex-none items-center justify-center gap-1 sm:gap-2 px-2 sm:px-6 py-2 sm:py-2.5 rounded-md transition-colors text-xs sm:text-sm whitespace-nowrap ${
+            activeTab === 'empresas'
+            ? 'bg-brand-accent text-brand-bg font-semibold shadow-sm'
             : 'text-white hover:bg-black/20'
           }`}
         >
-          <Building className="w-4 h-4" />
-          Empresas
+          <Building className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+          <span className="sm:hidden">Empr.</span>
+          <span className="hidden sm:inline">Empresas</span>
         </button>
       </div>
 
