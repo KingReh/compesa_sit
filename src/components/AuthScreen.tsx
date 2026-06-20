@@ -618,7 +618,7 @@ export function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
                     required
                     placeholder="Seu nome profissional completo"
                     value={regNome}
-                    onChange={(e) => setRegNome(e.target.value)}
+                    onChange={(e) => setRegNome(formatEmployeeName(e.target.value))}
                     className="sit-input block w-full rounded-xl py-3 pl-10 pr-4 text-sm"
                   />
                 </div>
