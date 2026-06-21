@@ -17,6 +17,8 @@ import {
   Trash2
 } from 'lucide-react';
 import { Employee, Empresa } from '../types';
+import { useAuth } from '../context/AuthContext';
+import { pointAdjustmentsService } from '../services/pointAdjustmentsService';
 
 interface AjustarPontoModalProps {
   isOpen: boolean;
@@ -63,6 +65,7 @@ const formatDateBR = (dateStr: string): string => {
 
 export function AjustarPontoModal({ isOpen, onClose, employees, initialEmployee, empresas }: AjustarPontoModalProps) {
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
+  const { user } = useAuth();
 
   // General state
   const [selectedColab, setSelectedColab] = useState<Employee | null>(null);
@@ -373,6 +376,22 @@ Contato do Colaborador: ${formattedTel} (Whatsapp)`;
 
     // Save used emails to memory
     saveEmailsToStorage([...paraEmails, ...ccEmails]);
+
+    try {
+      if (selectedColab && user) {
+        await pointAdjustmentsService.savePointAdjustment({
+          employeeId: selectedColab.id,
+          dates: sortedSelectedDates,
+          paraEmails: paraEmails,
+          ccEmails: ccEmails,
+          subject: emailSubject,
+          body: generateEmailBodyHtml(),
+          solicitadoPor: user.id
+        });
+      }
+    } catch (err) {
+      console.error('Erro ao salvar ajuste de ponto no banco:', err);
+    }
 
     try {
       if (typeof ClipboardItem !== 'undefined') {

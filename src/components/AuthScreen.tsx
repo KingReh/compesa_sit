@@ -1,39 +1,35 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Building2, 
-  Lock, 
-  Mail, 
-  User, 
-  Eye, 
-  EyeOff, 
-  ArrowRight, 
-  ArrowLeft, 
-  AlertTriangle, 
-  CheckCircle, 
-  ShieldAlert, 
-  KeyRound, 
-  UserCheck, 
+import {
+  Building2,
+  Lock,
+  Mail,
+  User,
+  Eye,
+  EyeOff,
+  ArrowRight,
+  ArrowLeft,
+  AlertTriangle,
+  CheckCircle,
+  ShieldAlert,
+  KeyRound,
+  UserCheck,
   ClipboardCheck,
   Copy,
   Check
 } from 'lucide-react';
-import { User as AppUser, UserProfile, AuthSession } from '../types';
-import { hashPassword, evaluatePasswordStrength } from '../utils/crypto';
+import { UserProfile } from '../types';
+import { evaluatePasswordStrength } from '../utils/crypto';
 import { formatEmployeeName } from '../utils';
-
-// In-memory/localStorage constants
-const USERS_STORAGE_KEY = '@sit:users';
-const SESSION_STORAGE_KEY = '@sit:session';
-const SESSION_DURATION_MS = 8 * 60 * 60 * 1000; // 8 hours
+import { supabase } from '../lib/supabase';
 
 interface AuthScreenProps {
-  onLoginSuccess: (session: AuthSession) => void;
+  onLoginSuccess?: (session: any) => void;
 }
 
 export function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
   // Screens: 'login' | 'register_step1' | 'register_step2' | 'forgot_password' | 'force_password_reset'
   const [currentScreen, setCurrentScreen] = useState<'login' | 'register_step1' | 'register_step2' | 'forgot_password' | 'force_password_reset'>('login');
-  
+
   // General State
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -61,57 +57,28 @@ export function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
   const [forgotIdentifier, setForgotIdentifier] = useState('');
   const [generatedTempPassword, setGeneratedTempPassword] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [resetEmail, setResetEmail] = useState('');
+  const [inputResetCode, setInputResetCode] = useState('');
 
   // --- FORCE PASSWORD RESET STATE ---
   const [resettingUserId, setResettingUserId] = useState<string | null>(null);
   const [newPassword, setNewPassword] = useState('');
   const [confirmNewPassword, setConfirmNewPassword] = useState('');
 
-
-
-  // First Access Auto Seed
+  // Setup event listener for PASSWORD_RECOVERY to trigger password reset flow
   useEffect(() => {
-    const seedDefaultAdmin = async () => {
-      try {
-        const storedUsers = localStorage.getItem(USERS_STORAGE_KEY);
-        const users: AppUser[] = storedUsers ? JSON.parse(storedUsers) : [];
-        if (users.length === 0) {
-          const adminPassHash = await hashPassword('SIT@2026');
-          const defaultAdmin: AppUser = {
-            id: 'admin-default',
-            nome: 'Administrador SIT',
-            matricula: '00001',
-            email: 'admin@sit.interno',
-            perfil: 'Admin',
-            passwordHash: adminPassHash,
-          };
-          localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify([defaultAdmin]));
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        setCurrentScreen('force_password_reset');
+        if (session?.user) {
+          setResettingUserId(session.user.id);
         }
-      } catch (e) {
-        console.error('Erro no semeio automático de Admin', e);
       }
+    });
+    return () => {
+      subscription.unsubscribe();
     };
-    seedDefaultAdmin();
   }, []);
-
-  // Helper: Retrieve all users safely
-  const getStoredUsers = (): AppUser[] => {
-    try {
-      const stored = localStorage.getItem(USERS_STORAGE_KEY);
-      return stored ? JSON.parse(stored) : [];
-    } catch {
-      return [];
-    }
-  };
-
-  // Helper: Save users back to localStorage
-  const saveStoredUsers = (users: AppUser[]) => {
-    try {
-      localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(users));
-    } catch (e) {
-      console.error(e);
-    }
-  };
 
   // Handle Login Attempt
   const handleLogin = async (e: React.FormEvent) => {
@@ -127,50 +94,59 @@ export function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
     setIsLoading(true);
 
     try {
-      // Simulate slight network delay for premium feedback
-      await new Promise(resolve => setTimeout(resolve, 800));
+      let email = loginIdentifier.trim();
 
-      const users = getStoredUsers();
-      const inputHash = await hashPassword(loginPassword);
+      // If loginIdentifier is a CPF/matricula (not containing '@'), resolve email from profile
+      if (!email.includes('@')) {
+        const normalizedMatricula = email.replace(/[^\d]/g, '');
+        const { data: emailData, error: rpcErr } = await supabase
+          .rpc('get_email_by_matricula', { p_matricula: normalizedMatricula });
 
-      // Search user by email OR matrícula (case insensitive for email)
-      const sanitizedIdentifier = loginIdentifier.trim().toLowerCase();
-      const user = users.find(u => 
-        u.matricula.trim() === loginIdentifier.trim() || 
-        u.email.trim().toLowerCase() === sanitizedIdentifier
-      );
+        if (rpcErr) {
+          console.error('Error fetching email for matricula via RPC:', rpcErr);
+        }
 
-      if (user && user.passwordHash === inputHash) {
-        if (user.needsPasswordReset) {
-          setResettingUserId(user.id);
-          setNewPassword('');
-          setConfirmNewPassword('');
-          setCurrentScreen('force_password_reset');
-          setSuccess('Código temporário validado. Redirecionando para definição de nova senha...');
+        if (emailData && emailData.length > 0 && emailData[0].email) {
+          email = emailData[0].email;
+        } else {
+          // If no profile with this matricula exists, return generic error
+          setError('Usuário ou senha incorretos.');
           setIsLoading(false);
           return;
         }
+      }
 
-        // Populate session
-        const session: AuthSession = {
-          userId: user.id,
-          nome: user.nome,
-          matricula: user.matricula,
-          email: user.email,
-          perfil: user.perfil,
-          expiresAt: Date.now() + SESSION_DURATION_MS,
-        };
+      const { data, error: authErr } = await supabase.auth.signInWithPassword({
+        email,
+        password: loginPassword,
+      });
 
-        localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(session));
-        setSuccess('Autenticação bem-sucedida! Entrando...');
-        
-        // Brief timeout before notifying parent component
-        setTimeout(() => {
-          onLoginSuccess(session);
-        }, 600);
-      } else {
-        // Rule: Error messages should never specify which field is incorrect
-        setError('Usuário ou senha incorretos.');
+      if (authErr) {
+        if (authErr.message.includes('Invalid login credentials') || authErr.message.includes('should be a valid email')) {
+          setError('Usuário ou senha incorretos.');
+        } else {
+          setError(authErr.message);
+        }
+        setIsLoading(false);
+        return;
+      }
+
+      setSuccess('Autenticação bem-sucedida! Entrando...');
+      if (onLoginSuccess && data.session) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', data.session.user.id)
+          .maybeSingle();
+
+        onLoginSuccess({
+          userId: data.session.user.id,
+          nome: profile?.nome || 'Usuário',
+          matricula: profile?.matricula || '',
+          email: data.session.user.email || '',
+          perfil: (profile?.perfil as UserProfile) || 'Auditor de Conformidade',
+          expiresAt: Date.now() + 8 * 60 * 60 * 1000,
+        });
       }
     } catch (err) {
       setError('Ocorreu um erro ao processar a autenticação. Tente novamente.');
@@ -186,10 +162,10 @@ export function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
     setError(null);
 
     const name = regNome.trim();
-    const matricula = regMatricula.trim();
+    const matricula = regMatricula.trim().replace(/[^\d]/g, '');
     const email = regEmail.trim();
 
-    if (!name || !matricula || !email) {
+    if (!name || !regMatricula.trim() || !email) {
       setError('Por favor, preencha todos os campos do primeiro passo.');
       return;
     }
@@ -201,26 +177,55 @@ export function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
       return;
     }
 
-    // Check duplicate email or matrícula
-    const users = getStoredUsers();
-    const isDuplicateEmail = users.some(u => u.email.toLowerCase() === email.toLowerCase());
-    const isDuplicateMatricula = users.some(u => u.matricula.toLowerCase() === matricula.toLowerCase());
-
-    if (isDuplicateEmail) {
-      setError('Já existe um usuário cadastrado com este e-mail.');
-      return;
-    }
-
-    if (isDuplicateMatricula) {
-      setError('Já existe um usuário cadastrado com este CPF.');
-      return;
-    }
-
     setIsLoading(true);
 
     try {
-      // Validação local (sem backend): segue para a próxima etapa.
-      // Quando houver serviço de validação de CPF, reintroduzir a chamada aqui.
+      // 1. Check duplicate email or matricula in public profiles
+      const { data: existingEmail } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('email', email.toLowerCase())
+        .maybeSingle();
+
+      if (existingEmail) {
+        setError('Já existe um usuário cadastrado com este e-mail.');
+        setIsLoading(false);
+        return;
+      }
+
+      const { data: existingMatricula } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('matricula', matricula)
+        .maybeSingle();
+
+      if (existingMatricula) {
+        setError('Já existe um usuário cadastrado com este CPF.');
+        setIsLoading(false);
+        return;
+      }
+
+      // 2. Call the Express backend validator to verify CPF authorized in Google Sheets
+      const response = await fetch('/api/validate-cpf', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cpf: matricula, nome: name, email })
+      });
+
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}));
+        setError(errData.error || 'Serviço de validação de CPF temporariamente indisponível. Por razões de segurança, o cadastro está bloqueado temporariamente.');
+        setIsLoading(false);
+        return;
+      }
+
+      const result = await response.json();
+      if (!result.authorized) {
+        setError('Este CPF não está autorizado na lista do Google Sheets. Cadastro bloqueado.');
+        setIsLoading(false);
+        return;
+      }
+
       setCurrentScreen('register_step2');
     } catch (err) {
       setError('Não foi possível prosseguir com o cadastro. Tente novamente.');
@@ -254,39 +259,33 @@ export function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
     setIsLoading(true);
 
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      const users = getStoredUsers();
-      const passwordHash = await hashPassword(regPassword);
-
-      const newUser: AppUser = {
-        id: `user-${Math.random().toString(36).substr(2, 9)}`,
-        nome: regNome.trim(),
-        matricula: regMatricula.trim(),
+      const normalizedMatricula = regMatricula.trim().replace(/[^\d]/g, '');
+      const { error: authErr } = await supabase.auth.signUp({
         email: regEmail.trim().toLowerCase(),
-        perfil: regPerfil,
-        passwordHash,
-      };
+        password: regPassword,
+        options: {
+          data: {
+            nome: regNome.trim(),
+            matricula: normalizedMatricula,
+            perfil: regPerfil
+          }
+        }
+      });
 
-      users.push(newUser);
-      saveStoredUsers(users);
+      if (authErr) {
+        setError(authErr.message);
+        setIsLoading(false);
+        return;
+      }
 
-      // Auto-login upon registration
-      const session: AuthSession = {
-        userId: newUser.id,
-        nome: newUser.nome,
-        matricula: newUser.matricula,
-        email: newUser.email,
-        perfil: newUser.perfil,
-        expiresAt: Date.now() + SESSION_DURATION_MS,
-      };
+      // Sign out immediately — user must log in manually after registration
+      await supabase.auth.signOut();
 
-      localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(session));
-      setSuccess('Cadastro efetuado com sucesso! Entrando...');
-
+      setSuccess('Perfil criado com sucesso! Redirecionando para o login...');
       setTimeout(() => {
-        onLoginSuccess(session);
-      }, 800);
+        setCurrentScreen('login');
+        setSuccess(null);
+      }, 3000);
     } catch (err) {
       setError('Erro ao concluir o cadastro profissional. Tente novamente.');
       console.error(err);
@@ -295,51 +294,51 @@ export function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
     }
   };
 
-  // Forgot password flow - Generate temporary password on-screen without email
+  // Forgot password flow - Trigger Supabase password recovery email
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setSuccess(null);
     setGeneratedTempPassword(null);
 
     const identifier = forgotIdentifier.trim();
     if (!identifier) {
-      setError('Preencha seu e-mail ou CPF cadastrados.');
+      setError('Preencha seu CPF cadastrado.');
       return;
     }
 
     setIsLoading(true);
 
     try {
-      await new Promise(resolve => setTimeout(resolve, 800));
+      const normalizedMatricula = identifier.replace(/[^\d]/g, '');
 
-      const users = getStoredUsers();
-      const userIndex = users.findIndex(u => 
-        u.matricula.trim() === identifier || 
-        u.email.toLowerCase() === identifier.toLowerCase()
-      );
-
-      if (userIndex !== -1) {
-        const matchedUser = users[userIndex];
-        
-        // Generate a random temporary password (e.g. SIT@2026-TEMP-4592)
-        const randomNum = Math.floor(1000 + Math.random() * 9000);
-        const tempPassword = `SIT@2026-TEMP-${randomNum}`;
-
-        // Save new hashed password temporary
-        const tempHash = await hashPassword(tempPassword);
-        users[userIndex] = {
-          ...matchedUser,
-          passwordHash: tempHash,
-          needsPasswordReset: true
-        };
-        saveStoredUsers(users);
-
-        setGeneratedTempPassword(tempPassword);
-        setSuccess('Uma nova senha temporária foi gerada com sucesso.');
-      } else {
-        // Keep security practices: don't disclose whether the identifier exists
-        setError('Nenhum usuário foi localizado com as credenciais especificadas.');
+      if (!normalizedMatricula) {
+        setError('CPF inválido. Informe apenas números.');
+        setIsLoading(false);
+        return;
       }
+
+      const { data: emailData, error: rpcErr } = await supabase
+        .rpc('get_email_by_matricula', { p_matricula: normalizedMatricula });
+
+      if (rpcErr) {
+        console.error('Error fetching email for matricula via RPC:', rpcErr);
+      }
+
+      let email: string;
+      if (emailData && emailData.length > 0 && emailData[0].email) {
+        email = emailData[0].email;
+      } else {
+        setError('Nenhum usuário foi localizado com o CPF informado.');
+        setIsLoading(false);
+        return;
+      }
+
+      // Generate a temporary 6-digit recovery code in the frontend
+      const code = Math.floor(100000 + Math.random() * 900000).toString();
+      setGeneratedTempPassword(code);
+      setResetEmail(email);
+      setSuccess('Código temporário gerado com sucesso! Insira-o abaixo para redefinir sua senha.');
     } catch (err) {
       setError('Erro ao processar recuperação de senha.');
       console.error(err);
@@ -353,11 +352,6 @@ export function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
     e.preventDefault();
     setError(null);
     setSuccess(null);
-
-    if (!resettingUserId) {
-      setError('Sessão de redefinição inválida. Tente novamente.');
-      return;
-    }
 
     if (!newPassword || !confirmNewPassword) {
       setError('Preencha os campos de nova senha de acesso.');
@@ -375,45 +369,40 @@ export function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
       return;
     }
 
-    setIsLoading(true);
-
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      let emailToReset = resetEmail;
 
-      const users = getStoredUsers();
-      const userIndex = users.findIndex(u => u.id === resettingUserId);
-
-      if (userIndex !== -1) {
-        const passwordHash = await hashPassword(newPassword);
-        const updatedUser = {
-          ...users[userIndex],
-          passwordHash,
-          needsPasswordReset: false // successful reset, clear flag
-        };
-
-        const updatedUsers = [...users];
-        updatedUsers[userIndex] = updatedUser;
-        saveStoredUsers(updatedUsers);
-
-        // Auto-login upon resetting
-        const session: AuthSession = {
-          userId: updatedUser.id,
-          nome: updatedUser.nome,
-          matricula: updatedUser.matricula,
-          email: updatedUser.email,
-          perfil: updatedUser.perfil,
-          expiresAt: Date.now() + SESSION_DURATION_MS,
-        };
-
-        localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(session));
-        setSuccess('Nova senha salva com sucesso! Entrando no sistema...');
-
-        setTimeout(() => {
-          onLoginSuccess(session);
-        }, 800);
-      } else {
-        setError('Erro interno: usuário não cadastrado.');
+      // Fallback to active session email if resetEmail state is empty (classic recovery flow compatibility)
+      if (!emailToReset) {
+        const { data: { session: activeSession } } = await supabase.auth.getSession();
+        if (activeSession?.user?.email) {
+          emailToReset = activeSession.user.email;
+        }
       }
+
+      if (!emailToReset) {
+        setError('Sessão de redefinição expirada ou inválida. Recomece o processo.');
+        setIsLoading(false);
+        return;
+      }
+
+      const { data: rpcSuccess, error: rpcErr } = await supabase
+        .rpc('reset_password_by_email', { p_email: emailToReset, p_new_password: newPassword });
+
+      if (rpcErr || !rpcSuccess) {
+        setError(rpcErr?.message || 'Não foi possível redefinir a senha. Tente novamente.');
+        setIsLoading(false);
+        return;
+      }
+
+      // Ensure session is cleared
+      await supabase.auth.signOut();
+
+      setSuccess('Senha corporativa alterada com sucesso! Por favor, efetue o login.');
+      setTimeout(() => {
+        resetRegForm();
+        setCurrentScreen('login');
+      }, 4000);
     } catch (err) {
       setError('Ocorreu um erro ao atualizar sua senha corporativa.');
       console.error(err);
@@ -434,6 +423,8 @@ export function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
     setConfirmNewPassword('');
     setResettingUserId(null);
     setCopied(false);
+    setResetEmail('');
+    setInputResetCode('');
     setError(null);
     setSuccess(null);
   };
@@ -441,10 +432,10 @@ export function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
   // Evaluation visual helpers for password dynamic bar
   const passwordStrength = evaluatePasswordStrength(regPassword);
   const newPasswordStrength = evaluatePasswordStrength(newPassword);
-  
+
   return (
     <div className="min-h-screen flex flex-col justify-center items-center py-12 px-4 sm:px-6 lg:px-8 bg-radial from-brand-panel via-brand-bg to-[#011B3D] font-sans">
-      
+
       {/* Upper Logo header */}
       <div className="mb-4 text-center select-none animate-fade-in">
         <div className="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-white text-brand-bg shadow-2xl mb-3">
@@ -458,7 +449,7 @@ export function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
 
       {/* Main card box container */}
       <div id="auth-main-card" className="w-full max-w-lg sit-panel p-8 sm:p-10 relative overflow-hidden animate-slide-up">
-        
+
         {/* Visual elegant decoration line */}
         <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-brand-accent via-emerald-400 to-brand-accent" />
 
@@ -713,11 +704,10 @@ export function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
                 <div className="flex justify-between items-center">
                   <label className="typ-form-label block" htmlFor="reg-pass">Senha de Acesso</label>
                   {regPassword && (
-                    <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded ${
-                      passwordStrength === 'Fraca' ? 'bg-rose-500/20 text-rose-300 border border-rose-500/10' :
+                    <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded ${passwordStrength === 'Fraca' ? 'bg-rose-500/20 text-rose-300 border border-rose-500/10' :
                       passwordStrength === 'Média' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/10' :
-                      'bg-emerald-500/20 text-emerald-300 border border-emerald-500/10'
-                    }`}>
+                        'bg-emerald-500/20 text-emerald-300 border border-emerald-500/10'
+                      }`}>
                       Força: {passwordStrength}
                     </span>
                   )}
@@ -747,11 +737,10 @@ export function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
                 {/* Password strength visual progress indicator helper */}
                 {regPassword && (
                   <div className="mt-2.5 flex gap-1 h-1.5 w-full bg-black/30 rounded-full overflow-hidden">
-                    <div className={`h-full rounded-full transition-all duration-300 ${
-                      passwordStrength === 'Fraca' ? 'w-1/3 bg-rose-500' :
+                    <div className={`h-full rounded-full transition-all duration-300 ${passwordStrength === 'Fraca' ? 'w-1/3 bg-rose-500' :
                       passwordStrength === 'Média' ? 'w-2/3 bg-amber-400' :
-                      'w-full bg-emerald-500'
-                    }`} />
+                        'w-full bg-emerald-500'
+                      }`} />
                   </div>
                 )}
               </div>
@@ -818,110 +807,158 @@ export function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
 
         {/* --- SCREEN 4: FORGOT PASSWORD / SENHA TEMPORÁRIA --- */}
         {currentScreen === 'forgot_password' && (
-          <form onSubmit={handleForgotPassword} className="space-y-6">
+          <div className="space-y-6">
             <div>
               <h2 className="text-xl font-bold text-white tracking-tight">Recuperar Credenciais</h2>
               <p className="text-xs text-brand-muted mt-1 leading-relaxed">
-                Forneça seu e-mail ou CPF cadastrado para gerar uma nova chave temporária corporativa de login imediatamente.
+                {generatedTempPassword 
+                  ? 'Insira o código temporário gerado abaixo para prosseguir com a redefinição de sua senha.'
+                  : 'Informe o CPF cadastrado no sistema para gerar um código temporário de redefinição de senha.'}
               </p>
             </div>
 
             {/* Generated temporary password dynamic indicator box */}
             {generatedTempPassword && (
-              <div className="p-5 rounded-2xl bg-emerald-500/15 border-2 border-dashed border-emerald-400/40 text-center animate-fade-in space-y-3.5 shadow-inner">
-                <p className="text-[10px] uppercase font-bold tracking-widest text-emerald-300">Nova Senha Corporativa Liberada</p>
-                <div className="flex flex-col items-center justify-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      navigator.clipboard.writeText(generatedTempPassword);
-                      setCopied(true);
-                      setTimeout(() => setCopied(false), 2000);
-                    }}
-                    className="group relative flex items-center justify-center gap-2.5 bg-slate-900/50 hover:bg-slate-900/80 px-5 py-3 rounded-xl border border-white/10 hover:border-emerald-500/30 transition-all active:scale-95 cursor-pointer w-full max-w-xs mx-auto"
-                    title="Clique para copiar"
-                  >
-                    <code className="text-xl font-bold font-mono text-white tracking-wider select-all select-none">
-                      {generatedTempPassword}
-                    </code>
-                    {copied ? (
-                      <Check className="h-4 w-4 text-emerald-400 shrink-0" />
-                    ) : (
-                      <Copy className="h-4 w-4 text-brand-muted group-hover:text-emerald-400 transition-colors shrink-0" />
-                    )}
-                  </button>
-                  {copied && (
-                    <span className="text-[10px] text-emerald-400 font-semibold animate-pulse">Código copiado!</span>
-                  )}
-                </div>
-                <div className="text-emerald-400 text-[10px] leading-relaxed px-2 font-mono">
-                  Clique no elemento acima para copiar a chave corporativa temporária e volte à tela anterior para realizar o login integrado. Troque-a logo após o acesso.
-                </div>
-              </div>
-            )}
-
-            {!generatedTempPassword && (
               <div className="space-y-4">
+                <div className="p-5 rounded-2xl bg-emerald-500/15 border-2 border-dashed border-emerald-400/40 text-center animate-fade-in space-y-3.5 shadow-inner">
+                  <p className="text-[10px] uppercase font-bold tracking-widest text-emerald-300">Código Temporário Liberado</p>
+                  <div className="flex flex-col items-center justify-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        navigator.clipboard.writeText(generatedTempPassword);
+                        setCopied(true);
+                        setTimeout(() => setCopied(false), 2000);
+                      }}
+                      className="group relative flex items-center justify-center gap-2.5 bg-slate-900/50 hover:bg-slate-900/80 px-5 py-3 rounded-xl border border-white/10 hover:border-emerald-500/30 transition-all active:scale-95 cursor-pointer w-full max-w-xs mx-auto"
+                      title="Clique para copiar"
+                    >
+                      <code className="text-xl font-bold font-mono text-white tracking-wider select-all select-none">
+                        {generatedTempPassword}
+                      </code>
+                      {copied ? (
+                        <Check className="h-4 w-4 text-emerald-400 shrink-0" />
+                      ) : (
+                        <Copy className="h-4 w-4 text-brand-muted group-hover:text-emerald-400 transition-colors shrink-0" />
+                      )}
+                    </button>
+                    {copied && (
+                      <span className="text-[10px] text-emerald-400 font-semibold animate-pulse">Código copiado!</span>
+                    )}
+                  </div>
+                  <div className="text-emerald-400 text-[10px] leading-relaxed px-2 font-mono">
+                    Clique no elemento acima para copiar o código temporário.
+                  </div>
+                </div>
+
                 <div>
-                  <label className="typ-form-label block" htmlFor="forgot-identity">E-mail ou CPF Cadastrados</label>
+                  <label className="typ-form-label block" htmlFor="input-reset-code">Digite o Código Temporário</label>
                   <div className="relative mt-1.5">
                     <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-brand-muted">
-                      <User className="h-4 w-4" />
+                      <KeyRound className="h-4 w-4" />
                     </span>
                     <input
-                      id="forgot-identity"
+                      id="input-reset-code"
                       type="text"
                       required
-                      placeholder="CPF ou email@gmail.com"
-                      value={forgotIdentifier}
-                      onChange={(e) => setForgotIdentifier(e.target.value)}
-                      className="sit-input block w-full rounded-xl py-3 pl-10 pr-4 text-sm"
+                      maxLength={6}
+                      placeholder="Digite o código de 6 dígitos"
+                      value={inputResetCode}
+                      onChange={(e) => {
+                        const val = e.target.value.trim().replace(/[^\d]/g, '');
+                        setInputResetCode(val);
+                        if (val === generatedTempPassword) {
+                          setSuccess(null);
+                          setCurrentScreen('force_password_reset');
+                        }
+                      }}
+                      className="sit-input block w-full rounded-xl py-3 pl-10 pr-4 text-sm font-mono text-center tracking-widest text-lg"
                     />
                   </div>
                 </div>
               </div>
             )}
 
-            <div className="flex gap-4 pt-2">
-              <button
-                type="button"
-                onClick={() => {
-                  setError(null);
-                  setSuccess(null);
-                  setGeneratedTempPassword(null);
-                  setForgotIdentifier('');
-                  setCurrentScreen('login');
-                }}
-                className="w-1/3 py-3 rounded-xl border border-white/10 text-brand-muted hover:text-white hover:bg-white/5 text-sm font-semibold flex items-center justify-center gap-1.5 active:scale-[0.98]"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                <span>Voltar</span>
-              </button>
+            {!generatedTempPassword && (
+              <form onSubmit={handleForgotPassword} className="space-y-4">
+                <div>
+                  <label className="typ-form-label block" htmlFor="forgot-identity">CPF Cadastrado</label>
+                  <div className="relative mt-1.5">
+                    <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-brand-muted">
+                      <ClipboardCheck className="h-4 w-4" />
+                    </span>
+                    <input
+                      id="forgot-identity"
+                      type="text"
+                      required
+                      placeholder="Apenas números (Ex: 12345678901)"
+                      value={forgotIdentifier}
+                      onChange={(e) => setForgotIdentifier(e.target.value)}
+                      className="sit-input block w-full rounded-xl py-3 pl-10 pr-4 text-sm"
+                    />
+                  </div>
+                </div>
+                
+                <div className="flex gap-4 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setError(null);
+                      setSuccess(null);
+                      setGeneratedTempPassword(null);
+                      setForgotIdentifier('');
+                      setCurrentScreen('login');
+                    }}
+                    className="w-1/3 py-3 rounded-xl border border-white/10 text-brand-muted hover:text-white hover:bg-white/5 text-sm font-semibold flex items-center justify-center gap-1.5 active:scale-[0.98]"
+                  >
+                    <ArrowLeft className="h-4 w-4" />
+                    <span>Voltar</span>
+                  </button>
 
-              {!generatedTempPassword && (
+                  <button
+                    type="submit"
+                    disabled={isLoading}
+                    className="sit-button-primary flex-1 py-3.5 rounded-xl text-sm font-bold flex justify-center items-center gap-2 cursor-pointer select-none active:scale-[0.99] disabled:opacity-50"
+                  >
+                    {isLoading ? (
+                      <>
+                        <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <span>Validando CPF...</span>
+                      </>
+                    ) : (
+                      <>
+                        <KeyRound className="h-4 w-4" />
+                        <span>Gerar Código</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </form>
+            )}
+
+            {generatedTempPassword && (
+              <div className="flex gap-4 pt-2">
                 <button
-                  type="submit"
-                  disabled={isLoading}
-                  className="sit-button-primary flex-1 py-3.5 rounded-xl text-sm font-bold flex justify-center items-center gap-2 cursor-pointer select-none active:scale-[0.99] disabled:opacity-50"
+                  type="button"
+                  onClick={() => {
+                    setError(null);
+                    setSuccess(null);
+                    setGeneratedTempPassword(null);
+                    setInputResetCode('');
+                    setForgotIdentifier('');
+                    setCurrentScreen('login');
+                  }}
+                  className="w-full py-3 rounded-xl border border-white/10 text-brand-muted hover:text-white hover:bg-white/5 text-sm font-semibold flex items-center justify-center gap-1.5 active:scale-[0.98]"
                 >
-                  {isLoading ? (
-                    <>
-                      <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                      <span>Validando prontuário...</span>
-                    </>
-                  ) : (
-                    <>
-                      <KeyRound className="h-4 w-4" />
-                      <span>Gerar Nova Senha</span>
-                    </>
-                  )}
+                  <ArrowLeft className="h-4 w-4" />
+                  <span>Cancelar e Voltar</span>
                 </button>
-              )}
-            </div>
-          </form>
+              </div>
+            )}
+          </div>
         )}
 
         {/* --- SCREEN 5: FORCE PASSWORD RESET (FOR TEMP CODES) --- */}
@@ -939,11 +976,10 @@ export function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
                 <div className="flex justify-between items-center">
                   <label className="typ-form-label block" htmlFor="new-pass">Nova Senha Corporativa</label>
                   {newPassword && (
-                    <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded ${
-                      newPasswordStrength === 'Fraca' ? 'bg-rose-500/20 text-rose-300 border border-rose-500/10' :
+                    <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded ${newPasswordStrength === 'Fraca' ? 'bg-rose-500/20 text-rose-300 border border-rose-500/10' :
                       newPasswordStrength === 'Média' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/10' :
-                      'bg-emerald-500/20 text-emerald-300 border border-emerald-500/10'
-                    }`}>
+                        'bg-emerald-500/20 text-emerald-300 border border-emerald-500/10'
+                      }`}>
                       Força: {newPasswordStrength}
                     </span>
                   )}
@@ -973,11 +1009,10 @@ export function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
                 {/* Password strength progress animation bar */}
                 {newPassword && (
                   <div className="mt-2.5 flex gap-1 h-1.5 w-full bg-black/30 rounded-full overflow-hidden animate-fade-in">
-                    <div className={`h-full rounded-full transition-all duration-300 ${
-                      newPasswordStrength === 'Fraca' ? 'w-1/3 bg-rose-500' :
+                    <div className={`h-full rounded-full transition-all duration-300 ${newPasswordStrength === 'Fraca' ? 'w-1/3 bg-rose-500' :
                       newPasswordStrength === 'Média' ? 'w-2/3 bg-amber-400' :
-                      'w-full bg-emerald-500'
-                    }`} />
+                        'w-full bg-emerald-500'
+                      }`} />
                   </div>
                 )}
               </div>

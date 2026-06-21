@@ -31,6 +31,7 @@ import {
   Plane
 } from 'lucide-react';
 import { Employee, Coordenacao, Empresa, VacationPlan } from '../types';
+import { vacationPlansService } from '../services/vacationPlansService';
 
 interface VacationPlanningProps {
   employees: Employee[];
@@ -293,23 +294,19 @@ export function VacationPlanning({ employees, coordenacoes, empresas }: Vacation
     "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
   ];
 
-  // Load from localStorage on mount and filter out mock/test data
+  // Load from database on mount
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem('@sit:vacation_plans');
-      if (saved) {
-        const parsed: VacationPlan[] = JSON.parse(saved);
-        if (Array.isArray(parsed)) {
-          const filtered = parsed.filter(plan => plan.employeeId && !plan.employeeId.startsWith('emp-'));
-          setSavedPlans(filtered);
-          localStorage.setItem('@sit:vacation_plans', JSON.stringify(filtered));
-        }
+    async function loadPlans() {
+      try {
+        const plans = await vacationPlansService.getVacationPlans();
+        setSavedPlans(plans);
+      } catch (e) {
+        console.error('Erro ao buscar planos de férias:', e);
+      } finally {
+        setIsLoaded(true);
       }
-    } catch (e) {
-      console.error('Failed to parse vacation plans', e);
-    } finally {
-      setIsLoaded(true);
     }
+    loadPlans();
   }, []);
 
   // When savedPlans or selectedYear changes, build the editedPlans map for edits
@@ -409,12 +406,9 @@ export function VacationPlanning({ employees, coordenacoes, empresas }: Vacation
   };
 
   // Save changes handler
-  const handleSavePlanning = () => {
-    // Collect all plans in the current edited state and merge them back with the saved list
+  const handleSavePlanning = async () => {
+    // Collect all plans in the current edited state
     const currentYearKeySuffix = `_${selectedYear}`;
-    
-    // Filter out plans for other years of savedPlans so we overwrite completely for the current selectedYear
-    const otherYearsPlans = savedPlans.filter(p => p.year !== selectedYear);
     
     // Extract plans of this year from the edited map
     const activeEditedPlans = (Object.entries(editedPlans) as [string, VacationPlan][])
@@ -422,18 +416,27 @@ export function VacationPlanning({ employees, coordenacoes, empresas }: Vacation
       .map(([_, plan]) => plan);
 
     // Save only plans that have some content (e.g. either selected a month, checked gozar, or wrote an observation)
-    // Actually, saving all of them keeps the structure, but we can filter empty ones to keep database small
     const nonDefaultPlans = activeEditedPlans.filter(plan => {
       return plan.month !== '' || plan.gozar30Dias || plan.trabalharPrimeiros10Dias || plan.trabalharUltimos10Dias || plan.observacao !== '';
     });
 
-    const merged = [...otherYearsPlans, ...nonDefaultPlans];
+    try {
+      // Save to Supabase
+      const savedResult = await vacationPlansService.saveVacationPlans(nonDefaultPlans, selectedYear);
+      
+      // Update local state by removing old plans for this year and adding new saved ones
+      setSavedPlans(prev => {
+        const otherYears = prev.filter(p => p.year !== selectedYear);
+        return [...otherYears, ...savedResult];
+      });
+
+      setToastMessage(`Planejamento de férias do ano de ${selectedYear} salvo com sucesso!`);
+      setShowSuccessToast(true);
+    } catch (e) {
+      console.error('Erro ao salvar planejamento de férias:', e);
+      alert('Ocorreu um erro ao salvar o planejamento de férias no banco de dados.');
+    }
     
-    setSavedPlans(merged);
-    localStorage.setItem('@sit:vacation_plans', JSON.stringify(merged));
-    
-    setToastMessage(`Planejamento de férias do ano de ${selectedYear} salvo com sucesso!`);
-    setShowSuccessToast(true);
     setTimeout(() => {
       setShowSuccessToast(false);
     }, 4000);

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Search, Plus, Building2, LayoutDashboard, UserPlus, FileText, Settings, Users, Calendar, LogOut, UserCheck, Download, CheckCircle2 } from 'lucide-react';
 import { Employee, Coordenacao, Contrato, Unidade, Empresa, AuthSession } from './types';
 import { formatEmployeeName } from './utils';
+import { useAuth } from './context/AuthContext';
 
 // Normaliza campos de nome de pessoa (contato/responsável/funcionário)
 // aplicando a mesma regra de capitalização usada nos formulários.
@@ -43,39 +44,19 @@ import { Reports } from './components/Reports';
 import { PWAInstallPrompt } from './components/PWAInstallPrompt';
 import { CorporateFABMenu } from './components/CorporateFABMenu';
 import { AuthScreen } from './components/AuthScreen';
+import { empresasService } from './services/empresasService';
+import { coordenacoesService } from './services/coordenacoesService';
+import { unidadesService } from './services/unidadesService';
+import { contratosService } from './services/contratosService';
+import { employeesService } from './services/employeesService';
 
 
 export default function App() {
-  const [session, setSession] = useState<AuthSession | null>(() => {
-    try {
-      const stored = localStorage.getItem('@sit:session');
-      if (stored) {
-        const parsed = JSON.parse(stored) as AuthSession;
-        if (Date.now() < parsed.expiresAt) {
-          return parsed;
-        } else {
-          localStorage.removeItem('@sit:session');
-        }
-      }
-    } catch {}
-    return null;
-  });
+  const { user, isLoading, signOut } = useAuth();
 
   const handleLogout = () => {
-    localStorage.removeItem('@sit:session');
-    setSession(null);
+    signOut();
   };
-
-  // Periodic expiration watcher
-  useEffect(() => {
-    if (!session) return;
-    const interval = setInterval(() => {
-      if (Date.now() >= session.expiresAt) {
-        handleLogout();
-      }
-    }, 10000); // Check every 10 seconds
-    return () => clearInterval(interval);
-  }, [session]);
 
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [coordenacoes, setCoordenacoes] = useState<Coordenacao[]>([]);
@@ -125,136 +106,56 @@ export default function App() {
   const [employeeForWhatsApp, setEmployeeForWhatsApp] = useState<Employee | null>(null);
   const [employeeForAjustarPonto, setEmployeeForAjustarPonto] = useState<Employee | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [isDbLoading, setIsDbLoading] = useState(true);
 
-  // Load data
+  // Load data from Supabase
   useEffect(() => {
+    if (!user) {
+      setIsDbLoading(false);
+      return;
+    }
+
+    async function loadDbData() {
+      try {
+        setIsDbLoading(true);
+        const [empRows, coordRows, unitRows, contrRows, emplRows] = await Promise.all([
+          empresasService.getEmpresas(),
+          coordenacoesService.getCoordenacoes(),
+          unidadesService.getUnidades(),
+          contratosService.getContratos(),
+          employeesService.getEmployees()
+        ]);
+        setEmpresas(empRows);
+        setCoordenacoes(coordRows);
+        setUnidades(unitRows);
+        setContratos(contrRows);
+        setEmployees(emplRows);
+      } catch (err) {
+        console.error('Erro ao carregar dados do Supabase:', err);
+      } finally {
+        setIsDbLoading(false);
+        setIsLoaded(true);
+      }
+    }
+
+    loadDbData();
+  }, [user?.id]);
+
+  const handleSave = async (employee: Omit<Employee, 'id'> & { id?: string }) => {
     try {
-      const savedEmps = localStorage.getItem('@sit:employees');
-      const savedCoords = localStorage.getItem('@sit:coordenacoes');
-      const savedContratos = localStorage.getItem('@sit:contratos');
-      const savedUnidades = localStorage.getItem('@sit:unidades');
-      const savedEmpresas = localStorage.getItem('@sit:empresas');
-
-      if (savedCoords) {
-        const parsed = JSON.parse(savedCoords);
-        if (Array.isArray(parsed)) {
-          const filtered = normalizeCoordenacaoNames(parsed.filter((c: any) => c.id && !c.id.startsWith('coord-')));
-          setCoordenacoes(filtered);
-          localStorage.setItem('@sit:coordenacoes', JSON.stringify(filtered));
-        } else {
-          setCoordenacoes([]);
-          localStorage.setItem('@sit:coordenacoes', JSON.stringify([]));
-        }
+      if (employeeToEdit && employee.id) {
+        const updated = await employeesService.updateEmployee(employee as Employee);
+        setEmployees((prev) => prev.map((e) => e.id === updated.id ? updated : e));
       } else {
-        setCoordenacoes([]);
-        localStorage.setItem('@sit:coordenacoes', JSON.stringify([]));
+        const created = await employeesService.createEmployee(employee);
+        setEmployees((prev) => [...prev, created]);
       }
-
-      if (savedContratos) {
-        const parsed = JSON.parse(savedContratos);
-        if (Array.isArray(parsed)) {
-          const filtered = parsed.filter((c: any) => c.id && !c.id.startsWith('ct-'));
-          setContratos(filtered);
-          localStorage.setItem('@sit:contratos', JSON.stringify(filtered));
-        } else {
-          setContratos([]);
-          localStorage.setItem('@sit:contratos', JSON.stringify([]));
-        }
-      } else {
-        setContratos([]);
-        localStorage.setItem('@sit:contratos', JSON.stringify([]));
-      }
-
-      if (savedUnidades) {
-        const parsed = JSON.parse(savedUnidades);
-        if (Array.isArray(parsed)) {
-          const filtered = parsed.filter((u: any) => u.id && !u.id.startsWith('unid-'));
-          setUnidades(filtered);
-          localStorage.setItem('@sit:unidades', JSON.stringify(filtered));
-        } else {
-          setUnidades([]);
-          localStorage.setItem('@sit:unidades', JSON.stringify([]));
-        }
-      } else {
-        setUnidades([]);
-        localStorage.setItem('@sit:unidades', JSON.stringify([]));
-      }
-
-      if (savedEmpresas) {
-        const parsed = JSON.parse(savedEmpresas);
-        if (Array.isArray(parsed)) {
-          const filtered = normalizeEmpresaContacts(parsed.filter((e: any) => e.id && !e.id.startsWith('emp-co-')));
-          setEmpresas(filtered);
-          localStorage.setItem('@sit:empresas', JSON.stringify(filtered));
-        } else {
-          setEmpresas([]);
-          localStorage.setItem('@sit:empresas', JSON.stringify([]));
-        }
-      } else {
-        setEmpresas([]);
-        localStorage.setItem('@sit:empresas', JSON.stringify([]));
-      }
-
-      if (savedEmps) {
-        const parsed = JSON.parse(savedEmps);
-        if (Array.isArray(parsed)) {
-          const filtered = normalizeEmployeeNames(parsed.filter((emp: any) => emp.id && !emp.id.startsWith('emp-')));
-          setEmployees(filtered);
-          localStorage.setItem('@sit:employees', JSON.stringify(filtered));
-        } else {
-          setEmployees([]);
-          localStorage.setItem('@sit:employees', JSON.stringify([]));
-        }
-      } else {
-        setEmployees([]);
-        localStorage.setItem('@sit:employees', JSON.stringify([]));
-      }
-    } catch (e) {
-      console.error('Failed to load data from desktop cache', e);
-    } finally {
-      setIsLoaded(true);
+      setIsFormModalOpen(false);
+      setEmployeeToEdit(null);
+    } catch (err) {
+      console.error('Erro ao salvar funcionário:', err);
+      alert('Ocorreu um erro ao salvar o funcionário no banco de dados.');
     }
-  }, []);
-
-  // Save data
-  useEffect(() => {
-    if (isLoaded) {
-      localStorage.setItem('@sit:employees', JSON.stringify(employees));
-    }
-  }, [employees, isLoaded]);
-
-  useEffect(() => {
-    if (isLoaded) {
-      localStorage.setItem('@sit:coordenacoes', JSON.stringify(coordenacoes));
-    }
-  }, [coordenacoes, isLoaded]);
-
-  useEffect(() => {
-    if (isLoaded) {
-      localStorage.setItem('@sit:contratos', JSON.stringify(contratos));
-    }
-  }, [contratos, isLoaded]);
-
-  useEffect(() => {
-    if (isLoaded) {
-      localStorage.setItem('@sit:unidades', JSON.stringify(unidades));
-    }
-  }, [unidades, isLoaded]);
-
-  useEffect(() => {
-    if (isLoaded) {
-      localStorage.setItem('@sit:empresas', JSON.stringify(empresas));
-    }
-  }, [empresas, isLoaded]);
-
-  const handleSave = (employee: Employee) => {
-    if (employeeToEdit) {
-      setEmployees((prev) => prev.map((e) => e.id === employee.id ? employee : e));
-    } else {
-      setEmployees((prev) => [...prev, employee]);
-    }
-    setIsFormModalOpen(false);
-    setEmployeeToEdit(null);
   };
 
   const handleEdit = (employee: Employee) => {
@@ -267,9 +168,15 @@ export default function App() {
     setIsConfirmModalOpen(true);
   };
 
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = async () => {
     if (employeeToDelete) {
-      setEmployees((prev) => prev.filter((e) => e.id !== employeeToDelete));
+      try {
+        await employeesService.deleteEmployee(employeeToDelete);
+        setEmployees((prev) => prev.filter((e) => e.id !== employeeToDelete));
+      } catch (err) {
+        console.error('Erro ao excluir funcionário:', err);
+        alert('Ocorreu um erro ao excluir o funcionário do banco de dados.');
+      }
     }
     setEmployeeToDelete(null);
   };
@@ -385,8 +292,19 @@ export default function App() {
     }
   };
 
-  if (!session) {
-    return <AuthScreen onLoginSuccess={setSession} />;
+  if (isLoading || isDbLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-radial from-brand-panel via-brand-bg to-[#011B3D]">
+        <svg className="animate-spin h-10 w-10 text-brand-accent" fill="none" viewBox="0 0 24 24">
+          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <AuthScreen />;
   }
 
   return (
@@ -409,11 +327,11 @@ export default function App() {
             {/* Profile and Logout option in Header */}
             <div className="flex items-center gap-4 sm:gap-6">
               <div className="hidden sm:flex flex-col text-right">
-                <span className="text-sm font-bold text-white select-none">{session.nome}</span>
-                <span className="text-[10px] text-brand-muted uppercase tracking-widest font-mono font-bold select-none">
-                  {session.perfil === 'Admin' ? 'Administrador' : 'Usuário - SIT'}
-                </span>
-              </div>
+              <span className="text-sm font-bold text-white select-none">{user?.nome}</span>
+              <span className="text-[10px] text-brand-muted uppercase tracking-widest font-mono font-bold select-none">
+                {user?.perfil === 'Admin' ? 'Administrador' : 'Usuário - SIT'}
+              </span>
+            </div>
               <button 
                 onClick={handleLogout}
                 className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-semibold border border-rose-500/20 bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 hover:text-white transition-colors cursor-pointer select-none active:scale-[0.98]"
@@ -442,14 +360,14 @@ export default function App() {
               </div>
               <div className="flex items-center gap-3 mb-4 select-none">
                 <div className="h-10 w-10 shrink-0 rounded-full bg-brand-accent/20 border border-brand-accent/30 flex items-center justify-center text-brand-accent font-bold text-sm">
-                  {session.nome.substring(0, 2).toUpperCase()}
+                  {user?.nome.substring(0, 2).toUpperCase()}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h4 className="text-sm font-bold text-white truncate" title={session.nome}>
-                    {session.nome}
+                  <h4 className="text-sm font-bold text-white truncate" title={user?.nome}>
+                    {user?.nome}
                   </h4>
                   <p className="text-[10px] text-brand-muted truncate block mt-0.5">
-                    CPF: {session.matricula}
+                    CPF: {user?.matricula}
                   </p>
                 </div>
               </div>
@@ -457,13 +375,13 @@ export default function App() {
                 <div className="flex items-center justify-between">
                   <span className="text-[10px] text-brand-muted font-semibold uppercase">Perfil</span>
                   <span className={`text-[9px] font-extrabold px-2 py-0.5 rounded text-white ${
-                    session.perfil === 'Admin' ? 'bg-amber-500/40 border border-amber-500/20' : 'bg-brand-accent/40 border border-brand-accent/20'
+                    user?.perfil === 'Admin' ? 'bg-amber-500/40 border border-amber-500/20' : 'bg-brand-accent/40 border border-brand-accent/20'
                   }`}>
-                    {session.perfil === 'Admin' ? 'Administrador' : 'Usuário - SIT'}
+                    {user?.perfil === 'Admin' ? 'Administrador' : 'Usuário - SIT'}
                   </span>
                 </div>
-                <div className="text-[10px] text-brand-muted truncate font-mono mt-1" title={session.email}>
-                  {session.email}
+                <div className="text-[10px] text-brand-muted truncate font-mono mt-1" title={user?.email}>
+                  {user?.email}
                 </div>
               </div>
               <button

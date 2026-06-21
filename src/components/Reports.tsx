@@ -30,6 +30,7 @@ import {
   ChevronDown
 } from 'lucide-react';
 import { Employee, Coordenacao, Contrato, Unidade, Empresa, VacationPlan } from '../types';
+import { vacationPlansService } from '../services/vacationPlansService';
 import { exportReportToPDF, exportReportToXLSX, exportReportToODS } from '../utils/exportReports';
 // @ts-ignore
 import carBlueprintImg from '../assets/images/blue_car_blueprint_1781386584651.jpg';
@@ -202,16 +203,17 @@ export function Reports({ employees, coordenacoes, contratos, unidades, empresas
     document.addEventListener('mouseup', handleMouseUp);
   };
 
-  // Load vacation plans from localStorage
+  // Load vacation plans from database
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem('@sit:vacation_plans');
-      if (saved) {
-        setVacationPlans(JSON.parse(saved));
+    async function loadPlans() {
+      try {
+        const plans = await vacationPlansService.getVacationPlans();
+        setVacationPlans(plans);
+      } catch (e) {
+        console.error('Error loading vacation plans for reports', e);
       }
-    } catch (e) {
-      console.error('Error loading vacation plans for reports', e);
     }
+    loadPlans();
   }, []);
 
   // Simulate skeleton screen loading on tab/filter changes for enterprise feel

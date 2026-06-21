@@ -7,6 +7,10 @@ import { generateId, formatEmployeeName } from '../utils';
 import { MapModal } from './MapModal';
 import { WhatsAppConfirmModal } from './WhatsAppConfirmModal';
 import { ConfirmModal } from './ConfirmModal';
+import { empresasService } from '../services/empresasService';
+import { coordenacoesService } from '../services/coordenacoesService';
+import { unidadesService } from '../services/unidadesService';
+import { contratosService } from '../services/contratosService';
 
 interface RegistrationPanelProps {
   coordenacoes: Coordenacao[];
@@ -253,7 +257,7 @@ export function RegistrationPanel({
     }));
   };
 
-  const handleSaveCoord = (e: React.FormEvent) => {
+  const handleSaveCoord = async (e: React.FormEvent) => {
     e.preventDefault();
     const newNomeCoord = currentCoord.nome.toUpperCase().trim();
     if (!newNomeCoord) return;
@@ -267,21 +271,28 @@ export function RegistrationPanel({
 
     const updatedCoord = { ...currentCoord, nome: newNomeCoord, coordenador: currentCoord.coordenador?.trim() || '' };
 
-    if (currentCoord.id) {
-      const oldCoord = coordenacoes.find(c => c.id === currentCoord.id);
-      setCoordenacoes(prev => prev.map(c => c.id === currentCoord.id ? updatedCoord : c));
-      
-      // Update linked employees
-      if (oldCoord && oldCoord.nome !== newNomeCoord) {
-        setEmployees(prev => prev.map(emp => 
-          emp.coordenacao === oldCoord.nome ? { ...emp, coordenacao: newNomeCoord } : emp
-        ));
+    try {
+      if (currentCoord.id) {
+        const oldCoord = coordenacoes.find(c => c.id === currentCoord.id);
+        const result = await coordenacoesService.updateCoordenacao(updatedCoord);
+        setCoordenacoes(prev => prev.map(c => c.id === currentCoord.id ? result : c));
+        
+        // Update linked employees
+        if (oldCoord && oldCoord.nome !== newNomeCoord) {
+          setEmployees(prev => prev.map(emp => 
+            emp.coordenacao === oldCoord.nome ? { ...emp, coordenacao: newNomeCoord } : emp
+          ));
+        }
+      } else {
+        const result = await coordenacoesService.createCoordenacao(updatedCoord);
+        setCoordenacoes(prev => [...prev, result]);
       }
-    } else {
-      setCoordenacoes(prev => [...prev, { ...updatedCoord, id: generateId() }]);
+      setCurrentCoord({ id: '', nome: '', coordenador: '' });
+      setIsEditingCoord(false);
+    } catch (err) {
+      console.error('Erro ao salvar coordenação:', err);
+      alert('Ocorreu um erro ao salvar a coordenação no banco de dados.');
     }
-    setCurrentCoord({ id: '', nome: '', coordenador: '' });
-    setIsEditingCoord(false);
   };
 
   const handleDeleteCoord = (id: string) => {
@@ -300,13 +311,19 @@ export function RegistrationPanel({
       isOpen: true,
       title,
       message,
-      onConfirm: () => {
-        setCoordenacoes(prev => prev.filter(c => c.id !== id));
+      onConfirm: async () => {
+        try {
+          await coordenacoesService.deleteCoordenacao(id);
+          setCoordenacoes(prev => prev.filter(c => c.id !== id));
+        } catch (err) {
+          console.error('Erro ao excluir coordenação:', err);
+          alert('Ocorreu um erro ao excluir a coordenação no banco de dados.');
+        }
       }
     });
   };
 
-  const handleSaveContrato = (e: React.FormEvent) => {
+  const handleSaveContrato = async (e: React.FormEvent) => {
     e.preventDefault();
     const newNumeroContrato = currentContrato.numero.toUpperCase().trim();
     const newEmpresaContrato = currentContrato.empresa.toUpperCase().trim();
@@ -328,21 +345,28 @@ export function RegistrationPanel({
       descricao: newDescricaoContrato
     };
 
-    if (currentContrato.id) {
-      const oldContrato = contratos.find(c => c.id === currentContrato.id);
-      setContratos(prev => prev.map(c => c.id === currentContrato.id ? updatedContrato : c));
+    try {
+      if (currentContrato.id) {
+        const oldContrato = contratos.find(c => c.id === currentContrato.id);
+        const result = await contratosService.updateContrato(updatedContrato);
+        setContratos(prev => prev.map(c => c.id === currentContrato.id ? result : c));
 
-      // Update linked employees
-      if (oldContrato && oldContrato.numero !== newNumeroContrato) {
-        setEmployees(prev => prev.map(emp => 
-          emp.contrato === oldContrato.numero ? { ...emp, contrato: newNumeroContrato } : emp
-        ));
+        // Update linked employees
+        if (oldContrato && oldContrato.numero !== newNumeroContrato) {
+          setEmployees(prev => prev.map(emp => 
+            emp.contrato === oldContrato.numero ? { ...emp, contrato: newNumeroContrato } : emp
+          ));
+        }
+      } else {
+        const result = await contratosService.createContrato(updatedContrato);
+        setContratos(prev => [...prev, result]);
       }
-    } else {
-      setContratos(prev => [...prev, { ...updatedContrato, id: generateId() }]);
+      setCurrentContrato({ id: '', numero: '', empresa: '', descricao: '' });
+      setIsEditingContrato(false);
+    } catch (err) {
+      console.error('Erro ao salvar contrato:', err);
+      alert('Ocorreu um erro ao salvar o contrato no banco de dados. Verifique se a empresa informada está cadastrada.');
     }
-    setCurrentContrato({ id: '', numero: '', empresa: '', descricao: '' });
-    setIsEditingContrato(false);
   };
 
   const handleDeleteContrato = (id: string) => {
@@ -361,13 +385,19 @@ export function RegistrationPanel({
       isOpen: true,
       title,
       message,
-      onConfirm: () => {
-        setContratos(prev => prev.filter(c => c.id !== id));
+      onConfirm: async () => {
+        try {
+          await contratosService.deleteContrato(id);
+          setContratos(prev => prev.filter(c => c.id !== id));
+        } catch (err) {
+          console.error('Erro ao excluir contrato:', err);
+          alert('Ocorreu um erro ao excluir o contrato no banco de dados.');
+        }
       }
     });
   };
 
-  const handleSaveUnidade = (e: React.FormEvent) => {
+  const handleSaveUnidade = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!currentUnidade.nome.trim() || !currentUnidade.latitude.trim() || !currentUnidade.longitude.trim()) return;
 
@@ -380,22 +410,28 @@ export function RegistrationPanel({
       return;
     }
 
-    if (currentUnidade.id) {
-      const oldUnidade = unidades.find(u => u.id === currentUnidade.id);
-      
-      setUnidades(prev => prev.map(u => u.id === currentUnidade.id ? currentUnidade : u));
-      
-      // Update linked employees if name changed
-      if (oldUnidade && oldUnidade.nome !== newNomeUnidade) {
-        setEmployees(prev => prev.map(emp => 
-          emp.lotacao === oldUnidade.nome ? { ...emp, lotacao: newNomeUnidade } : emp
-        ));
+    try {
+      if (currentUnidade.id) {
+        const oldUnidade = unidades.find(u => u.id === currentUnidade.id);
+        const result = await unidadesService.updateUnidade(currentUnidade);
+        setUnidades(prev => prev.map(u => u.id === currentUnidade.id ? result : u));
+        
+        // Update linked employees if name changed
+        if (oldUnidade && oldUnidade.nome !== newNomeUnidade) {
+          setEmployees(prev => prev.map(emp => 
+            emp.lotacao === oldUnidade.nome ? { ...emp, lotacao: newNomeUnidade } : emp
+          ));
+        }
+      } else {
+        const result = await unidadesService.createUnidade(currentUnidade);
+        setUnidades(prev => [...prev, result]);
       }
-    } else {
-      setUnidades(prev => [...prev, { ...currentUnidade, id: generateId() }]);
+      setCurrentUnidade({ id: '', nome: '', latitude: '', longitude: '' });
+      setIsEditingUnidade(false);
+    } catch (err) {
+      console.error('Erro ao salvar unidade:', err);
+      alert('Ocorreu um erro ao salvar a unidade no banco de dados.');
     }
-    setCurrentUnidade({ id: '', nome: '', latitude: '', longitude: '' });
-    setIsEditingUnidade(false);
   };
 
   const handleDeleteUnidade = (id: string) => {
@@ -414,8 +450,14 @@ export function RegistrationPanel({
       isOpen: true,
       title,
       message,
-      onConfirm: () => {
-        setUnidades(prev => prev.filter(u => u.id !== id));
+      onConfirm: async () => {
+        try {
+          await unidadesService.deleteUnidade(id);
+          setUnidades(prev => prev.filter(u => u.id !== id));
+        } catch (err) {
+          console.error('Erro ao excluir unidade:', err);
+          alert('Ocorreu um erro ao excluir a unidade no banco de dados.');
+        }
       }
     });
   };
@@ -468,28 +510,35 @@ export function RegistrationPanel({
       longitude: lng
     };
 
-    if (currentEmpresa.id) {
-      const oldEmpresa = empresas.find(emp => emp.id === currentEmpresa.id);
-      setEmpresas(prev => prev.map(emp => emp.id === currentEmpresa.id ? savedEmpresa : emp));
-      
-      // Update linked employees
-      if (oldEmpresa && oldEmpresa.razaoSocial !== cleanRazaoSocial) {
-        setEmployees(prev => prev.map(emp => 
-          emp.empresa === oldEmpresa.razaoSocial ? { ...emp, empresa: cleanRazaoSocial } : emp
-        ));
+    try {
+      if (currentEmpresa.id) {
+        const oldEmpresa = empresas.find(emp => emp.id === currentEmpresa.id);
+        const result = await empresasService.updateEmpresa(savedEmpresa);
+        setEmpresas(prev => prev.map(emp => emp.id === currentEmpresa.id ? result : emp));
+        
+        // Update linked employees
+        if (oldEmpresa && oldEmpresa.razaoSocial !== cleanRazaoSocial) {
+          setEmployees(prev => prev.map(emp => 
+            emp.empresa === oldEmpresa.razaoSocial ? { ...emp, empresa: cleanRazaoSocial } : emp
+          ));
+        }
+      } else {
+        const result = await empresasService.createEmpresa(savedEmpresa);
+        setEmpresas(prev => [...prev, result]);
       }
-    } else {
-      setEmpresas(prev => [...prev, { ...savedEmpresa, id: generateId() }]);
+      
+      setCurrentEmpresa({ id: '', cnpj: '', razaoSocial: '', endereco: '', latitude: '', longitude: '', telefones: [], emails: [], sites: [] });
+      setNewPhoneName('');
+      setNewPhoneNumber('');
+      setNewEmailName('');
+      setNewEmailAddress('');
+      setNewSiteName('');
+      setNewSiteUrl('');
+      setIsEditingEmpresa(false);
+    } catch (err) {
+      console.error('Erro ao salvar empresa:', err);
+      alert('Ocorreu um erro ao salvar a empresa no banco de dados.');
     }
-    
-    setCurrentEmpresa({ id: '', cnpj: '', razaoSocial: '', endereco: '', latitude: '', longitude: '', telefones: [], emails: [], sites: [] });
-    setNewPhoneName('');
-    setNewPhoneNumber('');
-    setNewEmailName('');
-    setNewEmailAddress('');
-    setNewSiteName('');
-    setNewSiteUrl('');
-    setIsEditingEmpresa(false);
   };
 
   const handleDeleteEmpresa = (id: string) => {
@@ -513,8 +562,14 @@ export function RegistrationPanel({
       isOpen: true,
       title: 'Excluir Empresa',
       message: 'Tem certeza que deseja excluir esta empresa?',
-      onConfirm: () => {
-        setEmpresas(prev => prev.filter(c => c.id !== id));
+      onConfirm: async () => {
+        try {
+          await empresasService.deleteEmpresa(id);
+          setEmpresas(prev => prev.filter(c => c.id !== id));
+        } catch (err) {
+          console.error('Erro ao excluir empresa:', err);
+          alert('Ocorreu um erro ao excluir a empresa no banco de dados.');
+        }
       },
       isAlertOnly: false
     });
