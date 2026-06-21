@@ -281,7 +281,7 @@ export function exportReportToPDF(data: ReportExportData) {
     styles: { fontSize: 7, cellPadding: 3 },
     head: [['Matrícula', 'Nome', 'Empresa', 'Coordenação', 'Lotação', 'Especialidade', 'Admissão', 'Camisa', 'Calça', 'SPT', 'Dirigir']],
     body: data.filteredEmployees.map(e => [
-      e.matricula, e.nome, e.empresa, e.coordenacao, e.lotacao, e.especialidade,
+      e.matricula, formatEmployeeName(e.nome || ''), e.empresa, e.coordenacao, e.lotacao, e.especialidade,
       formatDate(e.dataAdmissao), e.camisa || '', e.calca || '', String(e.spt ?? ''), e.autorizadoDirigir ? 'Sim' : 'Não'
     ]),
   });
