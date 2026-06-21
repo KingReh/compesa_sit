@@ -202,7 +202,7 @@ export function RegistrationPanel({
     if (!newPhoneName.trim() || !newPhoneNumber.trim()) return;
     setCurrentEmpresa(prev => ({
       ...prev,
-      telefones: [...(prev.telefones || []), { nome: newPhoneName.toUpperCase(), numero: newPhoneNumber }]
+      telefones: [...(prev.telefones || []), { nome: newPhoneName.trim(), numero: newPhoneNumber }]
     }));
     setNewPhoneName('');
     setNewPhoneNumber('');
