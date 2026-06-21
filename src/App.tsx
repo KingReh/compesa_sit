@@ -1,6 +1,34 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Plus, Building2, LayoutDashboard, UserPlus, FileText, Settings, Users, Calendar, LogOut, UserCheck, Download, CheckCircle2 } from 'lucide-react';
 import { Employee, Coordenacao, Contrato, Unidade, Empresa, AuthSession } from './types';
+import { formatEmployeeName } from './utils';
+
+// Normaliza campos de nome de pessoa (contato/responsável/funcionário)
+// aplicando a mesma regra de capitalização usada nos formulários.
+const normalizeEmployeeNames = (list: any[]): Employee[] =>
+  list.map((emp) => ({
+    ...emp,
+    nome: typeof emp?.nome === 'string' ? formatEmployeeName(emp.nome) : emp?.nome,
+  }));
+
+const normalizeCoordenacaoNames = (list: any[]): Coordenacao[] =>
+  list.map((c) => ({
+    ...c,
+    coordenador: typeof c?.coordenador === 'string' && c.coordenador
+      ? formatEmployeeName(c.coordenador)
+      : c?.coordenador,
+  }));
+
+const normalizeEmpresaContacts = (list: any[]): Empresa[] =>
+  list.map((e) => ({
+    ...e,
+    telefones: Array.isArray(e?.telefones)
+      ? e.telefones.map((t: any) => ({ ...t, nome: typeof t?.nome === 'string' ? formatEmployeeName(t.nome) : t?.nome }))
+      : e?.telefones,
+    emails: Array.isArray(e?.emails)
+      ? e.emails.map((m: any) => ({ ...m, nome: typeof m?.nome === 'string' ? formatEmployeeName(m.nome) : m?.nome }))
+      : e?.emails,
+  }));
 import { Dashboard } from './components/Dashboard';
 import { EmployeeTable } from './components/EmployeeTable';
 import { EmployeeModal } from './components/EmployeeModal';
@@ -110,7 +138,7 @@ export default function App() {
       if (savedCoords) {
         const parsed = JSON.parse(savedCoords);
         if (Array.isArray(parsed)) {
-          const filtered = parsed.filter((c: any) => c.id && !c.id.startsWith('coord-'));
+          const filtered = normalizeCoordenacaoNames(parsed.filter((c: any) => c.id && !c.id.startsWith('coord-')));
           setCoordenacoes(filtered);
           localStorage.setItem('@sit:coordenacoes', JSON.stringify(filtered));
         } else {
@@ -155,7 +183,7 @@ export default function App() {
       if (savedEmpresas) {
         const parsed = JSON.parse(savedEmpresas);
         if (Array.isArray(parsed)) {
-          const filtered = parsed.filter((e: any) => e.id && !e.id.startsWith('emp-co-'));
+          const filtered = normalizeEmpresaContacts(parsed.filter((e: any) => e.id && !e.id.startsWith('emp-co-')));
           setEmpresas(filtered);
           localStorage.setItem('@sit:empresas', JSON.stringify(filtered));
         } else {
@@ -170,7 +198,7 @@ export default function App() {
       if (savedEmps) {
         const parsed = JSON.parse(savedEmps);
         if (Array.isArray(parsed)) {
-          const filtered = parsed.filter((emp: any) => emp.id && !emp.id.startsWith('emp-'));
+          const filtered = normalizeEmployeeNames(parsed.filter((emp: any) => emp.id && !emp.id.startsWith('emp-')));
           setEmployees(filtered);
           localStorage.setItem('@sit:employees', JSON.stringify(filtered));
         } else {

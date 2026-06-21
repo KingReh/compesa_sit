@@ -2,6 +2,7 @@ import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { Employee, VacationPlan } from '../types';
+import { formatEmployeeName } from '../utils';
 
 export interface ReportExportData {
   selectedYear: number;
@@ -116,7 +117,7 @@ function buildSheets(data: ReportExportData) {
     'Data Nascimento', 'Data Admissão', 'Camisa', 'Calça', 'SPT', 'Autorizado a Dirigir'
   ];
   const employeesRows = filteredEmployees.map(e => [
-    e.matricula, e.nome, e.cpf, e.sexo, e.empresa, e.coordenacao, e.lotacao,
+    e.matricula, formatEmployeeName(e.nome || ''), e.cpf, e.sexo, e.empresa, e.coordenacao, e.lotacao,
     e.especialidade, e.contrato, e.escalaTrabalho, e.telefone, e.endereco,
     formatDate(e.dataNascimento), formatDate(e.dataAdmissao),
     e.camisa || '', e.calca || '', e.spt ?? '', e.autorizadoDirigir ? 'Sim' : 'Não'
@@ -280,7 +281,7 @@ export function exportReportToPDF(data: ReportExportData) {
     styles: { fontSize: 7, cellPadding: 3 },
     head: [['Matrícula', 'Nome', 'Empresa', 'Coordenação', 'Lotação', 'Especialidade', 'Admissão', 'Camisa', 'Calça', 'SPT', 'Dirigir']],
     body: data.filteredEmployees.map(e => [
-      e.matricula, e.nome, e.empresa, e.coordenacao, e.lotacao, e.especialidade,
+      e.matricula, formatEmployeeName(e.nome || ''), e.empresa, e.coordenacao, e.lotacao, e.especialidade,
       formatDate(e.dataAdmissao), e.camisa || '', e.calca || '', String(e.spt ?? ''), e.autorizadoDirigir ? 'Sim' : 'Não'
     ]),
   });
