@@ -3,7 +3,7 @@ import { Plus, Edit2, Trash2, Building, FileSignature, MapPin, Phone, Mail, X, C
 import { createPortal } from 'react-dom';
 import { motion } from 'motion/react';
 import { Coordenacao, Contrato, Unidade, Employee, Empresa } from '../types';
-import { generateId } from '../utils';
+import { generateId, formatEmployeeName } from '../utils';
 import { MapModal } from './MapModal';
 import { WhatsAppConfirmModal } from './WhatsAppConfirmModal';
 import { ConfirmModal } from './ConfirmModal';
