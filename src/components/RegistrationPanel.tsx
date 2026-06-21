@@ -265,7 +265,7 @@ export function RegistrationPanel({
       return;
     }
 
-    const updatedCoord = { ...currentCoord, nome: newNomeCoord, coordenador: currentCoord.coordenador?.toUpperCase().trim() || '' };
+    const updatedCoord = { ...currentCoord, nome: newNomeCoord, coordenador: currentCoord.coordenador?.trim() || '' };
 
     if (currentCoord.id) {
       const oldCoord = coordenacoes.find(c => c.id === currentCoord.id);
