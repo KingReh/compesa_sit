@@ -708,8 +708,8 @@ export function RegistrationPanel({
                   <input
                     type="text"
                     value={currentCoord.coordenador || ''}
-                    onChange={(e) => setCurrentCoord({ ...currentCoord, coordenador: e.target.value.toUpperCase() })}
-                    className="block w-full rounded-lg sit-input py-2.5 px-3 sm:text-sm sm:leading-6 placeholder:text-brand-muted uppercase"
+                    onChange={(e) => setCurrentCoord({ ...currentCoord, coordenador: formatEmployeeName(e.target.value) })}
+                    className="block w-full rounded-lg sit-input py-2.5 px-3 sm:text-sm sm:leading-6 placeholder:text-brand-muted"
                     placeholder="Ex: Jéssica Alves"
                   />
                 </div>
