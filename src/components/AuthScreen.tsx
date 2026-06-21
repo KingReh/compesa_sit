@@ -602,7 +602,6 @@ export function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
                   Passo 1 de 2: Informe suas informações pessoais e de identificação.
                 </p>
               </div>
-              <span className="text-xs bg-brand-panel-light px-3 py-1.5 rounded-lg border border-brand-border/30 font-bold font-mono">1 / 2</span>
             </div>
 
             <div className="space-y-4">
@@ -652,7 +651,7 @@ export function AuthScreen({ onLoginSuccess }: AuthScreenProps) {
                     id="reg-email"
                     type="email"
                     required
-                    placeholder="email@sit.interno ou email@empresa.com"
+                    placeholder="email@empresa.com"
                     value={regEmail}
                     onChange={(e) => setRegEmail(e.target.value)}
                     className="sit-input block w-full rounded-xl py-3 pl-10 pr-4 text-sm"
