@@ -3,7 +3,7 @@ import { Plus, Edit2, Trash2, Building, FileSignature, MapPin, Phone, Mail, X, C
 import { createPortal } from 'react-dom';
 import { motion } from 'motion/react';
 import { Coordenacao, Contrato, Unidade, Employee, Empresa } from '../types';
-import { generateId } from '../utils';
+import { generateId, formatEmployeeName } from '../utils';
 import { MapModal } from './MapModal';
 import { WhatsAppConfirmModal } from './WhatsAppConfirmModal';
 import { ConfirmModal } from './ConfirmModal';
@@ -202,7 +202,7 @@ export function RegistrationPanel({
     if (!newPhoneName.trim() || !newPhoneNumber.trim()) return;
     setCurrentEmpresa(prev => ({
       ...prev,
-      telefones: [...(prev.telefones || []), { nome: newPhoneName.toUpperCase(), numero: newPhoneNumber }]
+      telefones: [...(prev.telefones || []), { nome: newPhoneName.trim(), numero: newPhoneNumber }]
     }));
     setNewPhoneName('');
     setNewPhoneNumber('');
@@ -219,7 +219,7 @@ export function RegistrationPanel({
     if (!newEmailName.trim() || !newEmailAddress.trim()) return;
     setCurrentEmpresa(prev => ({
       ...prev,
-      emails: [...(prev.emails || []), { nome: newEmailName.toUpperCase(), email: newEmailAddress.toLowerCase() }]
+      emails: [...(prev.emails || []), { nome: newEmailName.trim(), email: newEmailAddress.toLowerCase() }]
     }));
     setNewEmailName('');
     setNewEmailAddress('');
@@ -265,7 +265,7 @@ export function RegistrationPanel({
       return;
     }
 
-    const updatedCoord = { ...currentCoord, nome: newNomeCoord, coordenador: currentCoord.coordenador?.toUpperCase().trim() || '' };
+    const updatedCoord = { ...currentCoord, nome: newNomeCoord, coordenador: currentCoord.coordenador?.trim() || '' };
 
     if (currentCoord.id) {
       const oldCoord = coordenacoes.find(c => c.id === currentCoord.id);
@@ -708,8 +708,8 @@ export function RegistrationPanel({
                   <input
                     type="text"
                     value={currentCoord.coordenador || ''}
-                    onChange={(e) => setCurrentCoord({ ...currentCoord, coordenador: e.target.value.toUpperCase() })}
-                    className="block w-full rounded-lg sit-input py-2.5 px-3 sm:text-sm sm:leading-6 placeholder:text-brand-muted uppercase"
+                    onChange={(e) => setCurrentCoord({ ...currentCoord, coordenador: formatEmployeeName(e.target.value) })}
+                    className="block w-full rounded-lg sit-input py-2.5 px-3 sm:text-sm sm:leading-6 placeholder:text-brand-muted"
                     placeholder="Ex: Jéssica Alves"
                   />
                 </div>
@@ -1275,8 +1275,8 @@ export function RegistrationPanel({
                           type="text"
                           placeholder="Nome (ex: Financeiro)"
                           value={newPhoneName}
-                          onChange={(e) => setNewPhoneName(e.target.value)}
-                          className="block w-full rounded-md sit-input py-1.5 px-2.5 text-xs placeholder:text-brand-muted uppercase"
+                          onChange={(e) => setNewPhoneName(formatEmployeeName(e.target.value))}
+                          className="block w-full rounded-md sit-input py-1.5 px-2.5 text-xs placeholder:text-brand-muted"
                         />
                       </div>
                       <div className="flex-1">
@@ -1332,8 +1332,8 @@ export function RegistrationPanel({
                           type="text"
                           placeholder="Nome (ex: RH)"
                           value={newEmailName}
-                          onChange={(e) => setNewEmailName(e.target.value)}
-                          className="block w-full rounded-md sit-input py-1.5 px-2.5 text-xs placeholder:text-brand-muted uppercase"
+                          onChange={(e) => setNewEmailName(formatEmployeeName(e.target.value))}
+                          className="block w-full rounded-md sit-input py-1.5 px-2.5 text-xs placeholder:text-brand-muted"
                         />
                       </div>
                       <div className="flex-1">
