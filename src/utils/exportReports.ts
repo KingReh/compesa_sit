@@ -117,7 +117,7 @@ function buildSheets(data: ReportExportData) {
     'Data Nascimento', 'Data Admissão', 'Camisa', 'Calça', 'SPT', 'Autorizado a Dirigir'
   ];
   const employeesRows = filteredEmployees.map(e => [
-    e.matricula, e.nome, e.cpf, e.sexo, e.empresa, e.coordenacao, e.lotacao,
+    e.matricula, formatEmployeeName(e.nome || ''), e.cpf, e.sexo, e.empresa, e.coordenacao, e.lotacao,
     e.especialidade, e.contrato, e.escalaTrabalho, e.telefone, e.endereco,
     formatDate(e.dataNascimento), formatDate(e.dataAdmissao),
     e.camisa || '', e.calca || '', e.spt ?? '', e.autorizadoDirigir ? 'Sim' : 'Não'
