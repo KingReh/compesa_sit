@@ -1275,8 +1275,8 @@ export function RegistrationPanel({
                           type="text"
                           placeholder="Nome (ex: Financeiro)"
                           value={newPhoneName}
-                          onChange={(e) => setNewPhoneName(e.target.value)}
-                          className="block w-full rounded-md sit-input py-1.5 px-2.5 text-xs placeholder:text-brand-muted uppercase"
+                          onChange={(e) => setNewPhoneName(formatEmployeeName(e.target.value))}
+                          className="block w-full rounded-md sit-input py-1.5 px-2.5 text-xs placeholder:text-brand-muted"
                         />
                       </div>
                       <div className="flex-1">
