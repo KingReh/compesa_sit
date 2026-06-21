@@ -219,7 +219,7 @@ export function RegistrationPanel({
     if (!newEmailName.trim() || !newEmailAddress.trim()) return;
     setCurrentEmpresa(prev => ({
       ...prev,
-      emails: [...(prev.emails || []), { nome: newEmailName.toUpperCase(), email: newEmailAddress.toLowerCase() }]
+      emails: [...(prev.emails || []), { nome: newEmailName.trim(), email: newEmailAddress.toLowerCase() }]
     }));
     setNewEmailName('');
     setNewEmailAddress('');
