@@ -1332,8 +1332,8 @@ export function RegistrationPanel({
                           type="text"
                           placeholder="Nome (ex: RH)"
                           value={newEmailName}
-                          onChange={(e) => setNewEmailName(e.target.value)}
-                          className="block w-full rounded-md sit-input py-1.5 px-2.5 text-xs placeholder:text-brand-muted uppercase"
+                          onChange={(e) => setNewEmailName(formatEmployeeName(e.target.value))}
+                          className="block w-full rounded-md sit-input py-1.5 px-2.5 text-xs placeholder:text-brand-muted"
                         />
                       </div>
                       <div className="flex-1">
