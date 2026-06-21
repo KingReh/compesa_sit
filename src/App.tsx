@@ -138,7 +138,7 @@ export default function App() {
       if (savedCoords) {
         const parsed = JSON.parse(savedCoords);
         if (Array.isArray(parsed)) {
-          const filtered = parsed.filter((c: any) => c.id && !c.id.startsWith('coord-'));
+          const filtered = normalizeCoordenacaoNames(parsed.filter((c: any) => c.id && !c.id.startsWith('coord-')));
           setCoordenacoes(filtered);
           localStorage.setItem('@sit:coordenacoes', JSON.stringify(filtered));
         } else {
@@ -183,7 +183,7 @@ export default function App() {
       if (savedEmpresas) {
         const parsed = JSON.parse(savedEmpresas);
         if (Array.isArray(parsed)) {
-          const filtered = parsed.filter((e: any) => e.id && !e.id.startsWith('emp-co-'));
+          const filtered = normalizeEmpresaContacts(parsed.filter((e: any) => e.id && !e.id.startsWith('emp-co-')));
           setEmpresas(filtered);
           localStorage.setItem('@sit:empresas', JSON.stringify(filtered));
         } else {
@@ -198,7 +198,7 @@ export default function App() {
       if (savedEmps) {
         const parsed = JSON.parse(savedEmps);
         if (Array.isArray(parsed)) {
-          const filtered = parsed.filter((emp: any) => emp.id && !emp.id.startsWith('emp-'));
+          const filtered = normalizeEmployeeNames(parsed.filter((emp: any) => emp.id && !emp.id.startsWith('emp-')));
           setEmployees(filtered);
           localStorage.setItem('@sit:employees', JSON.stringify(filtered));
         } else {
