@@ -1,6 +1,34 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Plus, Building2, LayoutDashboard, UserPlus, FileText, Settings, Users, Calendar, LogOut, UserCheck, Download, CheckCircle2 } from 'lucide-react';
 import { Employee, Coordenacao, Contrato, Unidade, Empresa, AuthSession } from './types';
+import { formatEmployeeName } from './utils';
+
+// Normaliza campos de nome de pessoa (contato/responsável/funcionário)
+// aplicando a mesma regra de capitalização usada nos formulários.
+const normalizeEmployeeNames = (list: any[]): Employee[] =>
+  list.map((emp) => ({
+    ...emp,
+    nome: typeof emp?.nome === 'string' ? formatEmployeeName(emp.nome) : emp?.nome,
+  }));
+
+const normalizeCoordenacaoNames = (list: any[]): Coordenacao[] =>
+  list.map((c) => ({
+    ...c,
+    coordenador: typeof c?.coordenador === 'string' && c.coordenador
+      ? formatEmployeeName(c.coordenador)
+      : c?.coordenador,
+  }));
+
+const normalizeEmpresaContacts = (list: any[]): Empresa[] =>
+  list.map((e) => ({
+    ...e,
+    telefones: Array.isArray(e?.telefones)
+      ? e.telefones.map((t: any) => ({ ...t, nome: typeof t?.nome === 'string' ? formatEmployeeName(t.nome) : t?.nome }))
+      : e?.telefones,
+    emails: Array.isArray(e?.emails)
+      ? e.emails.map((m: any) => ({ ...m, nome: typeof m?.nome === 'string' ? formatEmployeeName(m.nome) : m?.nome }))
+      : e?.emails,
+  }));
 import { Dashboard } from './components/Dashboard';
 import { EmployeeTable } from './components/EmployeeTable';
 import { EmployeeModal } from './components/EmployeeModal';
