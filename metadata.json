@@ -1,0 +1,6 @@
+{
+  "name": "SIT - Sistemas Integrados Terceirizados",
+  "description": "Sistema de gerenciamento e cadastro de funcionários terceirizados.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
