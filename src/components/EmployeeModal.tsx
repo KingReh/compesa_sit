@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { X, Upload } from 'lucide-react';
 import { Employee, Coordenacao, Contrato, Unidade, Empresa } from '../types';
-import { maskCPF, maskPhone, classNames, generateId, formatEmployeeName } from '../utils';
+import { maskCPF, maskPhone, classNames, formatEmployeeName } from '../utils';
 
 interface EmployeeModalProps {
   isOpen: boolean;
@@ -143,11 +143,11 @@ export function EmployeeModal({ isOpen, onClose, onSave, employeeToEdit, coorden
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (validate()) {
-      const savedData: Employee = employeeToEdit 
+      const savedData = employeeToEdit 
         ? { ...formData, id: employeeToEdit.id } 
-        : { ...formData, id: generateId() };
+        : { ...formData };
       
-      onSave(savedData);
+      onSave(savedData as Employee);
     }
   };
 

@@ -25,7 +25,7 @@ export const classNames = (...classes: (string | undefined | null | false)[]) =>
   return classes.filter(Boolean).join(' ');
 };
 
-export const generateId = () => Math.random().toString(36).substr(2, 9);
+export const generateId = () => crypto.randomUUID();
 
 export const parseDMS = (dmsStr: string): number | null => {
   // Matches formats like 8°03'14"S or 34°52'52"W
