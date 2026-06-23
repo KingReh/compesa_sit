@@ -1,6 +1,13 @@
 import { supabase } from '../lib/supabase';
 import { Contrato } from '../types';
 
+const getEmpresaName = (empresas: any): string => {
+  if (Array.isArray(empresas)) {
+    return empresas[0]?.razao_social || '';
+  }
+  return empresas?.razao_social || '';
+};
+
 export const contratosService = {
   async getContratos(): Promise<Contrato[]> {
     const { data, error } = await supabase
@@ -12,7 +19,7 @@ export const contratosService = {
     return (data || []).map((row: any) => ({
       id: row.id,
       numero: row.numero,
-      empresa: row.empresas?.razao_social || '',
+      empresa: getEmpresaName(row.empresas),
       descricao: row.descricao
     }));
   },
