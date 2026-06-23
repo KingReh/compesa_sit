@@ -79,7 +79,7 @@ export const contratosService = {
     return {
       id: data.id,
       numero: data.numero,
-      empresa: data.empresas?.razao_social || '',
+      empresa: getEmpresaName(data.empresas),
       descricao: data.descricao
     };
   },
