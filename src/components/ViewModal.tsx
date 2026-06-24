@@ -458,15 +458,15 @@ export function ViewModal({ isOpen, onClose, employee, onAjustarPonto }: ViewMod
         </div>
 
         {/* Footer containing quick action closing controls */}
-        <div className="flex items-center justify-between border-t border-brand-border/40 bg-black/15 px-6 py-4 rounded-b-2xl shrink-0">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between border-t border-brand-border/40 bg-black/15 px-4 sm:px-6 py-3 sm:py-4 gap-2.5 sm:gap-3 rounded-b-none sm:rounded-b-2xl shrink-0">
           <p className="text-[9.5px] text-brand-muted/70 font-mono tracking-wider uppercase font-semibold hidden sm:block">
             SIT - SISTEMA INTEGRADO DE TERCEIRIZADOS • GPM
           </p>
-          <div className="flex items-center justify-end w-full sm:w-auto gap-3">
+          <div className="flex items-stretch sm:items-center justify-end w-full sm:w-auto gap-2 sm:gap-3">
             {onAjustarPonto && (
               <button
                 onClick={() => onAjustarPonto(employee)}
-                className="w-full sm:w-auto inline-flex justify-center items-center gap-x-1.5 rounded-lg border border-brand-accent/20 bg-brand-accent/10 hover:bg-brand-accent/20 text-brand-accent hover:text-white transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer shadow-sm px-4 py-2 font-bold text-xs"
+                className="flex-1 sm:flex-none inline-flex justify-center items-center gap-x-1.5 rounded-lg border border-brand-accent/20 bg-brand-accent/10 hover:bg-brand-accent/20 text-brand-accent hover:text-white transition-all active:scale-95 cursor-pointer shadow-sm px-4 py-2.5 sm:py-2 font-bold text-xs"
               >
                 <Clock className="w-4 h-4 text-brand-accent" />
                 <span>Ajustar Ponto</span>
@@ -474,7 +474,7 @@ export function ViewModal({ isOpen, onClose, employee, onAjustarPonto }: ViewMod
             )}
             <button
               onClick={onClose}
-              className="sit-button-accent py-2 px-6 rounded-lg font-bold text-xs flex items-center justify-center gap-1 shadow-lg cursor-pointer transition-all hover:scale-[1.01]"
+              className="sit-button-accent flex-1 sm:flex-none py-2.5 sm:py-2 px-6 rounded-lg font-bold text-xs flex items-center justify-center gap-1 shadow-lg cursor-pointer transition-all active:scale-95"
             >
               Concluir Consulta
             </button>
