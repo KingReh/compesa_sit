@@ -265,7 +265,7 @@ export function ViewModal({ isOpen, onClose, employee, onAjustarPonto }: ViewMod
                   {employee.cpf && (
                     <button
                       onClick={() => handleCopy(employee.cpf, 'CPF')}
-                      className="opacity-0 group-hover:opacity-100 p-1.5 bg-white/5 hover:bg-white/10 rounded-lg text-brand-muted hover:text-white transition-all cursor-pointer"
+                      className="sm:opacity-0 sm:group-hover:opacity-100 p-1.5 bg-white/5 hover:bg-white/10 rounded-lg text-brand-muted hover:text-white transition-all cursor-pointer"
                       title="Copiar CPF"
                     >
                       {copiedLabel === 'CPF' ? (
@@ -294,7 +294,7 @@ export function ViewModal({ isOpen, onClose, employee, onAjustarPonto }: ViewMod
                 <div className="flex justify-between items-center">
                   <p className="typ-card-title text-sm">{employee.telefone || 'Sem contato'}</p>
                   {employee.telefone && (
-                    <div className="opacity-0 group-hover:opacity-100 flex gap-1.5 transition-all">
+                    <div className="sm:opacity-0 sm:group-hover:opacity-100 flex gap-1.5 transition-all">
                       <a
                         href={`tel:${employee.telefone.replace(/\D/g, '')}`}
                         className="p-1 px-2.5 text-[9px] bg-sky-500/10 border border-sky-400/20 text-sky-300 hover:bg-sky-500/20 rounded-md uppercase font-black transition-colors"
@@ -341,7 +341,7 @@ export function ViewModal({ isOpen, onClose, employee, onAjustarPonto }: ViewMod
                       href={`https://maps.google.com/?q=${encodeURIComponent(employee.endereco)}`}
                       target="_blank"
                       rel="noreferrer"
-                      className="opacity-0 group-hover:opacity-100 p-1.5 bg-white/5 border border-white/5 hover:bg-brand-accent hover:border-brand-accent/30 hover:text-black rounded-lg text-brand-muted transition-all duration-200 shrink-0 flex items-center gap-1 text-[10px] font-bold"
+                      className="sm:opacity-0 sm:group-hover:opacity-100 p-1.5 bg-white/5 border border-white/5 hover:bg-brand-accent hover:border-brand-accent/30 hover:text-black rounded-lg text-brand-muted transition-all duration-200 shrink-0 flex items-center gap-1 text-[10px] font-bold"
                       title="Ver endereço no Google Maps"
                     >
                       <ExternalLink className="w-3.5 h-3.5" />
