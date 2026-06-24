@@ -251,7 +251,7 @@ export function ViewModal({ isOpen, onClose, employee, onAjustarPonto }: ViewMod
         </div>
 
         {/* Content Box with scrolling and interactive elements */}
-        <div className="px-6 py-6 max-h-[45vh] overflow-y-auto styled-scrollbars-light bg-black/5">
+        <div className="px-4 sm:px-6 py-4 sm:py-6 max-h-[calc(100vh-360px)] sm:max-h-[45vh] overflow-y-auto styled-scrollbars-light bg-black/5">
           {activeTab === 'pessoais' && (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               
