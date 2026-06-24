@@ -661,7 +661,7 @@ export function EmployeeTable({ employees, unidades, searchQuery, onEdit, onDele
                         </div>
                         {employee.autorizadoDirigir && (
                           <div 
-                            className="absolute -bottom-0.5 -right-0.5 h-4 w-4 rounded-full bg-emerald-500 flex items-center justify-center ring-2 ring-slate-950 shadow z-10" 
+                            className="absolute -bottom-0.5 -right-0.5 h-4 w-4 rounded-full bg-emerald-500 flex items-center justify-center ring-2 ring-brand-border/60 group-hover:ring-brand-accent/60 shadow z-10" 
                             title="Motorista Autorizado"
                           >
                             <Car className="h-2.5 w-2.5 text-white" />
