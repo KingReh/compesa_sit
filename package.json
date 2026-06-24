@@ -7,7 +7,7 @@
     "dev": "tsx server.ts",
     "verify:icons": "node scripts/verify-manifest-icons.mjs",
     "prebuild": "node scripts/verify-manifest-icons.mjs",
-    "build": "vite build && esbuild server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs",
+    "build": "vite build && node scripts/inject-sw-version.mjs && esbuild server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs",
     "build:dev": "node scripts/verify-manifest-icons.mjs && vite build --mode development",
     "start": "node dist/server.cjs",
     "preview": "vite preview",

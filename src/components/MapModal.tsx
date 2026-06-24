@@ -37,7 +37,12 @@ export function MapModal({ location, onClose }: MapModalProps) {
   }, [onClose]);
 
   const getMapIframeUrl = (lat: string, lng: string) => {
-    const q = encodeURIComponent(`${lat} ${lng}`);
+    const parsedLat = parseDMS(lat);
+    const parsedLng = parseDMS(lng);
+    const query = (parsedLat !== null && parsedLng !== null)
+      ? `${parsedLat},${parsedLng}`
+      : `${lat} ${lng}`;
+    const q = encodeURIComponent(query);
     return `https://maps.google.com/maps?q=${q}&t=&z=13&ie=UTF8&iwloc=&output=embed`;
   };
 

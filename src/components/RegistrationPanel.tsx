@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { Plus, Edit2, Trash2, Building, FileSignature, MapPin, Phone, Mail, X, CheckCircle2, Globe, Copy, ExternalLink, Calendar } from 'lucide-react';
+import { Plus, Edit2, Trash2, Building, FileSignature, MapPin, Phone, Mail, X, CheckCircle2, Globe, Copy, ExternalLink, Calendar, AlertTriangle } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import { motion } from 'motion/react';
 import { Coordenacao, Contrato, Unidade, Employee, Empresa } from '../types';
-import { formatEmployeeName } from '../utils';
+import { formatEmployeeName, parseDMS } from '../utils';
 import { MapModal } from './MapModal';
 import { WhatsAppConfirmModal } from './WhatsAppConfirmModal';
 import { ConfirmModal } from './ConfirmModal';
@@ -661,10 +661,12 @@ export function RegistrationPanel({
 
   // Try to generate a Google Maps statically map URL or link that can be embedded
   const getMapIframeUrl = (lat: string, lng: string) => {
-    // Parse coordinates like 8°14'25"S / 35°02'55"W to decimal or just use them in search
-    // Since coordinates are provided in DMS (Degrees, Minutes, Seconds) string, we will convert it to a URL encoded string 
-    // for a google maps embed link to place search.
-    const q = encodeURIComponent(`${lat} ${lng}`);
+    const parsedLat = parseDMS(lat);
+    const parsedLng = parseDMS(lng);
+    const query = (parsedLat !== null && parsedLng !== null)
+      ? `${parsedLat},${parsedLng}`
+      : `${lat} ${lng}`;
+    const q = encodeURIComponent(query);
     return `https://maps.google.com/maps?q=${q}&t=&z=13&ie=UTF8&iwloc=&output=embed`;
   };
 
@@ -1103,7 +1105,7 @@ export function RegistrationPanel({
                         className="w-full h-28 rounded-lg overflow-hidden border border-white/10 bg-black/50 relative shadow-inner cursor-pointer group-hover:border-brand-accent/50 transition-colors"
                         onClick={() => setViewingMapUnidade(unidade)}
                       >
-                        {unidade.latitude && unidade.longitude ? (
+                        {parseDMS(unidade.latitude) !== null && parseDMS(unidade.longitude) !== null ? (
                           <iframe 
                             src={getMapIframeUrl(unidade.latitude, unidade.longitude)}
                             width="100%" 
@@ -1114,7 +1116,10 @@ export function RegistrationPanel({
                             referrerPolicy="no-referrer-when-downgrade"
                           />
                         ) : (
-                          <div className="w-full h-full flex items-center justify-center text-[10px] text-white/40">Inválido</div>
+                          <div className="w-full h-full flex flex-col items-center justify-center gap-1 text-[10px] text-amber-500 bg-amber-500/5">
+                            <AlertTriangle className="w-4 h-4 text-amber-500/70" />
+                            <span>Coordenadas Inválidas</span>
+                          </div>
                         )}
                         <div className="absolute inset-0 bg-transparent flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/30" title="Ver mapa interativo">
                           <MapPin className="w-6 h-6 text-brand-accent drop-shadow-md" />
@@ -1678,7 +1683,7 @@ export function RegistrationPanel({
                   </div>
 
                   {/* Interactive Map Mini Frame with premium glassy design */}
-                  {empresa.latitude && empresa.longitude ? (
+                  {parseDMS(empresa.latitude) !== null && parseDMS(empresa.longitude) !== null ? (
                     <div 
                       className="mt-4 w-full h-24 rounded-xl overflow-hidden border border-white/10 bg-black/30 relative shadow-lg cursor-pointer hover:border-brand-accent/50 transition-all duration-300 transform active:scale-[0.99] group/map"
                       onClick={() => setViewingMapEmpresa(empresa)}

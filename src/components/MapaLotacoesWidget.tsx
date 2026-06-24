@@ -1,6 +1,6 @@
-import React, { useMemo, useState } from 'react';
-import { MapPin, Users, Building2, ChevronDown } from 'lucide-react';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import React, { useMemo, useState, useEffect } from 'react';
+import { MapPin, Users, Building2, ChevronDown, AlertTriangle } from 'lucide-react';
+import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Unidade, Employee } from '../types';
@@ -28,17 +28,34 @@ const createCustomIcon = (count: number) => {
   });
 };
 
+// Sub-component to programmatically auto-center and auto-zoom the map view to fit all markers
+function MapController({ coordsList }: { coordsList: [number, number][] }) {
+  const map = useMap();
+
+  useEffect(() => {
+    if (coordsList.length > 0) {
+      const bounds = L.latLngBounds(coordsList);
+      map.fitBounds(bounds, {
+        padding: [30, 30],
+        maxZoom: 12
+      });
+    }
+  }, [coordsList, map]);
+
+  return null;
+}
+
 export function MapaLotacoesWidget({ unidades, employees }: MapaLotacoesWidgetProps) {
   const [isMobileExpanded, setIsMobileExpanded] = useState(false);
 
-  const mapData = useMemo(() => {
+  const { mapData, invalidUnits } = useMemo(() => {
     const data: { 
       unidade: Unidade; 
       coords: [number, number]; 
       empList: Employee[]; 
     }[] = [];
+    const invalid: Unidade[] = [];
 
-    // Filter to valid coords and group logic
     unidades.forEach(unidade => {
       const lat = parseDMS(unidade.latitude);
       const lng = parseDMS(unidade.longitude);
@@ -50,14 +67,24 @@ export function MapaLotacoesWidget({ unidades, employees }: MapaLotacoesWidgetPr
           coords: [lat, lng],
           empList
         });
+      } else {
+        invalid.push(unidade);
       }
     });
 
-    return data;
+    return { mapData: data, invalidUnits: invalid };
   }, [unidades, employees]);
 
+  // Audit/diagnostic logging for units with invalid coordinates
+  useEffect(() => {
+    invalidUnits.forEach(unidade => {
+      console.warn(
+        `[Mapa de Lotações - Auditoria] Unidade "${unidade.nome}" (ID: ${unidade.id}) omitida do mapa devido a coordenadas inválidas. Latitude cadastrada: "${unidade.latitude || ''}", Longitude cadastrada: "${unidade.longitude || ''}"`
+      );
+    });
+  }, [invalidUnits]);
+
   // Center roughly in Pernambuco based on average or fixed point.
-  // We'll calculate the center from the markers or use a default.
   const centerPosition: [number, number] = useMemo(() => {
     if (mapData.length > 0) {
       const sumLat = mapData.reduce((acc, d) => acc + d.coords[0], 0);
@@ -67,7 +94,7 @@ export function MapaLotacoesWidget({ unidades, employees }: MapaLotacoesWidgetPr
     return [-8.05428, -34.8813]; // Recife default
   }, [mapData]);
 
-  if (mapData.length === 0) return null;
+  if (unidades.length === 0) return null;
 
   return (
     <div className="sit-panel overflow-hidden flex flex-col mt-6 shadow-xl animate-fade-in group">
@@ -84,7 +111,16 @@ export function MapaLotacoesWidget({ unidades, employees }: MapaLotacoesWidgetPr
             <h3 className="typ-card-title text-white tracking-wide">Mapa de Lotações</h3>
           </div>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
+          {invalidUnits.length > 0 && (
+            <div 
+              className="flex items-center gap-1 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20 text-amber-300 cursor-help"
+              title={`Existem ${invalidUnits.length} unidades com coordenadas inválidas ou não cadastradas (omitidas do mapa). Verifique os logs de diagnóstico no console.`}
+            >
+              <AlertTriangle className="w-3.5 h-3.5" />
+              <span className="text-[9px] font-bold uppercase tracking-wider font-mono">{invalidUnits.length} OMITIDA(S)</span>
+            </div>
+          )}
           <div className="flex items-center gap-2 bg-black/40 px-2 py-1 rounded border border-white/5">
             <span className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
@@ -132,6 +168,8 @@ export function MapaLotacoesWidget({ unidades, employees }: MapaLotacoesWidgetPr
            <TileLayer
              url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
            />
+           {/* Fit boundaries of all markers dynamically */}
+           <MapController coordsList={mapData.map(d => d.coords)} />
            {mapData.map((data) => {
              // Generate a unique key based on the employees in this unit to force re-render on changes
              const markerKey = `${data.unidade.id}-${data.empList.map(e => `${e.id}-${e.nome}`).join('|')}`;

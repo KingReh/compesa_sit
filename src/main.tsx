@@ -65,8 +65,29 @@ if ('serviceWorker' in navigator) {
 
   if (shouldRegister) {
     window.addEventListener('load', () => {
+      // Record if the page was already controlled by a service worker on load
+      const isAlreadyControlled = !!navigator.serviceWorker.controller;
+
+      // Handle controller changes (new service worker taking over)
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (isAlreadyControlled) {
+          console.log('[SW] Novo service worker ativado. Atualizando a página silenciosamente...');
+          window.location.reload();
+        }
+      });
+
       navigator.serviceWorker.register('/sw.js')
-        .then((reg) => console.log('[SW] Registrado. Escopo:', reg.scope))
+        .then((reg) => {
+          console.log('[SW] Registrado. Escopo:', reg.scope);
+
+          // Poll for service worker updates every 30 minutes
+          const updateInterval = setInterval(() => {
+            reg.update().catch((err) => console.warn('[SW] Falha ao checar atualizações:', err));
+          }, 30 * 60 * 1000);
+
+          // Cleanup interval if page is unloaded (though it is main.tsx/SPA shell)
+          window.addEventListener('unload', () => clearInterval(updateInterval));
+        })
         .catch((err) => console.warn('[SW] Falha ao registrar:', err));
     });
   } else {

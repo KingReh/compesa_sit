@@ -28,18 +28,38 @@ export const classNames = (...classes: (string | undefined | null | false)[]) =>
 export const generateId = () => crypto.randomUUID();
 
 export const parseDMS = (dmsStr: string): number | null => {
-  // Matches formats like 8°03'14"S or 34°52'52"W
-  const match = dmsStr.match(/(\d+)°(\d+)'(\d+)"([NSEW])/i);
+  if (!dmsStr) return null;
+  const cleanStr = dmsStr.trim().replace(',', '.');
+  
+  // If it's already a decimal number, parse it directly
+  if (/^-?\d+(\.\d+)?$/.test(cleanStr)) {
+    const val = parseFloat(cleanStr);
+    return isNaN(val) ? null : val;
+  }
+
+  // Normalize quotes and spaces
+  // Replace smart quotes/various tick characters (like ’, ‘, ´, ` to ' and ”, “ to ")
+  // Remove all spaces to simplify regex matching
+  const normalized = cleanStr
+    .replace(/[‘’´`]/g, "'")
+    .replace(/[“”]/g, '"')
+    .replace(/\s+/g, '');
+
+  // Regex to match: degrees°[minutes'[seconds"]]direction
+  // Allows optional minutes and seconds, and decimal numbers for all fields
+  const dmsRegex = /^(\d+(?:\.\d+)?)°(?:(\d+(?:\.\d+)?)[’'])?(?:(\d+(?:\.\d+)?)[”"])?([NSEWOL])$/i;
+  const match = normalized.match(dmsRegex);
+  
   if (!match) return null;
   
-  const degrees = parseInt(match[1], 10);
-  const minutes = parseInt(match[2], 10);
-  const seconds = parseInt(match[3], 10);
+  const degrees = parseFloat(match[1]);
+  const minutes = match[2] ? parseFloat(match[2]) : 0;
+  const seconds = match[3] ? parseFloat(match[3]) : 0;
   const direction = match[4].toUpperCase();
-
+  
   let decimal = degrees + minutes / 60 + seconds / 3600;
   
-  if (direction === 'S' || direction === 'W') {
+  if (direction === 'S' || direction === 'W' || direction === 'O') {
     decimal = decimal * -1;
   }
   
