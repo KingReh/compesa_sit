@@ -140,6 +140,11 @@ export function Reports({ employees, coordenacoes, contratos, unidades, empresas
   }, [selectedCoordFilter]);
 
   // activeSubTab and statusTableSearch are transient UI state — not persisted.
+  useEffect(() => {
+    try {
+      localStorage.setItem('@sit:reports:statusTableFilter', statusTableFilter);
+    } catch {}
+  }, [statusTableFilter]);
 
   useEffect(() => {
     try {
