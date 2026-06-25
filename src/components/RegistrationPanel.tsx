@@ -37,14 +37,7 @@ export function RegistrationPanel({
   employees,
   setEmployees
 }: RegistrationPanelProps) {
-  const [activeTab, setActiveTab] = useState<'coordenacoes' | 'contratos' | 'unidades' | 'empresas'>(() => {
-    try {
-      const saved = localStorage.getItem('@sit:reg:activeTab');
-      return (saved === 'coordenacoes' || saved === 'contratos' || saved === 'unidades' || saved === 'empresas') ? saved : 'coordenacoes';
-    } catch {
-      return 'coordenacoes';
-    }
-  });
+  const [activeTab, setActiveTab] = useState<'coordenacoes' | 'contratos' | 'unidades' | 'empresas'>('coordenacoes');
   
   // Delete confirm modal state
   const [deleteConfirmState, setDeleteConfirmState] = useState<{
@@ -71,21 +64,8 @@ export function RegistrationPanel({
 
   const [isEditingUnidade, setIsEditingUnidade] = useState(false);
   const [currentUnidade, setCurrentUnidade] = useState<Unidade>({ id: '', nome: '', latitude: '', longitude: '' });
-  const [unidadeSearchQuery, setUnidadeSearchQuery] = useState(() => {
-    try {
-      return localStorage.getItem('@sit:reg:unidadeSearchQuery') || '';
-    } catch {
-      return '';
-    }
-  });
-  const [unidadesCurrentPage, setUnidadesCurrentPage] = useState<number>(() => {
-    try {
-      const saved = localStorage.getItem('@sit:reg:unidadesCurrentPage');
-      return saved ? Number(saved) : 1;
-    } catch {
-      return 1;
-    }
-  });
+  const [unidadeSearchQuery, setUnidadeSearchQuery] = useState('');
+  const [unidadesCurrentPage, setUnidadesCurrentPage] = useState<number>(1);
   const [viewingMapUnidade, setViewingMapUnidade] = useState<Unidade | null>(null);
   const unidadesPerPage = 5;
 
@@ -101,21 +81,8 @@ export function RegistrationPanel({
     emails: [],
     sites: []
   });
-  const [empresaSearchQuery, setEmpresaSearchQuery] = useState(() => {
-    try {
-      return localStorage.getItem('@sit:reg:empresaSearchQuery') || '';
-    } catch {
-      return '';
-    }
-  });
-  const [empresasCurrentPage, setEmpresasCurrentPage] = useState<number>(() => {
-    try {
-      const saved = localStorage.getItem('@sit:reg:empresasCurrentPage');
-      return saved ? Number(saved) : 1;
-    } catch {
-      return 1;
-    }
-  });
+  const [empresaSearchQuery, setEmpresaSearchQuery] = useState('');
+  const [empresasCurrentPage, setEmpresasCurrentPage] = useState<number>(1);
   const [viewingMapEmpresa, setViewingMapEmpresa] = useState<Empresa | null>(null);
   const [isSearchingCnpj, setIsSearchingCnpj] = useState(false);
   const empresasPerPage = 5;
@@ -123,36 +90,6 @@ export function RegistrationPanel({
   const [isWhatsAppModalOpen, setIsWhatsAppModalOpen] = useState(false);
   const [employeeForWhatsApp, setEmployeeForWhatsApp] = useState<Employee | null>(null);
 
-  // Sync states to localStorage
-  React.useEffect(() => {
-    try {
-      localStorage.setItem('@sit:reg:activeTab', activeTab);
-    } catch {}
-  }, [activeTab]);
-
-  React.useEffect(() => {
-    try {
-      localStorage.setItem('@sit:reg:unidadeSearchQuery', unidadeSearchQuery);
-    } catch {}
-  }, [unidadeSearchQuery]);
-
-  React.useEffect(() => {
-    try {
-      localStorage.setItem('@sit:reg:unidadesCurrentPage', String(unidadesCurrentPage));
-    } catch {}
-  }, [unidadesCurrentPage]);
-
-  React.useEffect(() => {
-    try {
-      localStorage.setItem('@sit:reg:empresaSearchQuery', empresaSearchQuery);
-    } catch {}
-  }, [empresaSearchQuery]);
-
-  React.useEffect(() => {
-    try {
-      localStorage.setItem('@sit:reg:empresasCurrentPage', String(empresasCurrentPage));
-    } catch {}
-  }, [empresasCurrentPage]);
 
   const handlePhoneClick = (companyName: string, contactName: string, phoneNumber: string) => {
     const dummyEmployee = {

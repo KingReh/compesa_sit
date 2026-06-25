@@ -64,26 +64,38 @@ export default function App() {
   const [unidades, setUnidades] = useState<Unidade[]>([]);
   const [empresas, setEmpresas] = useState<Empresa[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [currentView, setCurrentView] = useState<'painel' | 'configuracao' | 'relatorios' | 'ferias'>(() => {
-    try {
-      const saved = localStorage.getItem('@sit:currentView');
-      return (saved === 'painel' || saved === 'configuracao' || saved === 'relatorios' || saved === 'ferias')
-        ? (saved as 'painel' | 'configuracao' | 'relatorios' | 'ferias')
-        : 'painel';
-    } catch {
-      return 'painel';
-    }
-  });
+  const [currentView, setCurrentView] = useState<'painel' | 'configuracao' | 'relatorios' | 'ferias'>('painel');
   const [installToast, setInstallToast] = useState(false);
 
-  // Persist currentView changes
+  // One-time cleanup of legacy transient UI state persisted in localStorage.
+  // We intentionally do NOT persist navigation, tabs, search queries, pagination
+  // or other transient UI state across sessions. Only data filters/display
+  // preferences remain persisted by their respective components.
   useEffect(() => {
     try {
-      localStorage.setItem('@sit:currentView', currentView);
+      const transientKeys = [
+        '@sit:currentView',
+        '@sit:reg:activeTab',
+        '@sit:reg:unidadeSearchQuery',
+        '@sit:reg:unidadesCurrentPage',
+        '@sit:reg:empresaSearchQuery',
+        '@sit:reg:empresasCurrentPage',
+        '@sit:vacation:activeTab',
+        '@sit:vacation:selectedDetailMonth',
+        '@sit:vacation:detailSearchQuery',
+        '@sit:vacation:selectedCoords',
+        '@sit:vacation:selectedEmps',
+        '@sit:vacation:searchQuery',
+        '@sit:vacation:currentPage',
+        '@sit:reports:activeSubTab',
+        '@sit:reports:statusTableSearch',
+        '@sit:currentPage',
+      ];
+      transientKeys.forEach((k) => localStorage.removeItem(k));
     } catch (e) {
       console.error(e);
     }
-  }, [currentView]);
+  }, []);
 
   // Auto-hide install toast
   useEffect(() => {
