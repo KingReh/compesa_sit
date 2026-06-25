@@ -53,24 +53,11 @@ export function VacationPlanning({ employees, coordenacoes, empresas }: Vacation
     }
   });
 
-  // New Tab Navigation State
-  const [activeTab, setActiveTab2] = useState<'planejamento' | 'cronograma'>(() => {
-    try {
-      const saved = localStorage.getItem('@sit:vacation:activeTab');
-      return (saved === 'planejamento' || saved === 'cronograma') ? saved : 'planejamento';
-    } catch {
-      return 'planejamento';
-    }
-  });
+  // New Tab Navigation State (transient — not persisted across sessions)
+  const [activeTab, setActiveTab2] = useState<'planejamento' | 'cronograma'>('planejamento');
 
-  // Interactive Month Detail Modal State
-  const [selectedDetailMonth, setSelectedDetailMonth] = useState<string | null>(() => {
-    try {
-      return localStorage.getItem('@sit:vacation:selectedDetailMonth');
-    } catch {
-      return null;
-    }
-  });
+  // Interactive Month Detail Modal State (transient — not persisted)
+  const [selectedDetailMonth, setSelectedDetailMonth] = useState<string | null>(null);
   const [detailCompanyFilter, setDetailCompanyFilter] = useState(() => {
     try {
       return localStorage.getItem('@sit:vacation:detailCompanyFilter') || '';
@@ -99,13 +86,7 @@ export function VacationPlanning({ employees, coordenacoes, empresas }: Vacation
       return '';
     }
   });
-  const [detailSearchQuery, setDetailSearchQuery] = useState(() => {
-    try {
-      return localStorage.getItem('@sit:vacation:detailSearchQuery') || '';
-    } catch {
-      return '';
-    }
-  });
+  const [detailSearchQuery, setDetailSearchQuery] = useState('');
 
   const isModalFirstMount = useRef(true);
 
@@ -135,49 +116,22 @@ export function VacationPlanning({ employees, coordenacoes, empresas }: Vacation
   const [toastMessage, setToastMessage] = useState('');
 
   // 3. Dropdown Search / Filter States
-  const [selectedCoords, setSelectedCoords] = useState<string[]>(() => {
-    try {
-      const saved = localStorage.getItem('@sit:vacation:selectedCoords');
-      return saved ? JSON.parse(saved) : [];
-    } catch {
-      return [];
-    }
-  });
+  const [selectedCoords, setSelectedCoords] = useState<string[]>([]);
   const [coordSearch, setCoordSearch] = useState('');
   const [showCoordDropdown, setShowCoordDropdown] = useState(false);
 
-  const [selectedEmps, setSelectedEmps] = useState<string[]>(() => {
-    try {
-      const saved = localStorage.getItem('@sit:vacation:selectedEmps');
-      return saved ? JSON.parse(saved) : [];
-    } catch {
-      return [];
-    }
-  });
+  const [selectedEmps, setSelectedEmps] = useState<string[]>([]);
   const [empSearch, setEmpSearch] = useState('');
   const [showEmpDropdown, setShowEmpDropdown] = useState(false);
 
-  const [searchQuery, setSearchQuery] = useState(() => {
-    try {
-      return localStorage.getItem('@sit:vacation:searchQuery') || '';
-    } catch {
-      return '';
-    }
-  });
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Ref dropdown click-out side effects
   const coordDropdownRef = useRef<HTMLDivElement>(null);
   const empDropdownRef = useRef<HTMLDivElement>(null);
 
   // Pagination and sorting states
-  const [currentPage, setCurrentPage] = useState<number>(() => {
-    try {
-      const saved = localStorage.getItem('@sit:vacation:currentPage');
-      return saved ? Number(saved) : 1;
-    } catch {
-      return 1;
-    }
-  });
+  const [currentPage, setCurrentPage] = useState<number>(1);
   const itemsPerPage = 8;
   const [sortField, setSortField] = useState<SortField>(() => {
     try {
@@ -196,28 +150,12 @@ export function VacationPlanning({ employees, coordenacoes, empresas }: Vacation
     }
   });
 
-  // Persist filter preferences
+  // Persist filter preferences (year and detail filters only)
   useEffect(() => {
     try {
       localStorage.setItem('@sit:vacation:selectedYear', String(selectedYear));
     } catch {}
   }, [selectedYear]);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('@sit:vacation:activeTab', activeTab);
-    } catch {}
-  }, [activeTab]);
-
-  useEffect(() => {
-    try {
-      if (selectedDetailMonth) {
-        localStorage.setItem('@sit:vacation:selectedDetailMonth', selectedDetailMonth);
-      } else {
-        localStorage.removeItem('@sit:vacation:selectedDetailMonth');
-      }
-    } catch {}
-  }, [selectedDetailMonth]);
 
   useEffect(() => {
     try {
@@ -242,36 +180,6 @@ export function VacationPlanning({ employees, coordenacoes, empresas }: Vacation
       localStorage.setItem('@sit:vacation:detailModeFilter', detailModeFilter);
     } catch {}
   }, [detailModeFilter]);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('@sit:vacation:detailSearchQuery', detailSearchQuery);
-    } catch {}
-  }, [detailSearchQuery]);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('@sit:vacation:selectedCoords', JSON.stringify(selectedCoords));
-    } catch {}
-  }, [selectedCoords]);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('@sit:vacation:selectedEmps', JSON.stringify(selectedEmps));
-    } catch {}
-  }, [selectedEmps]);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('@sit:vacation:searchQuery', searchQuery);
-    } catch {}
-  }, [searchQuery]);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('@sit:vacation:currentPage', String(currentPage));
-    } catch {}
-  }, [currentPage]);
 
   useEffect(() => {
     try {

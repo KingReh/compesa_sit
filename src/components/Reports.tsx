@@ -71,14 +71,7 @@ export function Reports({ employees, coordenacoes, contratos, unidades, empresas
       return '';
     }
   });
-  const [activeSubTab, setActiveSubTab] = useState<'dashboard' | 'ferias'>(() => {
-    try {
-      const saved = localStorage.getItem('@sit:reports:activeSubTab');
-      return (saved === 'dashboard' || saved === 'ferias') ? (saved as 'dashboard' | 'ferias') : 'dashboard';
-    } catch {
-      return 'dashboard';
-    }
-  });
+  const [activeSubTab, setActiveSubTab] = useState<'dashboard' | 'ferias'>('dashboard');
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [selectedSpecialtyForModal, setSelectedSpecialtyForModal] = useState<string | null>(null);
   const [specialtySearchQuery, setSpecialtySearchQuery] = useState<string>('');
@@ -105,13 +98,7 @@ export function Reports({ employees, coordenacoes, contratos, unidades, empresas
       return 'all';
     }
   });
-  const [statusTableSearch, setStatusTableSearch] = useState<string>(() => {
-    try {
-      return localStorage.getItem('@sit:reports:statusTableSearch') || '';
-    } catch {
-      return '';
-    }
-  });
+  const [statusTableSearch, setStatusTableSearch] = useState<string>('');
   const [statusTableMonthFilter, setStatusTableMonthFilter] = useState<string>(() => {
     try {
       return localStorage.getItem('@sit:reports:statusTableMonthFilter') || 'all';
@@ -152,23 +139,12 @@ export function Reports({ employees, coordenacoes, contratos, unidades, empresas
     } catch {}
   }, [selectedCoordFilter]);
 
-  useEffect(() => {
-    try {
-      localStorage.setItem('@sit:reports:activeSubTab', activeSubTab);
-    } catch {}
-  }, [activeSubTab]);
-
+  // activeSubTab and statusTableSearch are transient UI state — not persisted.
   useEffect(() => {
     try {
       localStorage.setItem('@sit:reports:statusTableFilter', statusTableFilter);
     } catch {}
   }, [statusTableFilter]);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('@sit:reports:statusTableSearch', statusTableSearch);
-    } catch {}
-  }, [statusTableSearch]);
 
   useEffect(() => {
     try {

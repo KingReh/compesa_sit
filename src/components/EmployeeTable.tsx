@@ -35,14 +35,8 @@ export function EmployeeTable({ employees, unidades, searchQuery, onEdit, onDele
     }
   });
 
-  const [currentPage, setCurrentPage] = useState<number>(() => {
-    try {
-      const saved = localStorage.getItem('@sit:currentPage');
-      return saved ? Number(saved) : 1;
-    } catch {
-      return 1;
-    }
-  });
+  // currentPage is transient — always reset on (re)mount/session start.
+  const [currentPage, setCurrentPage] = useState<number>(1);
 
   const itemsPerPage = 8;
 
@@ -103,13 +97,7 @@ export function EmployeeTable({ employees, unidades, searchQuery, onEdit, onDele
     }
   }, [sortOrder]);
 
-  useEffect(() => {
-    try {
-      localStorage.setItem('@sit:currentPage', String(currentPage));
-    } catch (e) {
-      console.error(e);
-    }
-  }, [currentPage]);
+  // currentPage is transient — intentionally not persisted.
 
   useEffect(() => {
     try {
