@@ -2,7 +2,7 @@ import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { Employee, VacationPlan } from '../types';
-import { formatEmployeeName } from '../utils';
+import { formatEmployeeName, formatLocalDateBR } from '../utils';
 
 export interface ReportExportData {
   selectedYear: number;
