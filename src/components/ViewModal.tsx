@@ -321,7 +321,7 @@ export function ViewModal({ isOpen, onClose, employee, onAjustarPonto }: ViewMod
                   <Calendar className="h-3.5 w-3.5 text-brand-accent" /> Nascimento / Idade
                 </span>
                 <p className="typ-card-title text-sm flex items-center gap-2">
-                  <span>{employee.dataNascimento ? new Date(employee.dataNascimento).toLocaleDateString('pt-BR') : '-'}</span>
+                  <span>{employee.dataNascimento ? formatLocalDateBR(employee.dataNascimento) : '-'}</span>
                   {employee.dataNascimento && (
                     <span className="text-[10px] bg-brand-accent/20 border border-brand-accent/30 text-white rounded-md px-1.5 font-bold font-mono">
                       {getAge(employee.dataNascimento)}
