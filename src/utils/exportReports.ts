@@ -2,7 +2,7 @@ import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { Employee, VacationPlan } from '../types';
-import { formatEmployeeName } from '../utils';
+import { formatEmployeeName, formatLocalDateBR } from '../utils';
 
 export interface ReportExportData {
   selectedYear: number;
@@ -36,14 +36,7 @@ const meses = [
 ];
 
 function formatDate(d?: string) {
-  if (!d) return '';
-  try {
-    const dt = new Date(d);
-    if (isNaN(dt.getTime())) return d;
-    return dt.toLocaleDateString('pt-BR');
-  } catch {
-    return d;
-  }
+  return formatLocalDateBR(d);
 }
 
 function getTimestamp(): string {
