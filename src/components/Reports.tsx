@@ -301,8 +301,8 @@ export function Reports({ employees, coordenacoes, contratos, unidades, empresas
       
       // Pants count
       if (emp.calca) {
-        const sz = emp.calca;
-        uniformPantsStats[sz] = (uniformPantsStats[sz] || 0) + 1;
+        const sz = String(emp.calca).trim().toUpperCase();
+        if (sz) uniformPantsStats[sz] = (uniformPantsStats[sz] || 0) + 1;
       }
 
       // SPT (Shoes) count
