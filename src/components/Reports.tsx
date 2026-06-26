@@ -301,8 +301,8 @@ export function Reports({ employees, coordenacoes, contratos, unidades, empresas
       
       // Pants count
       if (emp.calca) {
-        const sz = emp.calca;
-        uniformPantsStats[sz] = (uniformPantsStats[sz] || 0) + 1;
+        const sz = String(emp.calca).trim().toUpperCase();
+        if (sz) uniformPantsStats[sz] = (uniformPantsStats[sz] || 0) + 1;
       }
 
       // SPT (Shoes) count
@@ -532,7 +532,7 @@ export function Reports({ employees, coordenacoes, contratos, unidades, empresas
 
   // Helper arrays for sizes lists so that we can render consistent distribution stats
   const shirtSizesList = ['P', 'M', 'G', 'GG', 'XG'];
-  const pantsSizesList = ['36', '38', '40', '42', '44', '46', '48'];
+  const pantsSizesList = ['PP', 'P', 'M', 'G', 'GG', 'EXG'];
   const sptSizesList = ['36', '37', '38', '39', '40', '41', '42', '43', '44', '45'];
 
   return (
@@ -1255,7 +1255,7 @@ export function Reports({ employees, coordenacoes, contratos, unidades, empresas
                       </div>
                       <div 
                         onMouseDown={handleDragScroll}
-                        className="flex overflow-x-auto sm:grid sm:grid-cols-7 gap-1.5 pt-2.5 pb-3 sm:py-2 scrollbar-none cursor-grab active:cursor-grabbing select-none"
+                        className="flex overflow-x-auto sm:grid sm:grid-cols-6 gap-1.5 pt-2.5 pb-3 sm:py-2 scrollbar-none cursor-grab active:cursor-grabbing select-none"
                       >
                         {pantsSizesList.map(size => {
                           const qty = stats.uniformPantsStats[size] || 0;
