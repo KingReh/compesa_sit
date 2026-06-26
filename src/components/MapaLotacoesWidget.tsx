@@ -59,14 +59,17 @@ export function MapaLotacoesWidget({ unidades, employees }: MapaLotacoesWidgetPr
     unidades.forEach(unidade => {
       const lat = parseDMS(unidade.latitude);
       const lng = parseDMS(unidade.longitude);
-      
+
       if (lat !== null && lng !== null) {
         const empList = employees.filter(e => e.lotacao === unidade.nome);
-        data.push({
-          unidade,
-          coords: [lat, lng],
-          empList
-        });
+        // Exibir somente unidades com ao menos 1 funcionário alocado
+        if (empList.length > 0) {
+          data.push({
+            unidade,
+            coords: [lat, lng],
+            empList
+          });
+        }
       } else {
         invalid.push(unidade);
       }
