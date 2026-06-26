@@ -18,6 +18,7 @@ import {
   Sparkles,
   ShieldCheck
 } from 'lucide-react';
+import { parseLocalDate, formatLocalDateBR } from '../utils';
 import { Employee } from '../types';
 
 interface ViewModalProps {
