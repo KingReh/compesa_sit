@@ -396,7 +396,7 @@ export function ViewModal({ isOpen, onClose, employee, onAjustarPonto }: ViewMod
                 </span>
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
                   <p className="typ-card-title text-sm font-semibold">
-                    {employee.dataAdmissao ? new Date(employee.dataAdmissao).toLocaleDateString('pt-BR') : '-'}
+                    {employee.dataAdmissao ? formatLocalDateBR(employee.dataAdmissao) : '-'}
                   </p>
                   {employee.dataAdmissao && (
                     <div className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 rounded-lg px-3 py-1.5 text-xs font-mono font-extrabold flex items-center gap-1.5 self-start sm:self-auto shadow-inner">
