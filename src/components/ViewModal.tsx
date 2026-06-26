@@ -48,8 +48,8 @@ export function ViewModal({ isOpen, onClose, employee, onAjustarPonto }: ViewMod
   const getAge = (birthDateStr: string) => {
     if (!birthDateStr) return 'Não cadastrado';
     try {
-      const birthDate = new Date(birthDateStr);
-      if (isNaN(birthDate.getTime())) return 'Dados inválidos';
+      const birthDate = parseLocalDate(birthDateStr);
+      if (!birthDate) return 'Dados inválidos';
       const today = new Date();
       let age = today.getFullYear() - birthDate.getFullYear();
       const m = today.getMonth() - birthDate.getMonth();
