@@ -532,7 +532,7 @@ export function Reports({ employees, coordenacoes, contratos, unidades, empresas
 
   // Helper arrays for sizes lists so that we can render consistent distribution stats
   const shirtSizesList = ['P', 'M', 'G', 'GG', 'XG'];
-  const pantsSizesList = ['36', '38', '40', '42', '44', '46', '48'];
+  const pantsSizesList = ['PP', 'P', 'M', 'G', 'GG', 'EXG'];
   const sptSizesList = ['36', '37', '38', '39', '40', '41', '42', '43', '44', '45'];
 
   return (
