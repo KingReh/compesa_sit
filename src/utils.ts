@@ -1,3 +1,43 @@
+/**
+ * Parse a date string as a LOCAL Date, avoiding the UTC-midnight off-by-one bug.
+ * Accepts "YYYY-MM-DD", "YYYY-MM-DDTHH:mm:ss...", "DD/MM/YYYY" or "DD-MM-YYYY".
+ */
+export const parseLocalDate = (value: string | null | undefined): Date | null => {
+  if (!value) return null;
+  const str = String(value).trim();
+  if (!str) return null;
+
+  // YYYY-MM-DD (optionally with time component — ignore the time/zone, take date only)
+  const iso = str.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (iso) {
+    const y = parseInt(iso[1], 10);
+    const m = parseInt(iso[2], 10);
+    const d = parseInt(iso[3], 10);
+    const dt = new Date(y, m - 1, d);
+    return isNaN(dt.getTime()) ? null : dt;
+  }
+
+  // DD/MM/YYYY or DD-MM-YYYY
+  const dmy = str.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})$/);
+  if (dmy) {
+    let y = parseInt(dmy[3], 10);
+    if (y < 100) y += 2000;
+    const dt = new Date(y, parseInt(dmy[2], 10) - 1, parseInt(dmy[1], 10));
+    return isNaN(dt.getTime()) ? null : dt;
+  }
+
+  const fallback = new Date(str);
+  return isNaN(fallback.getTime()) ? null : fallback;
+};
+
+/** Format a stored date string as DD/MM/YYYY without timezone shifts. */
+export const formatLocalDateBR = (value: string | null | undefined): string => {
+  const dt = parseLocalDate(value);
+  if (!dt) return '';
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${pad(dt.getDate())}/${pad(dt.getMonth() + 1)}/${dt.getFullYear()}`;
+};
+
 export const maskCPF = (value: string) => {
   return value
     .replace(/\D/g, '')
