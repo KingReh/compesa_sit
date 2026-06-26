@@ -269,14 +269,14 @@ export function Reports({ employees, coordenacoes, contratos, unidades, empresas
     filteredEmployees.forEach(emp => {
       // Demographic calculations
       if (emp.dataNascimento) {
-        const bYear = new Date(emp.dataNascimento).getFullYear();
+        const bYear = parseLocalDate(emp.dataNascimento)?.getFullYear() ?? currentYear - 35;
         ageSum += Math.max(18, currentYear - bYear);
       } else {
         ageSum += 35; // default avg
       }
 
       if (emp.dataAdmissao) {
-        const aYear = new Date(emp.dataAdmissao).getFullYear();
+        const aYear = parseLocalDate(emp.dataAdmissao)?.getFullYear() ?? currentYear - 2;
         senioritySum += Math.max(0, currentYear - aYear);
       } else {
         senioritySum += 2; // default avg
