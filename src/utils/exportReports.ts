@@ -36,14 +36,7 @@ const meses = [
 ];
 
 function formatDate(d?: string) {
-  if (!d) return '';
-  try {
-    const dt = new Date(d);
-    if (isNaN(dt.getTime())) return d;
-    return dt.toLocaleDateString('pt-BR');
-  } catch {
-    return d;
-  }
+  return formatLocalDateBR(d);
 }
 
 function getTimestamp(): string {
