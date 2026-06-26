@@ -66,8 +66,8 @@ export function ViewModal({ isOpen, onClose, employee, onAjustarPonto }: ViewMod
   const getSeniority = (admissionDateStr: string) => {
     if (!admissionDateStr) return 'Não cadastrado';
     try {
-      const admDate = new Date(admissionDateStr);
-      if (isNaN(admDate.getTime())) return 'Dados inválidos';
+      const admDate = parseLocalDate(admissionDateStr);
+      if (!admDate) return 'Dados inválidos';
       const today = new Date();
       
       const diffTime = Math.abs(today.getTime() - admDate.getTime());
