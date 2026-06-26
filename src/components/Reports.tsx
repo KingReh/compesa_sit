@@ -1255,7 +1255,7 @@ export function Reports({ employees, coordenacoes, contratos, unidades, empresas
                       </div>
                       <div 
                         onMouseDown={handleDragScroll}
-                        className="flex overflow-x-auto sm:grid sm:grid-cols-7 gap-1.5 pt-2.5 pb-3 sm:py-2 scrollbar-none cursor-grab active:cursor-grabbing select-none"
+                        className="flex overflow-x-auto sm:grid sm:grid-cols-6 gap-1.5 pt-2.5 pb-3 sm:py-2 scrollbar-none cursor-grab active:cursor-grabbing select-none"
                       >
                         {pantsSizesList.map(size => {
                           const qty = stats.uniformPantsStats[size] || 0;
