@@ -32,6 +32,7 @@ import {
 import { Employee, Coordenacao, Contrato, Unidade, Empresa, VacationPlan } from '../types';
 import { vacationPlansService } from '../services/vacationPlansService';
 import { exportReportToPDF, exportReportToXLSX, exportReportToODS } from '../utils/exportReports';
+import { parseLocalDate } from '../utils';
 // @ts-ignore
 import carBlueprintImg from '../assets/images/blue_car_blueprint_1781386584651.jpg';
 
