@@ -645,20 +645,28 @@ export function EmployeeTable({ employees, unidades, searchQuery, onEdit, onDele
                   <div>
                     {/* Header: Photo and Info */}
                     <div className="flex items-center gap-3">
-                      <div className="relative flex-shrink-0 h-11 w-11">
+                      <div className="relative flex-shrink-0 h-16 w-16 sm:h-[68px] sm:w-[68px]">
                         <div className="h-full w-full rounded-full overflow-hidden ring-2 ring-brand-border/60 group-hover:ring-brand-accent/60 transition-all duration-300 bg-brand-panel-light flex items-center justify-center shadow-inner">
                           {employee.foto ? (
-                            <img className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" src={employee.foto} alt={employee.nome} />
+                            <img
+                              src={employee.foto}
+                              alt={employee.nome}
+                              loading="lazy"
+                              decoding="async"
+                              draggable={false}
+                              className="h-full w-full object-cover object-center select-none transition-transform duration-500 group-hover:scale-105"
+                              style={{ objectPosition: 'center 30%' }}
+                            />
                           ) : (
-                            <UserRound className="h-5.5 w-5.5 text-brand-muted/70 group-hover:text-brand-accent transition-colors duration-300" />
+                            <UserRound className="h-7 w-7 text-brand-muted/70 group-hover:text-brand-accent transition-colors duration-300" />
                           )}
                         </div>
                         {employee.autorizadoDirigir && (
                           <div 
-                            className="absolute -bottom-0.5 -right-0.5 h-4 w-4 rounded-full bg-emerald-500 flex items-center justify-center ring-2 ring-brand-border/60 group-hover:ring-brand-accent/60 shadow z-10" 
+                            className="absolute -bottom-0.5 -right-0.5 h-5 w-5 rounded-full bg-emerald-500 flex items-center justify-center ring-2 ring-brand-border/60 group-hover:ring-brand-accent/60 shadow z-10" 
                             title="Motorista Autorizado"
                           >
-                            <Car className="h-2.5 w-2.5 text-white" />
+                            <Car className="h-3 w-3 text-white" />
                           </div>
                         )}
                       </div>
