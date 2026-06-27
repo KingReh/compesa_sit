@@ -645,7 +645,7 @@ export function EmployeeTable({ employees, unidades, searchQuery, onEdit, onDele
                   <div>
                     {/* Header: Photo and Info */}
                     <div className="flex items-center gap-3">
-                      <div className="relative flex-shrink-0 h-16 w-16 sm:h-[68px] sm:w-[68px]">
+                      <div className="relative flex-shrink-0 h-16 w-16 sm:h-[60px] sm:w-[60px]">
                         <div className="h-full w-full rounded-full overflow-hidden ring-2 ring-brand-border/60 group-hover:ring-brand-accent/60 transition-all duration-300 bg-brand-panel-light flex items-center justify-center shadow-inner">
                           {employee.foto ? (
                             <img
