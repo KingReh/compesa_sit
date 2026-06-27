@@ -528,8 +528,8 @@ export function EmployeeTable({ employees, unidades, searchQuery, onEdit, onDele
               ) : (
                 paginatedEmployees.map((employee) => (
                   <tr key={employee.id} className="hover:bg-brand-panel-light/15 transition-colors border-b border-brand-border/20 last:border-0 animate-fade-in">
-                    <td className="px-2 py-1.5 align-middle">
-                      <div className="h-10 w-10 sm:h-11 sm:w-11 lg:h-12 lg:w-12 mx-auto flex-shrink-0 rounded-full overflow-hidden ring-1 ring-brand-border/70 shadow-sm bg-brand-panel-light flex items-center justify-center">
+                    <td className="px-2 py-1.5 align-middle w-14">
+                      <div className="h-9 w-9 mx-auto flex-shrink-0 rounded-full overflow-hidden ring-2 ring-brand-border/60 shadow-sm bg-brand-panel-light flex items-center justify-center">
                         {employee.foto ? (
                           <img
                             src={employee.foto}
@@ -537,11 +537,11 @@ export function EmployeeTable({ employees, unidades, searchQuery, onEdit, onDele
                             loading="lazy"
                             decoding="async"
                             draggable={false}
-                            className="h-full w-full object-cover object-center select-none"
+                            className="h-full w-full object-cover select-none"
                             style={{ objectPosition: 'center 30%' }}
                           />
                         ) : (
-                          <UserRound className="h-5 w-5 text-brand-muted" />
+                          <UserRound className="h-4 w-4 text-brand-muted" />
                         )}
                       </div>
                     </td>
