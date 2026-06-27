@@ -528,8 +528,8 @@ export function EmployeeTable({ employees, unidades, searchQuery, onEdit, onDele
               ) : (
                 paginatedEmployees.map((employee) => (
                   <tr key={employee.id} className="hover:bg-brand-panel-light/15 transition-colors border-b border-brand-border/20 last:border-0 animate-fade-in">
-                    <td className="px-2 py-1.5 align-middle">
-                      <div className="h-10 w-10 sm:h-11 sm:w-11 lg:h-12 lg:w-12 mx-auto flex-shrink-0 rounded-full overflow-hidden ring-1 ring-brand-border/70 shadow-sm bg-brand-panel-light flex items-center justify-center">
+                    <td className="px-2 py-1.5 align-middle w-14">
+                      <div className="h-9 w-9 mx-auto flex-shrink-0 rounded-full overflow-hidden ring-2 ring-brand-border/60 shadow-sm bg-brand-panel-light flex items-center justify-center">
                         {employee.foto ? (
                           <img
                             src={employee.foto}
@@ -537,11 +537,11 @@ export function EmployeeTable({ employees, unidades, searchQuery, onEdit, onDele
                             loading="lazy"
                             decoding="async"
                             draggable={false}
-                            className="h-full w-full object-cover object-center select-none"
+                            className="h-full w-full object-cover select-none"
                             style={{ objectPosition: 'center 30%' }}
                           />
                         ) : (
-                          <UserRound className="h-5 w-5 text-brand-muted" />
+                          <UserRound className="h-4 w-4 text-brand-muted" />
                         )}
                       </div>
                     </td>
@@ -645,7 +645,7 @@ export function EmployeeTable({ employees, unidades, searchQuery, onEdit, onDele
                   <div>
                     {/* Header: Photo and Info */}
                     <div className="flex items-center gap-3">
-                      <div className="relative flex-shrink-0 h-16 w-16 sm:h-[50px] sm:w-[50px]">
+                      <div className="relative flex-shrink-0 h-[50px] w-[50px]">
                         <div className="h-full w-full rounded-full overflow-hidden ring-2 ring-brand-border/60 group-hover:ring-brand-accent/60 transition-all duration-300 bg-brand-panel-light flex items-center justify-center shadow-inner">
                           {employee.foto ? (
                             <img
@@ -654,11 +654,11 @@ export function EmployeeTable({ employees, unidades, searchQuery, onEdit, onDele
                               loading="lazy"
                               decoding="async"
                               draggable={false}
-                              className="h-full w-full object-cover object-center select-none transition-transform duration-500 group-hover:scale-105"
+                              className="h-full w-full object-cover select-none transition-transform duration-500 group-hover:scale-105"
                               style={{ objectPosition: 'center 30%' }}
                             />
                           ) : (
-                            <UserRound className="h-7 w-7 text-brand-muted/70 group-hover:text-brand-accent transition-colors duration-300" />
+                            <UserRound className="h-6 w-6 text-brand-muted/70 group-hover:text-brand-accent transition-colors duration-300" />
                           )}
                         </div>
                         {employee.autorizadoDirigir && (
