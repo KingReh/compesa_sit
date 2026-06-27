@@ -37,14 +37,7 @@ export function RegistrationPanel({
   employees,
   setEmployees
 }: RegistrationPanelProps) {
-  const [activeTab, setActiveTab] = useState<'coordenacoes' | 'contratos' | 'unidades' | 'empresas'>(() => {
-    try {
-      const saved = localStorage.getItem('@sit:reg:activeTab');
-      return (saved === 'coordenacoes' || saved === 'contratos' || saved === 'unidades' || saved === 'empresas') ? saved : 'coordenacoes';
-    } catch {
-      return 'coordenacoes';
-    }
-  });
+  const [activeTab, setActiveTab] = useState<'coordenacoes' | 'contratos' | 'unidades' | 'empresas'>('coordenacoes');
   
   // Delete confirm modal state
   const [deleteConfirmState, setDeleteConfirmState] = useState<{
@@ -71,21 +64,8 @@ export function RegistrationPanel({
 
   const [isEditingUnidade, setIsEditingUnidade] = useState(false);
   const [currentUnidade, setCurrentUnidade] = useState<Unidade>({ id: '', nome: '', latitude: '', longitude: '' });
-  const [unidadeSearchQuery, setUnidadeSearchQuery] = useState(() => {
-    try {
-      return localStorage.getItem('@sit:reg:unidadeSearchQuery') || '';
-    } catch {
-      return '';
-    }
-  });
-  const [unidadesCurrentPage, setUnidadesCurrentPage] = useState<number>(() => {
-    try {
-      const saved = localStorage.getItem('@sit:reg:unidadesCurrentPage');
-      return saved ? Number(saved) : 1;
-    } catch {
-      return 1;
-    }
-  });
+  const [unidadeSearchQuery, setUnidadeSearchQuery] = useState('');
+  const [unidadesCurrentPage, setUnidadesCurrentPage] = useState<number>(1);
   const [viewingMapUnidade, setViewingMapUnidade] = useState<Unidade | null>(null);
   const unidadesPerPage = 5;
 
@@ -101,21 +81,8 @@ export function RegistrationPanel({
     emails: [],
     sites: []
   });
-  const [empresaSearchQuery, setEmpresaSearchQuery] = useState(() => {
-    try {
-      return localStorage.getItem('@sit:reg:empresaSearchQuery') || '';
-    } catch {
-      return '';
-    }
-  });
-  const [empresasCurrentPage, setEmpresasCurrentPage] = useState<number>(() => {
-    try {
-      const saved = localStorage.getItem('@sit:reg:empresasCurrentPage');
-      return saved ? Number(saved) : 1;
-    } catch {
-      return 1;
-    }
-  });
+  const [empresaSearchQuery, setEmpresaSearchQuery] = useState('');
+  const [empresasCurrentPage, setEmpresasCurrentPage] = useState<number>(1);
   const [viewingMapEmpresa, setViewingMapEmpresa] = useState<Empresa | null>(null);
   const [isSearchingCnpj, setIsSearchingCnpj] = useState(false);
   const empresasPerPage = 5;
@@ -123,36 +90,6 @@ export function RegistrationPanel({
   const [isWhatsAppModalOpen, setIsWhatsAppModalOpen] = useState(false);
   const [employeeForWhatsApp, setEmployeeForWhatsApp] = useState<Employee | null>(null);
 
-  // Sync states to localStorage
-  React.useEffect(() => {
-    try {
-      localStorage.setItem('@sit:reg:activeTab', activeTab);
-    } catch {}
-  }, [activeTab]);
-
-  React.useEffect(() => {
-    try {
-      localStorage.setItem('@sit:reg:unidadeSearchQuery', unidadeSearchQuery);
-    } catch {}
-  }, [unidadeSearchQuery]);
-
-  React.useEffect(() => {
-    try {
-      localStorage.setItem('@sit:reg:unidadesCurrentPage', String(unidadesCurrentPage));
-    } catch {}
-  }, [unidadesCurrentPage]);
-
-  React.useEffect(() => {
-    try {
-      localStorage.setItem('@sit:reg:empresaSearchQuery', empresaSearchQuery);
-    } catch {}
-  }, [empresaSearchQuery]);
-
-  React.useEffect(() => {
-    try {
-      localStorage.setItem('@sit:reg:empresasCurrentPage', String(empresasCurrentPage));
-    } catch {}
-  }, [empresasCurrentPage]);
 
   const handlePhoneClick = (companyName: string, contactName: string, phoneNumber: string) => {
     const dummyEmployee = {
@@ -601,7 +538,10 @@ export function RegistrationPanel({
         const res = await fetch(`https://brasilapi.com.br/api/cnpj/v1/${rawCnpj}`);
         if (res.ok) {
           const data = await res.json();
-          setCurrentEmpresa(prev => ({ ...prev, razaoSocial: data.razao_social || '' }));
+          const nomeFantasia = data.nome_fantasia?.trim();
+          const razaoSocial = data.razao_social?.trim();
+          const valorPreenchimento = nomeFantasia || razaoSocial || '';
+          setCurrentEmpresa(prev => ({ ...prev, razaoSocial: valorPreenchimento }));
         } else {
            alert('Não foi possível obter dados para este CNPJ.');
         }
@@ -1521,12 +1461,12 @@ export function RegistrationPanel({
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   whileHover={{ y: -4 }}
                   transition={{ duration: 0.3, ease: 'easeOut', delay: cardIdx * 0.05 }}
-                  className="bg-brand-panel/30 hover:bg-brand-panel/45 backdrop-blur-sm border border-white/10 hover:border-[#38bdf8]/40 rounded-2xl p-5 flex flex-col justify-between shadow-xl hover:shadow-[0_20px_25px_-5px_rgba(3,66,137,0.3),0_0_15px_1px_rgba(56,189,248,0.05)] transition-all duration-300 relative overflow-hidden group"
+                  className="bg-brand-panel/30 hover:bg-brand-panel/45 backdrop-blur-sm border border-white/10 hover:border-[#38bdf8]/40 rounded-2xl p-5 flex flex-col shadow-xl hover:shadow-[0_20px_25px_-5px_rgba(3,66,137,0.3),0_0_15px_1px_rgba(56,189,248,0.05)] transition-all duration-300 relative overflow-hidden group md:h-[34rem]"
                 >
                   {/* Premium glowing decorative highlight in card header on hover */}
                   <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-transparent via-brand-accent/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                   
-                  <div>
+                  <div className="flex-1 min-h-0 md:overflow-y-auto overflow-x-hidden pr-1 -mr-1">
                     {/* Card Header */}
                     <div className="flex justify-between items-start gap-3 mb-4">
                       <div className="flex items-center gap-3 min-w-0">
@@ -1685,7 +1625,7 @@ export function RegistrationPanel({
                   {/* Interactive Map Mini Frame with premium glassy design */}
                   {parseDMS(empresa.latitude) !== null && parseDMS(empresa.longitude) !== null ? (
                     <div 
-                      className="mt-4 w-full h-24 rounded-xl overflow-hidden border border-white/10 bg-black/30 relative shadow-lg cursor-pointer hover:border-brand-accent/50 transition-all duration-300 transform active:scale-[0.99] group/map"
+                      className="mt-4 w-full h-24 rounded-xl overflow-hidden border border-white/10 bg-black/30 relative shadow-lg cursor-pointer hover:border-brand-accent/50 transition-all duration-300 transform active:scale-[0.99] group/map shrink-0"
                       onClick={() => setViewingMapEmpresa(empresa)}
                     >
                       <iframe 

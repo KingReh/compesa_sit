@@ -18,6 +18,7 @@ import {
   Sparkles,
   ShieldCheck
 } from 'lucide-react';
+import { parseLocalDate, formatLocalDateBR } from '../utils';
 import { Employee } from '../types';
 
 interface ViewModalProps {
@@ -47,8 +48,8 @@ export function ViewModal({ isOpen, onClose, employee, onAjustarPonto }: ViewMod
   const getAge = (birthDateStr: string) => {
     if (!birthDateStr) return 'Não cadastrado';
     try {
-      const birthDate = new Date(birthDateStr);
-      if (isNaN(birthDate.getTime())) return 'Dados inválidos';
+      const birthDate = parseLocalDate(birthDateStr);
+      if (!birthDate) return 'Dados inválidos';
       const today = new Date();
       let age = today.getFullYear() - birthDate.getFullYear();
       const m = today.getMonth() - birthDate.getMonth();
@@ -65,8 +66,8 @@ export function ViewModal({ isOpen, onClose, employee, onAjustarPonto }: ViewMod
   const getSeniority = (admissionDateStr: string) => {
     if (!admissionDateStr) return 'Não cadastrado';
     try {
-      const admDate = new Date(admissionDateStr);
-      if (isNaN(admDate.getTime())) return 'Dados inválidos';
+      const admDate = parseLocalDate(admissionDateStr);
+      if (!admDate) return 'Dados inválidos';
       const today = new Date();
       
       const diffTime = Math.abs(today.getTime() - admDate.getTime());
@@ -320,7 +321,7 @@ export function ViewModal({ isOpen, onClose, employee, onAjustarPonto }: ViewMod
                   <Calendar className="h-3.5 w-3.5 text-brand-accent" /> Nascimento / Idade
                 </span>
                 <p className="typ-card-title text-sm flex items-center gap-2">
-                  <span>{employee.dataNascimento ? new Date(employee.dataNascimento).toLocaleDateString('pt-BR') : '-'}</span>
+                  <span>{employee.dataNascimento ? formatLocalDateBR(employee.dataNascimento) : '-'}</span>
                   {employee.dataNascimento && (
                     <span className="text-[10px] bg-brand-accent/20 border border-brand-accent/30 text-white rounded-md px-1.5 font-bold font-mono">
                       {getAge(employee.dataNascimento)}
@@ -395,7 +396,7 @@ export function ViewModal({ isOpen, onClose, employee, onAjustarPonto }: ViewMod
                 </span>
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
                   <p className="typ-card-title text-sm font-semibold">
-                    {employee.dataAdmissao ? new Date(employee.dataAdmissao).toLocaleDateString('pt-BR') : '-'}
+                    {employee.dataAdmissao ? formatLocalDateBR(employee.dataAdmissao) : '-'}
                   </p>
                   {employee.dataAdmissao && (
                     <div className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 rounded-lg px-3 py-1.5 text-xs font-mono font-extrabold flex items-center gap-1.5 self-start sm:self-auto shadow-inner">

@@ -1,11 +1,12 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { Eye, Edit2, Trash2, ArrowUpDown, ChevronLeft, ChevronRight, UserRound, LayoutGrid, List, CheckCircle2, Filter, X, ChevronDown, MapPin, Building2, FileText, Car, Copy, Shirt, Briefcase } from 'lucide-react';
-import { Employee, Unidade } from '../types';
+import { Eye, Edit2, Trash2, ArrowUpDown, ChevronLeft, ChevronRight, UserRound, LayoutGrid, List, CheckCircle2, Filter, X, ChevronDown, MapPin, Building2, FileText, Car, Copy, Shirt, Briefcase, FileSignature } from 'lucide-react';
+import { Employee, Unidade, Contrato } from '../types';
 
 interface EmployeeTableProps {
   employees: Employee[];
   unidades: Unidade[];
+  contratos: Contrato[];
   searchQuery: string;
   onEdit: (employee: Employee) => void;
   onDelete: (id: string) => void;
@@ -16,7 +17,7 @@ interface EmployeeTableProps {
 type SortField = 'nome' | 'matricula' | 'cpf' | 'especialidade' | 'coordenacao' | null;
 type SortOrder = 'asc' | 'desc';
 
-export function EmployeeTable({ employees, unidades, searchQuery, onEdit, onDelete, onView, onWhatsAppClick }: EmployeeTableProps) {
+export function EmployeeTable({ employees, unidades, contratos, searchQuery, onEdit, onDelete, onView, onWhatsAppClick }: EmployeeTableProps) {
   const [sortField, setSortField] = useState<SortField>(() => {
     try {
       const saved = localStorage.getItem('@sit:sortField');
@@ -35,14 +36,8 @@ export function EmployeeTable({ employees, unidades, searchQuery, onEdit, onDele
     }
   });
 
-  const [currentPage, setCurrentPage] = useState<number>(() => {
-    try {
-      const saved = localStorage.getItem('@sit:currentPage');
-      return saved ? Number(saved) : 1;
-    } catch {
-      return 1;
-    }
-  });
+  // currentPage is transient — always reset on (re)mount/session start.
+  const [currentPage, setCurrentPage] = useState<number>(1);
 
   const itemsPerPage = 8;
 
@@ -68,6 +63,14 @@ export function EmployeeTable({ employees, unidades, searchQuery, onEdit, onDele
   const [selectedEmpresa, setSelectedEmpresa] = useState<string>(() => {
     try {
       return localStorage.getItem('@sit:selectedEmpresa') || '';
+    } catch {
+      return '';
+    }
+  });
+
+  const [selectedContrato, setSelectedContrato] = useState<string>(() => {
+    try {
+      return localStorage.getItem('@sit:selectedContrato') || '';
     } catch {
       return '';
     }
@@ -103,13 +106,7 @@ export function EmployeeTable({ employees, unidades, searchQuery, onEdit, onDele
     }
   }, [sortOrder]);
 
-  useEffect(() => {
-    try {
-      localStorage.setItem('@sit:currentPage', String(currentPage));
-    } catch (e) {
-      console.error(e);
-    }
-  }, [currentPage]);
+  // currentPage is transient — intentionally not persisted.
 
   useEffect(() => {
     try {
@@ -134,6 +131,14 @@ export function EmployeeTable({ employees, unidades, searchQuery, onEdit, onDele
       console.error(e);
     }
   }, [selectedEmpresa]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('@sit:selectedContrato', selectedContrato);
+    } catch (e) {
+      console.error(e);
+    }
+  }, [selectedContrato]);
 
   useEffect(() => {
     try {
@@ -190,6 +195,34 @@ export function EmployeeTable({ employees, unidades, searchQuery, onEdit, onDele
       .map(([name, count]) => ({ name, count }))
       .sort((a, b) => a.name.localeCompare(b.name));
   }, [employees]);
+
+  const contratoOptions = useMemo(() => {
+    const counts: Record<string, number> = {};
+    
+    // Initialize standard contracts from database with 0
+    contratos.forEach((c) => {
+      counts[c.numero] = 0;
+    });
+
+    // Count employees
+    employees.forEach((emp) => {
+      const val = (emp.contrato || '').trim();
+      if (val) {
+        counts[val] = (counts[val] || 0) + 1;
+      }
+    });
+
+    return Object.entries(counts)
+      .map(([numero, count]) => {
+        const contratoObj = contratos.find((c) => c.numero === numero);
+        return {
+          numero,
+          descricao: contratoObj ? contratoObj.descricao : '',
+          count
+        };
+      })
+      .sort((a, b) => a.numero.localeCompare(b.numero));
+  }, [employees, contratos]);
 
   const handleCopy = (text: string, field: 'nome' | 'matricula' | 'cpf') => {
     const textToCopy = field === 'cpf' ? text.replace(/\D/g, '') : text;
@@ -272,6 +305,11 @@ export function EmployeeTable({ employees, unidades, searchQuery, onEdit, onDele
       result = result.filter((e) => (e.empresa || '').trim() === selectedEmpresa);
     }
 
+    // Filter dynamic contrato
+    if (selectedContrato) {
+      result = result.filter((e) => (e.contrato || '').trim() === selectedContrato);
+    }
+
     // Sort
     if (sortField) {
       result = [...result].sort((a, b) => {
@@ -284,7 +322,7 @@ export function EmployeeTable({ employees, unidades, searchQuery, onEdit, onDele
     }
 
     return result;
-  }, [employees, searchQuery, selectedLotacao, selectedCoordenacao, selectedEmpresa, sortField, sortOrder]);
+  }, [employees, searchQuery, selectedLotacao, selectedCoordenacao, selectedEmpresa, selectedContrato, sortField, sortOrder]);
 
   // Pagination
   const totalPages = Math.ceil(filteredAndSortedEmployees.length / itemsPerPage);
@@ -302,7 +340,7 @@ export function EmployeeTable({ employees, unidades, searchQuery, onEdit, onDele
       return;
     }
     setCurrentPage(1);
-  }, [searchQuery, selectedLotacao, selectedCoordenacao, selectedEmpresa]);
+  }, [searchQuery, selectedLotacao, selectedCoordenacao, selectedEmpresa, selectedContrato]);
 
   const SortHeader = ({ field, label, align = 'left', className = '' }: { field: SortField; label: string; align?: 'left' | 'center' | 'right'; className?: string }) => (
     <th
@@ -331,15 +369,15 @@ export function EmployeeTable({ employees, unidades, searchQuery, onEdit, onDele
           <button
             onClick={() => setShowFilters(!showFilters)}
             className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-bold transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer shadow-sm ${
-              showFilters || selectedLotacao || selectedCoordenacao || selectedEmpresa
+              showFilters || selectedLotacao || selectedCoordenacao || selectedEmpresa || selectedContrato
                 ? 'bg-brand-accent/20 border-brand-accent text-[#6ee7b7]'
                 : 'bg-black/25 border-white/10 text-brand-muted hover:text-white hover:bg-black/40'
             }`}
-            title="Filtros avançados (Lotação, Coordenação, Empresa)"
+            title="Filtros avançados (Lotação, Coordenação, Empresa, Contrato)"
           >
             <Filter className="h-3.5 w-3.5" />
             <span>Filtros</span>
-            {(selectedLotacao || selectedCoordenacao || selectedEmpresa) && (
+            {(selectedLotacao || selectedCoordenacao || selectedEmpresa || selectedContrato) && (
               <span className="flex h-1.5 w-1.5 rounded-full bg-green-400"></span>
             )}
           </button>
@@ -373,7 +411,7 @@ export function EmployeeTable({ employees, unidades, searchQuery, onEdit, onDele
 
       {/* Collapsible Dynamic Filter Selection Drawer */}
       {showFilters && (
-        <div className="bg-black/20 border-b border-brand-border/30 p-5 grid grid-cols-1 md:grid-cols-3 gap-5 animate-slide-up">
+        <div className="bg-black/20 border-b border-brand-border/30 p-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 animate-slide-up">
           {/* Lotação */}
           <div className="flex flex-col gap-1.5">
             <label className="text-[10px] font-bold text-brand-muted tracking-wide uppercase flex items-center gap-1.5 select-none">
@@ -448,11 +486,36 @@ export function EmployeeTable({ employees, unidades, searchQuery, onEdit, onDele
               </div>
             </div>
           </div>
+
+          {/* Contrato */}
+          <div className="flex flex-col gap-1.5">
+            <label className="text-[10px] font-bold text-brand-muted tracking-wide uppercase flex items-center gap-1.5 select-none font-sans">
+              <FileSignature className="h-3.5 w-3.5 text-brand-accent shrink-0" />
+              <span>Filtrar por Contratos</span>
+            </label>
+            <div className="relative">
+              <select
+                value={selectedContrato}
+                onChange={(e) => setSelectedContrato(e.target.value)}
+                className="sit-input w-full rounded-lg py-2.5 pl-3 pr-8 text-xs appearance-none cursor-pointer font-semibold font-sans"
+              >
+                <option value="" className="bg-brand-panel">Todos os Contratos ({employees.length})</option>
+                {contratoOptions.map((ct) => (
+                  <option key={ct.numero} value={ct.numero} className="bg-brand-panel">
+                    {ct.numero} - {ct.descricao || 'Sem Descrição'} ({ct.count})
+                  </option>
+                ))}
+              </select>
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2.5 text-brand-muted">
+                <ChevronDown className="h-4 w-4" />
+              </div>
+            </div>
+          </div>
         </div>
       )}
 
       {/* Active Filter Badges */}
-      {(selectedLotacao || selectedCoordenacao || selectedEmpresa) && (
+      {(selectedLotacao || selectedCoordenacao || selectedEmpresa || selectedContrato) && (
         <div className="flex flex-wrap items-center gap-2 px-4 py-3 bg-[#0d3466]/40 border-b border-brand-border/20">
           <span className="text-[10px] font-bold uppercase tracking-wider text-brand-muted mr-1.5 flex items-center gap-1 leading-none select-none">
             <span className="flex h-1.5 w-1.5 rounded-full bg-[#10b981]"></span>
@@ -498,11 +561,25 @@ export function EmployeeTable({ employees, unidades, searchQuery, onEdit, onDele
             </span>
           )}
 
+          {selectedContrato && (
+            <span className="inline-flex items-center gap-1.5 rounded-md bg-brand-accent/15 border border-brand-accent/30 px-2 py-0.5 text-xs text-brand-accent font-medium">
+              <span>Contrato: {selectedContrato}</span>
+              <button 
+                onClick={() => setSelectedContrato('')}
+                className="hover:bg-brand-accent/20 rounded-full p-0.5 transition-colors cursor-pointer"
+                title="Remover Contrato"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            </span>
+          )}
+
           <button
             onClick={() => {
               setSelectedLotacao('');
               setSelectedCoordenacao('');
               setSelectedEmpresa('');
+              setSelectedContrato('');
             }}
             className="text-[10.5px] font-bold text-brand-muted hover:text-white underline decoration-dotted underline-offset-4 ml-auto transition-all cursor-pointer mr-1"
           >
@@ -540,14 +617,20 @@ export function EmployeeTable({ employees, unidades, searchQuery, onEdit, onDele
               ) : (
                 paginatedEmployees.map((employee) => (
                   <tr key={employee.id} className="hover:bg-brand-panel-light/15 transition-colors border-b border-brand-border/20 last:border-0 animate-fade-in">
-                    <td className="px-2 py-1.5 align-middle">
-                      <div className="h-6 w-6 sm:h-7 sm:w-7 mx-auto flex-shrink-0 block">
+                    <td className="px-2 py-1.5 align-middle w-14">
+                      <div className="h-9 w-9 mx-auto flex-shrink-0 rounded-full overflow-hidden ring-2 ring-brand-border/60 shadow-sm bg-brand-panel-light flex items-center justify-center">
                         {employee.foto ? (
-                          <img className="h-full w-full rounded-full object-cover shadow-sm ring-1 ring-brand-border" src={employee.foto} alt="" />
+                          <img
+                            src={employee.foto}
+                            alt={employee.nome}
+                            loading="lazy"
+                            decoding="async"
+                            draggable={false}
+                            className="h-full w-full object-cover select-none"
+                            style={{ objectPosition: 'center 30%' }}
+                          />
                         ) : (
-                          <div className="h-full w-full rounded-full bg-brand-panel-light flex items-center justify-center shadow-sm ring-1 ring-brand-border">
-                            <UserRound className="h-3.5 w-3.5 text-brand-muted" />
-                          </div>
+                          <UserRound className="h-4 w-4 text-brand-muted" />
                         )}
                       </div>
                     </td>
@@ -651,20 +734,28 @@ export function EmployeeTable({ employees, unidades, searchQuery, onEdit, onDele
                   <div>
                     {/* Header: Photo and Info */}
                     <div className="flex items-center gap-3">
-                      <div className="relative flex-shrink-0 h-11 w-11">
+                      <div className="relative flex-shrink-0 h-[50px] w-[50px]">
                         <div className="h-full w-full rounded-full overflow-hidden ring-2 ring-brand-border/60 group-hover:ring-brand-accent/60 transition-all duration-300 bg-brand-panel-light flex items-center justify-center shadow-inner">
                           {employee.foto ? (
-                            <img className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" src={employee.foto} alt={employee.nome} />
+                            <img
+                              src={employee.foto}
+                              alt={employee.nome}
+                              loading="lazy"
+                              decoding="async"
+                              draggable={false}
+                              className="h-full w-full object-cover select-none transition-transform duration-500 group-hover:scale-105"
+                              style={{ objectPosition: 'center 30%' }}
+                            />
                           ) : (
-                            <UserRound className="h-5.5 w-5.5 text-brand-muted/70 group-hover:text-brand-accent transition-colors duration-300" />
+                            <UserRound className="h-6 w-6 text-brand-muted/70 group-hover:text-brand-accent transition-colors duration-300" />
                           )}
                         </div>
                         {employee.autorizadoDirigir && (
                           <div 
-                            className="absolute -bottom-0.5 -right-0.5 h-4 w-4 rounded-full bg-emerald-500 flex items-center justify-center ring-2 ring-brand-border/60 group-hover:ring-brand-accent/60 shadow z-10" 
+                            className="absolute -bottom-0.5 -right-0.5 h-5 w-5 rounded-full bg-emerald-500 flex items-center justify-center ring-2 ring-brand-border/60 group-hover:ring-brand-accent/60 shadow z-10" 
                             title="Motorista Autorizado"
                           >
-                            <Car className="h-2.5 w-2.5 text-white" />
+                            <Car className="h-3 w-3 text-white" />
                           </div>
                         )}
                       </div>

@@ -32,6 +32,7 @@ import {
 import { Employee, Coordenacao, Contrato, Unidade, Empresa, VacationPlan } from '../types';
 import { vacationPlansService } from '../services/vacationPlansService';
 import { exportReportToPDF, exportReportToXLSX, exportReportToODS } from '../utils/exportReports';
+import { parseLocalDate } from '../utils';
 // @ts-ignore
 import carBlueprintImg from '../assets/images/blue_car_blueprint_1781386584651.jpg';
 
@@ -71,14 +72,7 @@ export function Reports({ employees, coordenacoes, contratos, unidades, empresas
       return '';
     }
   });
-  const [activeSubTab, setActiveSubTab] = useState<'dashboard' | 'ferias'>(() => {
-    try {
-      const saved = localStorage.getItem('@sit:reports:activeSubTab');
-      return (saved === 'dashboard' || saved === 'ferias') ? (saved as 'dashboard' | 'ferias') : 'dashboard';
-    } catch {
-      return 'dashboard';
-    }
-  });
+  const [activeSubTab, setActiveSubTab] = useState<'dashboard' | 'ferias'>('dashboard');
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [selectedSpecialtyForModal, setSelectedSpecialtyForModal] = useState<string | null>(null);
   const [specialtySearchQuery, setSpecialtySearchQuery] = useState<string>('');
@@ -105,13 +99,7 @@ export function Reports({ employees, coordenacoes, contratos, unidades, empresas
       return 'all';
     }
   });
-  const [statusTableSearch, setStatusTableSearch] = useState<string>(() => {
-    try {
-      return localStorage.getItem('@sit:reports:statusTableSearch') || '';
-    } catch {
-      return '';
-    }
-  });
+  const [statusTableSearch, setStatusTableSearch] = useState<string>('');
   const [statusTableMonthFilter, setStatusTableMonthFilter] = useState<string>(() => {
     try {
       return localStorage.getItem('@sit:reports:statusTableMonthFilter') || 'all';
@@ -152,23 +140,12 @@ export function Reports({ employees, coordenacoes, contratos, unidades, empresas
     } catch {}
   }, [selectedCoordFilter]);
 
-  useEffect(() => {
-    try {
-      localStorage.setItem('@sit:reports:activeSubTab', activeSubTab);
-    } catch {}
-  }, [activeSubTab]);
-
+  // activeSubTab and statusTableSearch are transient UI state — not persisted.
   useEffect(() => {
     try {
       localStorage.setItem('@sit:reports:statusTableFilter', statusTableFilter);
     } catch {}
   }, [statusTableFilter]);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('@sit:reports:statusTableSearch', statusTableSearch);
-    } catch {}
-  }, [statusTableSearch]);
 
   useEffect(() => {
     try {
@@ -293,14 +270,14 @@ export function Reports({ employees, coordenacoes, contratos, unidades, empresas
     filteredEmployees.forEach(emp => {
       // Demographic calculations
       if (emp.dataNascimento) {
-        const bYear = new Date(emp.dataNascimento).getFullYear();
+        const bYear = parseLocalDate(emp.dataNascimento)?.getFullYear() ?? currentYear - 35;
         ageSum += Math.max(18, currentYear - bYear);
       } else {
         ageSum += 35; // default avg
       }
 
       if (emp.dataAdmissao) {
-        const aYear = new Date(emp.dataAdmissao).getFullYear();
+        const aYear = parseLocalDate(emp.dataAdmissao)?.getFullYear() ?? currentYear - 2;
         senioritySum += Math.max(0, currentYear - aYear);
       } else {
         senioritySum += 2; // default avg
@@ -324,8 +301,8 @@ export function Reports({ employees, coordenacoes, contratos, unidades, empresas
       
       // Pants count
       if (emp.calca) {
-        const sz = emp.calca;
-        uniformPantsStats[sz] = (uniformPantsStats[sz] || 0) + 1;
+        const sz = String(emp.calca).trim().toUpperCase();
+        if (sz) uniformPantsStats[sz] = (uniformPantsStats[sz] || 0) + 1;
       }
 
       // SPT (Shoes) count
@@ -555,7 +532,7 @@ export function Reports({ employees, coordenacoes, contratos, unidades, empresas
 
   // Helper arrays for sizes lists so that we can render consistent distribution stats
   const shirtSizesList = ['P', 'M', 'G', 'GG', 'XG'];
-  const pantsSizesList = ['36', '38', '40', '42', '44', '46', '48'];
+  const pantsSizesList = ['PP', 'P', 'M', 'G', 'GG', 'EXG'];
   const sptSizesList = ['36', '37', '38', '39', '40', '41', '42', '43', '44', '45'];
 
   return (
@@ -1278,7 +1255,7 @@ export function Reports({ employees, coordenacoes, contratos, unidades, empresas
                       </div>
                       <div 
                         onMouseDown={handleDragScroll}
-                        className="flex overflow-x-auto sm:grid sm:grid-cols-7 gap-1.5 pt-2.5 pb-3 sm:py-2 scrollbar-none cursor-grab active:cursor-grabbing select-none"
+                        className="flex overflow-x-auto sm:grid sm:grid-cols-6 gap-1.5 pt-2.5 pb-3 sm:py-2 scrollbar-none cursor-grab active:cursor-grabbing select-none"
                       >
                         {pantsSizesList.map(size => {
                           const qty = stats.uniformPantsStats[size] || 0;

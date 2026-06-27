@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Search, Plus, Building2, LayoutDashboard, UserPlus, FileText, Settings, Users, Calendar, LogOut, UserCheck, Download, CheckCircle2 } from 'lucide-react';
 import { Employee, Coordenacao, Contrato, Unidade, Empresa, AuthSession } from './types';
 import { formatEmployeeName } from './utils';
@@ -64,26 +65,38 @@ export default function App() {
   const [unidades, setUnidades] = useState<Unidade[]>([]);
   const [empresas, setEmpresas] = useState<Empresa[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [currentView, setCurrentView] = useState<'painel' | 'configuracao' | 'relatorios' | 'ferias'>(() => {
-    try {
-      const saved = localStorage.getItem('@sit:currentView');
-      return (saved === 'painel' || saved === 'configuracao' || saved === 'relatorios' || saved === 'ferias')
-        ? (saved as 'painel' | 'configuracao' | 'relatorios' | 'ferias')
-        : 'painel';
-    } catch {
-      return 'painel';
-    }
-  });
+  const [currentView, setCurrentView] = useState<'painel' | 'configuracao' | 'relatorios' | 'ferias'>('painel');
   const [installToast, setInstallToast] = useState(false);
 
-  // Persist currentView changes
+  // One-time cleanup of legacy transient UI state persisted in localStorage.
+  // We intentionally do NOT persist navigation, tabs, search queries, pagination
+  // or other transient UI state across sessions. Only data filters/display
+  // preferences remain persisted by their respective components.
   useEffect(() => {
     try {
-      localStorage.setItem('@sit:currentView', currentView);
+      const transientKeys = [
+        '@sit:currentView',
+        '@sit:reg:activeTab',
+        '@sit:reg:unidadeSearchQuery',
+        '@sit:reg:unidadesCurrentPage',
+        '@sit:reg:empresaSearchQuery',
+        '@sit:reg:empresasCurrentPage',
+        '@sit:vacation:activeTab',
+        '@sit:vacation:selectedDetailMonth',
+        '@sit:vacation:detailSearchQuery',
+        '@sit:vacation:selectedCoords',
+        '@sit:vacation:selectedEmps',
+        '@sit:vacation:searchQuery',
+        '@sit:vacation:currentPage',
+        '@sit:reports:activeSubTab',
+        '@sit:reports:statusTableSearch',
+        '@sit:currentPage',
+      ];
+      transientKeys.forEach((k) => localStorage.removeItem(k));
     } catch (e) {
       console.error(e);
     }
-  }, [currentView]);
+  }, []);
 
   // Auto-hide install toast
   useEffect(() => {
@@ -245,6 +258,7 @@ export default function App() {
           <EmployeeTable
             employees={employees}
             unidades={unidades}
+            contratos={contratos}
             searchQuery={searchQuery}
             onEdit={handleEdit}
             onDelete={handleDeleteRequest}
@@ -512,8 +526,8 @@ export default function App() {
       <CorporateFABMenu empresas={empresas} onNavigateToConfig={() => setCurrentView('configuracao')} />
 
       {/* Toast: app already installed */}
-      {installToast && (
-        <div className="fixed bottom-6 right-6 z-50 animate-fade-in">
+      {installToast && createPortal(
+        <div className="fixed bottom-6 right-6 z-[10000] animate-fade-in">
           <div className="sit-panel p-4 flex items-center gap-3 shadow-2xl border border-green-500/30 bg-green-950/90 backdrop-blur-xl text-white rounded-xl">
             <CheckCircle2 className="w-5 h-5 text-green-400 shrink-0" />
             <div>
@@ -521,7 +535,8 @@ export default function App() {
               <p className="text-xs text-green-200/80">O SIT está sendo executado no modo aplicativo.</p>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
     </div>
