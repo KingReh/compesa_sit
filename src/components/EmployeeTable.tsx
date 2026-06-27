@@ -645,7 +645,7 @@ export function EmployeeTable({ employees, unidades, searchQuery, onEdit, onDele
                   <div>
                     {/* Header: Photo and Info */}
                     <div className="flex items-center gap-3">
-                      <div className="relative flex-shrink-0 h-16 w-16 sm:h-[50px] sm:w-[50px]">
+                      <div className="relative flex-shrink-0 h-[50px] w-[50px]">
                         <div className="h-full w-full rounded-full overflow-hidden ring-2 ring-brand-border/60 group-hover:ring-brand-accent/60 transition-all duration-300 bg-brand-panel-light flex items-center justify-center shadow-inner">
                           {employee.foto ? (
                             <img
@@ -654,11 +654,11 @@ export function EmployeeTable({ employees, unidades, searchQuery, onEdit, onDele
                               loading="lazy"
                               decoding="async"
                               draggable={false}
-                              className="h-full w-full object-cover object-center select-none transition-transform duration-500 group-hover:scale-105"
+                              className="h-full w-full object-cover select-none transition-transform duration-500 group-hover:scale-105"
                               style={{ objectPosition: 'center 30%' }}
                             />
                           ) : (
-                            <UserRound className="h-7 w-7 text-brand-muted/70 group-hover:text-brand-accent transition-colors duration-300" />
+                            <UserRound className="h-6 w-6 text-brand-muted/70 group-hover:text-brand-accent transition-colors duration-300" />
                           )}
                         </div>
                         {employee.autorizadoDirigir && (
