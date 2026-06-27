@@ -1622,7 +1622,7 @@ export function RegistrationPanel({
                   {/* Interactive Map Mini Frame with premium glassy design */}
                   {parseDMS(empresa.latitude) !== null && parseDMS(empresa.longitude) !== null ? (
                     <div 
-                      className="mt-4 w-full h-24 rounded-xl overflow-hidden border border-white/10 bg-black/30 relative shadow-lg cursor-pointer hover:border-brand-accent/50 transition-all duration-300 transform active:scale-[0.99] group/map"
+                      className="mt-4 w-full h-24 rounded-xl overflow-hidden border border-white/10 bg-black/30 relative shadow-lg cursor-pointer hover:border-brand-accent/50 transition-all duration-300 transform active:scale-[0.99] group/map shrink-0"
                       onClick={() => setViewingMapEmpresa(empresa)}
                     >
                       <iframe 
