@@ -1458,12 +1458,12 @@ export function RegistrationPanel({
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   whileHover={{ y: -4 }}
                   transition={{ duration: 0.3, ease: 'easeOut', delay: cardIdx * 0.05 }}
-                  className="bg-brand-panel/30 hover:bg-brand-panel/45 backdrop-blur-sm border border-white/10 hover:border-[#38bdf8]/40 rounded-2xl p-5 flex flex-col justify-between shadow-xl hover:shadow-[0_20px_25px_-5px_rgba(3,66,137,0.3),0_0_15px_1px_rgba(56,189,248,0.05)] transition-all duration-300 relative overflow-hidden group"
+                  className="bg-brand-panel/30 hover:bg-brand-panel/45 backdrop-blur-sm border border-white/10 hover:border-[#38bdf8]/40 rounded-2xl p-5 flex flex-col shadow-xl hover:shadow-[0_20px_25px_-5px_rgba(3,66,137,0.3),0_0_15px_1px_rgba(56,189,248,0.05)] transition-all duration-300 relative overflow-hidden group md:h-[34rem]"
                 >
                   {/* Premium glowing decorative highlight in card header on hover */}
                   <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-transparent via-brand-accent/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                   
-                  <div>
+                  <div className="flex-1 min-h-0 md:overflow-y-auto overflow-x-hidden pr-1 -mr-1">
                     {/* Card Header */}
                     <div className="flex justify-between items-start gap-3 mb-4">
                       <div className="flex items-center gap-3 min-w-0">
@@ -1622,7 +1622,7 @@ export function RegistrationPanel({
                   {/* Interactive Map Mini Frame with premium glassy design */}
                   {parseDMS(empresa.latitude) !== null && parseDMS(empresa.longitude) !== null ? (
                     <div 
-                      className="mt-4 w-full h-24 rounded-xl overflow-hidden border border-white/10 bg-black/30 relative shadow-lg cursor-pointer hover:border-brand-accent/50 transition-all duration-300 transform active:scale-[0.99] group/map"
+                      className="mt-4 w-full h-24 rounded-xl overflow-hidden border border-white/10 bg-black/30 relative shadow-lg cursor-pointer hover:border-brand-accent/50 transition-all duration-300 transform active:scale-[0.99] group/map shrink-0"
                       onClick={() => setViewingMapEmpresa(empresa)}
                     >
                       <iframe 
