@@ -147,12 +147,6 @@ export function PWAInstallPrompt() {
       </div>
     </AnimatePresence>
   );
-            </div>
-          </div>
-        </motion.div>
-      </div>
-    </AnimatePresence>
-  );
 
   return typeof document !== 'undefined' ? createPortal(node, document.body) : null;
 }
