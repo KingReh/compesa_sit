@@ -53,6 +53,8 @@ export function PWAInstallPrompt() {
     return () => window.removeEventListener('reopen-pwa-prompt', handleReopen);
   }, []);
 
+  const [unavailableHint, setUnavailableHint] = useState(false);
+
   const handleInstallClick = async () => {
     if (deferredPrompt && typeof deferredPrompt.prompt === 'function') {
       try {
@@ -66,6 +68,8 @@ export function PWAInstallPrompt() {
       } catch {
         setDeferredPrompt(null);
       }
+    } else {
+      setUnavailableHint(true);
     }
   };
 
@@ -74,8 +78,6 @@ export function PWAInstallPrompt() {
   };
 
   if (isInstalled || !isOpen) return null;
-
-  const canInstall = deferredPrompt && typeof deferredPrompt.prompt === 'function';
 
   const node = (
     <AnimatePresence>
@@ -120,14 +122,12 @@ export function PWAInstallPrompt() {
               </p>
 
               <div className="flex gap-3 mt-4 flex-wrap">
-                {canInstall && (
-                  <button
-                    onClick={handleInstallClick}
-                    className="px-4 py-2 text-xs font-bold rounded-lg sit-button-primary flex items-center gap-2 cursor-pointer"
-                  >
-                    <Download className="w-4 h-4" /> Instalar Agora
-                  </button>
-                )}
+                <button
+                  onClick={handleInstallClick}
+                  className="px-4 py-2 text-xs font-bold rounded-lg sit-button-primary flex items-center gap-2 cursor-pointer"
+                >
+                  <Download className="w-4 h-4" /> Instalar Agora
+                </button>
                 <button
                   onClick={handleDismiss}
                   className="px-3 py-2 text-xs font-semibold text-brand-muted hover:text-white transition-colors"
@@ -135,6 +135,12 @@ export function PWAInstallPrompt() {
                   Mais Tarde
                 </button>
               </div>
+              {unavailableHint && (
+                <p className="text-[11px] text-brand-accent/90 mt-2 leading-snug">
+                  Instalação não disponível neste navegador. Use o menu do navegador
+                  (ex.: “Instalar app” / “Adicionar à tela inicial”).
+                </p>
+              )}
             </div>
           </div>
         </motion.div>
