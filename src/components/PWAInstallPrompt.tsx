@@ -146,7 +146,7 @@ export function PWAInstallPrompt() {
         </li>
         <li className="flex items-start gap-2.5">
           <span className="flex-shrink-0 bg-brand-border/40 text-brand-accent w-5 h-5 text-center leading-5 text-[10px] font-extrabold rounded-full">2</span>
-          <span>Selecione <strong>Instalar aplicativo</strong> ou <strong>Adicionar à tela inicial</strong>.</span>
+          <span>Selecione <strong>Transmitir, salvar e compartilhar</strong> e depois <strong>Instalar SIT...</strong>.</span>
         </li>
         <li className="flex items-start gap-2.5">
           <span className="flex-shrink-0 bg-brand-border/40 text-brand-accent w-5 h-5 text-center leading-5 text-[10px] font-extrabold rounded-full">3</span>
