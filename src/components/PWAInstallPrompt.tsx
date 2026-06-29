@@ -53,6 +53,8 @@ export function PWAInstallPrompt() {
     return () => window.removeEventListener('reopen-pwa-prompt', handleReopen);
   }, []);
 
+  const [unavailableHint, setUnavailableHint] = useState(false);
+
   const handleInstallClick = async () => {
     if (deferredPrompt && typeof deferredPrompt.prompt === 'function') {
       try {
@@ -66,6 +68,8 @@ export function PWAInstallPrompt() {
       } catch {
         setDeferredPrompt(null);
       }
+    } else {
+      setUnavailableHint(true);
     }
   };
 
@@ -74,8 +78,6 @@ export function PWAInstallPrompt() {
   };
 
   if (isInstalled || !isOpen) return null;
-
-  const canInstall = deferredPrompt && typeof deferredPrompt.prompt === 'function';
 
   const node = (
     <AnimatePresence>
