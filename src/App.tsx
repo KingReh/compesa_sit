@@ -43,6 +43,7 @@ import { MapaLotacoesWidget } from './components/MapaLotacoesWidget';
 import { VacationPlanning } from './components/VacationPlanning';
 import { Reports } from './components/Reports';
 import { PWAInstallPrompt } from './components/PWAInstallPrompt';
+import { BirthdayToasts } from './components/BirthdayToasts';
 import { CorporateFABMenu } from './components/CorporateFABMenu';
 import { AuthScreen } from './components/AuthScreen';
 import { empresasService } from './services/empresasService';
@@ -534,6 +535,7 @@ export default function App() {
       />
 
       <PWAInstallPrompt />
+      <BirthdayToasts employees={employees} />
       <CorporateFABMenu empresas={empresas} onNavigateToConfig={() => setCurrentView('configuracao')} />
 
       {/* Toast: app already installed */}
