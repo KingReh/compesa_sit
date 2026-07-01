@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Car, X, Phone, MapPin, UserRound, Search, Eye } from 'lucide-react';
+import { Car, X, Phone, MapPin, UserRound, Search, Eye, Building } from 'lucide-react';
 import { Employee } from '../types';
 
 interface DriversModalProps {
@@ -109,22 +109,24 @@ export function DriversModal({ isOpen, onClose, employees, onView }: DriversModa
                     key={emp.id}
                     className="group flex items-center gap-3 sm:gap-4 rounded-xl border border-white/5 bg-black/15 hover:bg-black/25 hover:border-brand-accent/20 transition-all p-2.5 sm:p-3"
                   >
-                    {/* Avatar */}
-                    <div className="relative shrink-0 h-11 w-11 sm:h-12 sm:w-12 rounded-full overflow-hidden ring-2 ring-brand-border/60 bg-black/40 flex items-center justify-center">
-                      {emp.foto ? (
-                        <img
-                          src={emp.foto}
-                          alt={emp.nome}
-                          className="h-full w-full object-cover"
-                          loading="lazy"
-                          decoding="async"
-                          draggable={false}
-                        />
-                      ) : (
-                        <UserRound className="h-5 w-5 sm:h-6 sm:w-6 text-brand-accent" />
-                      )}
-                      <div className="absolute -bottom-0.5 -right-0.5 h-4 w-4 sm:h-5 sm:w-5 bg-emerald-500 rounded-full flex items-center justify-center text-white border-2 border-brand-panel shadow">
-                        <Car className="h-2 w-2 sm:h-2.5 sm:w-2.5" />
+                    {/* Avatar with badge outside */}
+                    <div className="relative shrink-0">
+                      <div className="h-11 w-11 sm:h-12 sm:w-12 rounded-full overflow-hidden ring-2 ring-brand-border/60 bg-black/40 flex items-center justify-center">
+                        {emp.foto ? (
+                          <img
+                            src={emp.foto}
+                            alt={emp.nome}
+                            className="h-full w-full object-cover"
+                            loading="lazy"
+                            decoding="async"
+                            draggable={false}
+                          />
+                        ) : (
+                          <UserRound className="h-5 w-5 sm:h-6 sm:w-6 text-brand-accent" />
+                        )}
+                      </div>
+                      <div className="absolute -bottom-1 -right-1 h-5 w-5 sm:h-5 sm:w-5 bg-emerald-500 rounded-full flex items-center justify-center text-white border-2 border-brand-panel shadow">
+                        <Car className="h-2.5 w-2.5 sm:h-2.5 sm:w-2.5" />
                       </div>
                     </div>
 
@@ -139,6 +141,14 @@ export function DriversModal({ isOpen, onClose, employees, onView }: DriversModa
                         </span>
                       </div>
                       <div className="mt-0.5 flex flex-wrap items-center gap-2 sm:gap-3 text-[10px] sm:text-xs text-brand-muted">
+                        {emp.coordenacao && (
+                          <span className="inline-flex items-center gap-1">
+                            <Building className="h-3 w-3 text-brand-accent" />
+                            <span className="truncate max-w-[10rem] sm:max-w-[14rem]" title={emp.coordenacao}>
+                              {emp.coordenacao}
+                            </span>
+                          </span>
+                        )}
                         {emp.lotacao && (
                           <span className="inline-flex items-center gap-1">
                             <MapPin className="h-3 w-3 text-brand-accent" />
