@@ -36,6 +36,7 @@ import { EmployeeTable } from './components/EmployeeTable';
 import { EmployeeModal } from './components/EmployeeModal';
 import { ConfirmModal } from './components/ConfirmModal';
 import { ViewModal } from './components/ViewModal';
+import { DriversModal } from './components/DriversModal';
 import { AjustarPontoModal } from './components/AjustarPontoModal';
 import { RegistrationPanel } from './components/RegistrationPanel';
 import { WhatsAppConfirmModal } from './components/WhatsAppConfirmModal';
@@ -112,6 +113,7 @@ export default function App() {
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [isWhatsAppModalOpen, setIsWhatsAppModalOpen] = useState(false);
   const [isAjustarPontoOpen, setIsAjustarPontoOpen] = useState(false);
+  const [isDriversModalOpen, setIsDriversModalOpen] = useState(false);
 
   // Handlers state
   const [employeeToEdit, setEmployeeToEdit] = useState<Employee | null>(null);
@@ -200,6 +202,12 @@ export default function App() {
     setIsViewModalOpen(true);
   };
 
+  const handleViewDriver = (employee: Employee) => {
+    setEmployeeToView(employee);
+    setIsDriversModalOpen(false);
+    setIsViewModalOpen(true);
+  };
+
   const handleWhatsAppClick = (employee: Employee) => {
     setEmployeeForWhatsApp(employee);
     setIsWhatsAppModalOpen(true);
@@ -254,6 +262,7 @@ export default function App() {
             employees={employees}
             unidades={unidades}
             contratos={contratos}
+            onDriversClick={() => setIsDriversModalOpen(true)}
           />
 
           <EmployeeTable
