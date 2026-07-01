@@ -543,6 +543,13 @@ export default function App() {
         empresas={empresas}
       />
 
+      <DriversModal
+        isOpen={isDriversModalOpen}
+        onClose={() => setIsDriversModalOpen(false)}
+        employees={employees}
+        onView={handleViewDriver}
+      />
+
       <PWAInstallPrompt />
       <BirthdayToasts employees={employees} />
       <CorporateFABMenu empresas={empresas} onNavigateToConfig={() => setCurrentView('configuracao')} />
