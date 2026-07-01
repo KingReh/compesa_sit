@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Car, X, Phone, MapPin, UserRound, Search, Eye } from 'lucide-react';
+import { Car, X, Phone, MapPin, UserRound, Search, Eye, Building } from 'lucide-react';
 import { Employee } from '../types';
 
 interface DriversModalProps {
