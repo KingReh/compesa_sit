@@ -112,19 +112,18 @@ const ToastCard: React.FC<ToastCardProps> = ({ item, onClose, reducedMotion }) =
     window.location.href = `tel:+55${digits}`;
   };
 
-  const handleWhatsApp = async () => {
+  const handleWhatsApp = () => {
     const digits = onlyDigits(item.employee.telefone || '');
     const text = buildCongratsMessage(item.employee.nome);
-    const nav: any = navigator;
-    if (nav?.share) {
-      try {
-        await nav.share({ title: 'Feliz Aniversário!', text });
-        return;
-      } catch { /* fallback */ }
-    }
     if (digits) {
       const url = `https://wa.me/55${digits}?text=${encodeURIComponent(text)}`;
       window.open(url, '_blank', 'noopener,noreferrer');
+      return;
+    }
+    // fallback: compartilhar texto mesmo sem número salvo
+    const nav: any = navigator;
+    if (nav?.share) {
+      nav.share({ title: 'Feliz Aniversário!', text }).catch(() => { /* noop */ });
     }
   };
 
