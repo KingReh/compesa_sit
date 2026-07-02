@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import { Building2, Users, Calendar, FileText, MapPin, Mail, Rocket, X } from 'lucide-react';
+import { Building2, Users, Calendar, FileText, MapPin, mail, Rocket, X } from 'lucide-react';
 
 const STORAGE_KEY = '@sit:welcome:seen';
 
@@ -31,7 +31,7 @@ const features = [
     description: 'Exportação rápida de relatórios para análise em XLSX, PDF ou ODS.',
   },
   {
-    icon: Mail,
+    icon: mail,
     title: 'Geração de E-mails',
     description: 'Geração de e-mails padrão para ajustes de pontos elétricos de funcionários.',
   },
@@ -160,8 +160,7 @@ export function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
           </div>
 
           <p id="welcome-desc" className="typ-card-desc mt-4 leading-relaxed">
-            O <strong className="text-white font-semibold">SIT – Sistema Integrado de Terceirizados</strong> é a central de gestão da força de trabalho terceirizada da GPM. Aqui você acompanha equipes, férias, lotações, contratos e métricas administrativas.
-          </p>
+            O <strong className="text-white font-semibold">SIT – Sistema Integrado de Terceirizados</strong> é a central de gestão da força de trabalho terceirizada da GPM. Aqui você acompanha equipes, férias, lotações, contratos e métricas administrativas.</p>
 
           <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-3">
             {features.map((feature) => {
