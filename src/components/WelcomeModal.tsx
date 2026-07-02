@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import { Building2, Users, Calendar, FileText, MapPin, Shield, Rocket, X } from 'lucide-react';
+import { Building2, Users, Calendar, FileText, MapPin, Mail, Rocket, X } from 'lucide-react';
 
 const STORAGE_KEY = '@sit:welcome:seen';
 
@@ -27,13 +27,13 @@ const features = [
   },
   {
     icon: FileText,
-    title: 'Relatórios e PDFs',
-    description: 'Exportação rápida de relatórios para análise e faturamento.',
+    title: 'Relatórios',
+    description: 'Exportação rápida de relatórios para análise em XLSX, PDF ou ODS.',
   },
   {
-    icon: Shield,
-    title: 'Conformidade',
-    description: 'Centralização de documentos e registros para auditorias e segurança legal.',
+    icon: Mail,
+    title: 'Geração de E-mails',
+    description: 'Geração de e-mails padrão para ajustes de pontos elétricos de funcionários.',
   },
 ];
 
