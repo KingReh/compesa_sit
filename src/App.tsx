@@ -133,6 +133,16 @@ export default function App() {
     loadDbData();
   }, [user?.id]);
 
+  // Exibe modal de boas-vindas no primeiro acesso do usuário autenticado.
+  useEffect(() => {
+    if (isLoading || !user) return;
+    if (!isWelcomeSeen()) {
+      // Pequeno atraso para não competir com o carregamento inicial da interface.
+      const timer = setTimeout(() => setIsWelcomeOpen(true), 400);
+      return () => clearTimeout(timer);
+    }
+  }, [user, isLoading]);
+
   const handleSave = async (employee: Omit<Employee, 'id'> & { id?: string }) => {
     try {
       if (employeeToEdit && employee.id) {
