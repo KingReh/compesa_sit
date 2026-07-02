@@ -4,33 +4,6 @@ import { Search, Plus, Building2, LayoutDashboard, UserPlus, FileText, Settings,
 import { Employee, Coordenacao, Contrato, Unidade, Empresa, AuthSession } from './types';
 import { formatEmployeeName } from './utils';
 import { useAuth } from './context/AuthContext';
-
-// Normaliza campos de nome de pessoa (contato/responsável/funcionário)
-// aplicando a mesma regra de capitalização usada nos formulários.
-const normalizeEmployeeNames = (list: any[]): Employee[] =>
-  list.map((emp) => ({
-    ...emp,
-    nome: typeof emp?.nome === 'string' ? formatEmployeeName(emp.nome) : emp?.nome,
-  }));
-
-const normalizeCoordenacaoNames = (list: any[]): Coordenacao[] =>
-  list.map((c) => ({
-    ...c,
-    coordenador: typeof c?.coordenador === 'string' && c.coordenador
-      ? formatEmployeeName(c.coordenador)
-      : c?.coordenador,
-  }));
-
-const normalizeEmpresaContacts = (list: any[]): Empresa[] =>
-  list.map((e) => ({
-    ...e,
-    telefones: Array.isArray(e?.telefones)
-      ? e.telefones.map((t: any) => ({ ...t, nome: typeof t?.nome === 'string' ? formatEmployeeName(t.nome) : t?.nome }))
-      : e?.telefones,
-    emails: Array.isArray(e?.emails)
-      ? e.emails.map((m: any) => ({ ...m, nome: typeof m?.nome === 'string' ? formatEmployeeName(m.nome) : m?.nome }))
-      : e?.emails,
-  }));
 import { Dashboard } from './components/Dashboard';
 import { EmployeeTable } from './components/EmployeeTable';
 import { EmployeeModal } from './components/EmployeeModal';
@@ -47,6 +20,7 @@ import { PWAInstallPrompt } from './components/PWAInstallPrompt';
 import { BirthdayToasts } from './components/BirthdayToasts';
 import { CorporateFABMenu } from './components/CorporateFABMenu';
 import { AuthScreen } from './components/AuthScreen';
+import { WelcomeModal, isWelcomeSeen } from './components/WelcomeModal';
 import { empresasService } from './services/empresasService';
 import { coordenacoesService } from './services/coordenacoesService';
 import { unidadesService } from './services/unidadesService';
