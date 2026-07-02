@@ -538,6 +538,7 @@ export default function App() {
 
       <PWAInstallPrompt />
       <BirthdayToasts employees={employees} />
+      <WelcomeModal isOpen={isWelcomeOpen} onClose={() => setIsWelcomeOpen(false)} />
       <CorporateFABMenu empresas={empresas} onNavigateToConfig={() => setCurrentView('configuracao')} />
 
       {/* Toast: app already installed */}
