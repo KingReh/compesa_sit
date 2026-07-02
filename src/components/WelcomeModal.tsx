@@ -160,7 +160,7 @@ export function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
           </div>
 
           <p id="welcome-desc" className="typ-card-desc mt-4 leading-relaxed">
-            O <strong className="text-white font-semibold">SIT – Sistema Integrado de Terceirizados</strong> é a central de gestão da força de trabalho terceirizada. Aqui você acompanha equipes, férias, lotações, contratos e documentos de forma prática e segura.
+            O <strong className="text-white font-semibold">SIT – Sistema Integrado de Terceirizados</strong> é a central de gestão da força de trabalho terceirizada da GPM. Aqui você acompanha equipes, férias, lotações, contratos e métricas administrativas.
           </p>
 
           <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-3">
