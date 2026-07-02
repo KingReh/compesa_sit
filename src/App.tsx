@@ -88,6 +88,8 @@ export default function App() {
   const [isWhatsAppModalOpen, setIsWhatsAppModalOpen] = useState(false);
   const [isAjustarPontoOpen, setIsAjustarPontoOpen] = useState(false);
   const [isDriversModalOpen, setIsDriversModalOpen] = useState(false);
+  const [isWelcomeOpen, setIsWelcomeOpen] = useState(false);
+
 
   // Handlers state
   const [employeeToEdit, setEmployeeToEdit] = useState<Employee | null>(null);
