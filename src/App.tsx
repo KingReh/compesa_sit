@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { Search, Plus, Building2, LayoutDashboard, UserPlus, FileText, Settings, Users, Calendar, LogOut, UserCheck, Download, CheckCircle2 } from 'lucide-react';
-import { Employee, Coordenacao, Contrato, Unidade, Empresa, AuthSession } from './types';
+import { Search, Plus, Building2, LayoutDashboard, UserPlus, FileText, Settings, Users, Calendar, LogOut, UserCheck, Download, CheckCircle2, Bell, Command } from 'lucide-react';
+import { Employee, Coordenacao, Contrato, Unidade, Empresa, AuthSession, VacationPlan } from './types';
 import { formatEmployeeName } from './utils';
 import { useAuth } from './context/AuthContext';
 import { Dashboard } from './components/Dashboard';
@@ -21,11 +21,14 @@ import { BirthdayToasts } from './components/BirthdayToasts';
 import { CorporateFABMenu } from './components/CorporateFABMenu';
 import { AuthScreen } from './components/AuthScreen';
 import { WelcomeModal, isWelcomeSeen } from './components/WelcomeModal';
+import { NotificationCenter } from './components/NotificationCenter';
+import { CommandPalette } from './components/CommandPalette';
 import { empresasService } from './services/empresasService';
 import { coordenacoesService } from './services/coordenacoesService';
 import { unidadesService } from './services/unidadesService';
 import { contratosService } from './services/contratosService';
 import { employeesService } from './services/employeesService';
+import { vacationPlansService } from './services/vacationPlansService';
 
 
 export default function App() {
@@ -40,6 +43,7 @@ export default function App() {
   const [contratos, setContratos] = useState<Contrato[]>([]);
   const [unidades, setUnidades] = useState<Unidade[]>([]);
   const [empresas, setEmpresas] = useState<Empresa[]>([]);
+  const [vacationPlans, setVacationPlans] = useState<VacationPlan[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [currentView, setCurrentView] = useState<'painel' | 'configuracao' | 'relatorios' | 'ferias'>('painel');
   const [installToast, setInstallToast] = useState(false);
@@ -89,6 +93,7 @@ export default function App() {
   const [isAjustarPontoOpen, setIsAjustarPontoOpen] = useState(false);
   const [isDriversModalOpen, setIsDriversModalOpen] = useState(false);
   const [isWelcomeOpen, setIsWelcomeOpen] = useState(false);
+  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
 
 
   // Handlers state
@@ -110,18 +115,20 @@ export default function App() {
     async function loadDbData() {
       try {
         setIsDbLoading(true);
-        const [empRows, coordRows, unitRows, contrRows, emplRows] = await Promise.all([
+        const [empRows, coordRows, unitRows, contrRows, emplRows, vacRows] = await Promise.all([
           empresasService.getEmpresas(),
           coordenacoesService.getCoordenacoes(),
           unidadesService.getUnidades(),
           contratosService.getContratos(),
-          employeesService.getEmployees()
+          employeesService.getEmployees(),
+          vacationPlansService.getVacationPlans()
         ]);
         setEmpresas(empRows);
         setCoordenacoes(coordRows);
         setUnidades(unitRows);
         setContratos(contrRows);
         setEmployees(emplRows);
+        setVacationPlans(vacRows);
       } catch (err) {
         console.error('Erro ao carregar dados do Supabase:', err);
       } finally {
@@ -142,6 +149,20 @@ export default function App() {
       return () => clearTimeout(timer);
     }
   }, [user, isLoading]);
+
+  // Global shortcut to open Command Palette (Ctrl+K / ⌘K).
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const isMac = /Mac|iPod|iPhone|iPad/.test(navigator.platform);
+      const modifier = isMac ? e.metaKey : e.ctrlKey;
+      if (modifier && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setIsCommandPaletteOpen((prev) => !prev);
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   const handleSave = async (employee: Omit<Employee, 'id'> & { id?: string }) => {
     try {
@@ -335,7 +356,27 @@ export default function App() {
             </div>
 
             {/* Profile and Logout option in Header */}
-            <div className="flex items-center gap-4 sm:gap-6">
+            <div className="flex items-center gap-2 sm:gap-4">
+              <button
+                onClick={() => setIsCommandPaletteOpen(true)}
+                aria-label="Abrir paleta de comandos (Ctrl+K)"
+                title="Pesquisar comando (Ctrl+K)"
+                className="inline-flex items-center justify-center gap-2 rounded-lg px-2.5 sm:px-3 py-2 text-xs font-semibold text-brand-muted hover:text-white hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent transition-colors min-h-11"
+              >
+                <Command className="h-4 w-4" aria-hidden="true" />
+                <span className="hidden sm:inline-flex items-center px-1.5 py-0.5 rounded bg-white/10 font-mono text-[10px]">⌘K</span>
+              </button>
+
+              <NotificationCenter
+                employees={employees}
+                vacationPlans={vacationPlans}
+                onViewEmployee={(emp) => {
+                  setEmployeeToView(emp);
+                  setIsViewModalOpen(true);
+                }}
+                onNavigate={(view) => setCurrentView(view)}
+              />
+
               <div className="hidden sm:flex flex-col text-right">
                 <span className="text-sm font-bold text-white select-none">{user?.nome}</span>
                 <span className="text-[10px] text-brand-muted uppercase tracking-widest font-mono font-bold select-none">
@@ -539,6 +580,36 @@ export default function App() {
       <PWAInstallPrompt />
       <BirthdayToasts employees={employees} />
       <WelcomeModal isOpen={isWelcomeOpen} onClose={() => setIsWelcomeOpen(false)} />
+      <CommandPalette
+        isOpen={isCommandPaletteOpen}
+        onClose={() => setIsCommandPaletteOpen(false)}
+        employees={employees}
+        empresas={empresas}
+        contratos={contratos}
+        unidades={unidades}
+        coordenacoes={coordenacoes}
+        onNavigate={(view) => {
+          setCurrentView(view);
+          setIsCommandPaletteOpen(false);
+        }}
+        onViewEmployee={(emp) => {
+          setEmployeeToView(emp);
+          setIsCommandPaletteOpen(false);
+          setIsViewModalOpen(true);
+        }}
+        onOpenDrivers={() => {
+          setIsCommandPaletteOpen(false);
+          setIsDriversModalOpen(true);
+        }}
+        onOpenNewEmployee={() => {
+          setIsCommandPaletteOpen(false);
+          handleOpenNew();
+        }}
+        onLogout={() => {
+          setIsCommandPaletteOpen(false);
+          handleLogout();
+        }}
+      />
       <CorporateFABMenu empresas={empresas} onNavigateToConfig={() => setCurrentView('configuracao')} />
 
       {/* Toast: app already installed */}
