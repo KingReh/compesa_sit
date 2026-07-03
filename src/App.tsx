@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { Search, Plus, Building2, LayoutDashboard, UserPlus, FileText, Settings, Users, Calendar, LogOut, UserCheck, Download, CheckCircle2 } from 'lucide-react';
-import { Employee, Coordenacao, Contrato, Unidade, Empresa, AuthSession } from './types';
+import { Search, Plus, Building2, LayoutDashboard, UserPlus, FileText, Settings, Users, Calendar, LogOut, UserCheck, Download, CheckCircle2, Bell, Command } from 'lucide-react';
+import { Employee, Coordenacao, Contrato, Unidade, Empresa, AuthSession, VacationPlan } from './types';
 import { formatEmployeeName } from './utils';
 import { useAuth } from './context/AuthContext';
 import { Dashboard } from './components/Dashboard';
@@ -21,11 +21,14 @@ import { BirthdayToasts } from './components/BirthdayToasts';
 import { CorporateFABMenu } from './components/CorporateFABMenu';
 import { AuthScreen } from './components/AuthScreen';
 import { WelcomeModal, isWelcomeSeen } from './components/WelcomeModal';
+import { NotificationCenter } from './components/NotificationCenter';
+import { CommandPalette } from './components/CommandPalette';
 import { empresasService } from './services/empresasService';
 import { coordenacoesService } from './services/coordenacoesService';
 import { unidadesService } from './services/unidadesService';
 import { contratosService } from './services/contratosService';
 import { employeesService } from './services/employeesService';
+import { vacationPlansService } from './services/vacationPlansService';
 
 
 export default function App() {
@@ -40,6 +43,7 @@ export default function App() {
   const [contratos, setContratos] = useState<Contrato[]>([]);
   const [unidades, setUnidades] = useState<Unidade[]>([]);
   const [empresas, setEmpresas] = useState<Empresa[]>([]);
+  const [vacationPlans, setVacationPlans] = useState<VacationPlan[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [currentView, setCurrentView] = useState<'painel' | 'configuracao' | 'relatorios' | 'ferias'>('painel');
   const [installToast, setInstallToast] = useState(false);
@@ -89,6 +93,7 @@ export default function App() {
   const [isAjustarPontoOpen, setIsAjustarPontoOpen] = useState(false);
   const [isDriversModalOpen, setIsDriversModalOpen] = useState(false);
   const [isWelcomeOpen, setIsWelcomeOpen] = useState(false);
+  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
 
 
   // Handlers state
@@ -110,18 +115,20 @@ export default function App() {
     async function loadDbData() {
       try {
         setIsDbLoading(true);
-        const [empRows, coordRows, unitRows, contrRows, emplRows] = await Promise.all([
+        const [empRows, coordRows, unitRows, contrRows, emplRows, vacRows] = await Promise.all([
           empresasService.getEmpresas(),
           coordenacoesService.getCoordenacoes(),
           unidadesService.getUnidades(),
           contratosService.getContratos(),
-          employeesService.getEmployees()
+          employeesService.getEmployees(),
+          vacationPlansService.getVacationPlans()
         ]);
         setEmpresas(empRows);
         setCoordenacoes(coordRows);
         setUnidades(unitRows);
         setContratos(contrRows);
         setEmployees(emplRows);
+        setVacationPlans(vacRows);
       } catch (err) {
         console.error('Erro ao carregar dados do Supabase:', err);
       } finally {
@@ -142,6 +149,20 @@ export default function App() {
       return () => clearTimeout(timer);
     }
   }, [user, isLoading]);
+
+  // Global shortcut to open Command Palette (Ctrl+K / ⌘K).
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const isMac = /Mac|iPod|iPhone|iPad/.test(navigator.platform);
+      const modifier = isMac ? e.metaKey : e.ctrlKey;
+      if (modifier && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setIsCommandPaletteOpen((prev) => !prev);
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   const handleSave = async (employee: Omit<Employee, 'id'> & { id?: string }) => {
     try {
