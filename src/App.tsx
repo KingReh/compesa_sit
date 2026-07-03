@@ -580,6 +580,36 @@ export default function App() {
       <PWAInstallPrompt />
       <BirthdayToasts employees={employees} />
       <WelcomeModal isOpen={isWelcomeOpen} onClose={() => setIsWelcomeOpen(false)} />
+      <CommandPalette
+        isOpen={isCommandPaletteOpen}
+        onClose={() => setIsCommandPaletteOpen(false)}
+        employees={employees}
+        empresas={empresas}
+        contratos={contratos}
+        unidades={unidades}
+        coordenacoes={coordenacoes}
+        onNavigate={(view) => {
+          setCurrentView(view);
+          setIsCommandPaletteOpen(false);
+        }}
+        onViewEmployee={(emp) => {
+          setEmployeeToView(emp);
+          setIsCommandPaletteOpen(false);
+          setIsViewModalOpen(true);
+        }}
+        onOpenDrivers={() => {
+          setIsCommandPaletteOpen(false);
+          setIsDriversModalOpen(true);
+        }}
+        onOpenNewEmployee={() => {
+          setIsCommandPaletteOpen(false);
+          handleOpenNew();
+        }}
+        onLogout={() => {
+          setIsCommandPaletteOpen(false);
+          handleLogout();
+        }}
+      />
       <CorporateFABMenu empresas={empresas} onNavigateToConfig={() => setCurrentView('configuracao')} />
 
       {/* Toast: app already installed */}
