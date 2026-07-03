@@ -356,7 +356,27 @@ export default function App() {
             </div>
 
             {/* Profile and Logout option in Header */}
-            <div className="flex items-center gap-4 sm:gap-6">
+            <div className="flex items-center gap-2 sm:gap-4">
+              <button
+                onClick={() => setIsCommandPaletteOpen(true)}
+                aria-label="Abrir paleta de comandos (Ctrl+K)"
+                title="Pesquisar comando (Ctrl+K)"
+                className="inline-flex items-center justify-center gap-2 rounded-lg px-2.5 sm:px-3 py-2 text-xs font-semibold text-brand-muted hover:text-white hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent transition-colors min-h-11"
+              >
+                <Command className="h-4 w-4" aria-hidden="true" />
+                <span className="hidden sm:inline-flex items-center px-1.5 py-0.5 rounded bg-white/10 font-mono text-[10px]">⌘K</span>
+              </button>
+
+              <NotificationCenter
+                employees={employees}
+                vacationPlans={vacationPlans}
+                onViewEmployee={(emp) => {
+                  setEmployeeToView(emp);
+                  setIsViewModalOpen(true);
+                }}
+                onNavigate={(view) => setCurrentView(view)}
+              />
+
               <div className="hidden sm:flex flex-col text-right">
                 <span className="text-sm font-bold text-white select-none">{user?.nome}</span>
                 <span className="text-[10px] text-brand-muted uppercase tracking-widest font-mono font-bold select-none">
