@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { Search, Plus, Building2, LayoutDashboard, UserPlus, FileText, Settings, Users, Calendar, LogOut, UserCheck, Download, CheckCircle2, Bell, Command } from 'lucide-react';
+import { Search, Plus, Building2, LayoutDashboard, UserPlus, FileText, Settings, Users, Calendar, LogOut, UserCheck, Download, CheckCircle2, Bell } from 'lucide-react';
 import { Employee, Coordenacao, Contrato, Unidade, Empresa, AuthSession, VacationPlan } from './types';
 import { formatEmployeeName } from './utils';
 import { useAuth } from './context/AuthContext';
@@ -22,7 +22,6 @@ import { CorporateFABMenu } from './components/CorporateFABMenu';
 import { AuthScreen } from './components/AuthScreen';
 import { WelcomeModal, isWelcomeSeen } from './components/WelcomeModal';
 import { NotificationCenter } from './components/NotificationCenter';
-import { CommandPalette } from './components/CommandPalette';
 import { empresasService } from './services/empresasService';
 import { coordenacoesService } from './services/coordenacoesService';
 import { unidadesService } from './services/unidadesService';
