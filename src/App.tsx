@@ -148,8 +148,6 @@ export default function App() {
     }
   }, [user, isLoading]);
 
-  // Global shortcut to open Command Palette (Ctrl+K / ⌘K).
-
   const handleSave = async (employee: Omit<Employee, 'id'> & { id?: string }) => {
     try {
       if (employeeToEdit && employee.id) {
