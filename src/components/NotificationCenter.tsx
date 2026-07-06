@@ -448,149 +448,125 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
 
       {isOpen &&
         createPortal(
-          <div
-            ref={panelRef}
-            role="dialog"
-            aria-modal="true"
-            aria-label="Central de notificações"
-            className="fixed z-[10001] sit-panel flex flex-col shadow-2xl shadow-black/40 overflow-hidden"
-            style={{
-              top: '4.5rem',
-              right: 'max(0.75rem, env(safe-area-inset-right))',
-              width: 'min(28rem, calc(100vw - 1.5rem))',
-              maxHeight: 'min(32rem, calc(100vh - 6rem))',
-              animation: reducedMotion ? 'none' : 'fadeIn 0.2s ease-out',
-            }}
-          >
-            {/* Header */}
-            <div className="flex items-center justify-between gap-3 p-3 sm:p-4 border-b border-white/10">
-              <div className="flex items-center gap-2">
-                <div className="h-8 w-8 rounded-lg bg-brand-accent/15 flex items-center justify-center text-brand-accent">
-                  <Bell className="h-4 w-4" aria-hidden="true" />
-                </div>
-                <div>
-                  <h3 className="typ-card-title text-white">Central de Notificações</h3>
-                  <p className="text-[10px] text-brand-muted">
-                    {unreadCount > 0 ? `${unreadCount} não lida${unreadCount === 1 ? '' : 's'}` : 'Tudo em dia'}
-                  </p>
-                </div>
+          <>
+            {/* Mobile backdrop */}
+            <div
+              className="fixed inset-0 z-[10000] bg-black/40 sm:hidden"
+              style={{ animation: reducedMotion ? 'none' : 'fadeIn 0.15s ease-out' }}
+              onClick={() => setIsOpen(false)}
+              aria-hidden="true"
+            />
+            <div
+              ref={panelRef}
+              role="dialog"
+              aria-modal="true"
+              aria-label="Central de notificações"
+              className="fixed z-[10001] sit-panel flex flex-col shadow-2xl shadow-black/40 overflow-hidden sm:rounded-xl rounded-t-2xl sm:rounded-t-xl"
+              style={{
+                top: 'auto',
+                bottom: 'env(safe-area-inset-bottom, 0)',
+                left: 'env(safe-area-inset-left, 0)',
+                right: 'env(safe-area-inset-right, 0)',
+                width: 'auto',
+                maxHeight: 'min(80dvh, calc(100dvh - 3rem))',
+                animation: reducedMotion ? 'none' : 'slideUp 0.22s ease-out',
+              }}
+            >
+              {/* Grab handle (mobile only) */}
+              <div className="sm:hidden flex justify-center pt-2 pb-1" aria-hidden="true">
+                <span className="h-1 w-10 rounded-full bg-white/20" />
               </div>
-              <div className="flex items-center gap-1">
-                <button
-                  onClick={markAllAsRead}
-                  disabled={unreadFilteredCount === 0}
-                  aria-label="Marcar todas como lidas"
-                  title="Marcar todas como lidas"
-                  className="inline-flex items-center justify-center rounded-md p-2 text-brand-muted hover:text-white hover:bg-white/10 disabled:opacity-40 disabled:cursor-not-allowed focus-visible:ring-2 focus-visible:ring-brand-accent transition-colors"
-                >
-                  <CheckCheck className="h-4 w-4" aria-hidden="true" />
-                </button>
-                <button
-                  onClick={handleSilence}
-                  aria-label="Silenciar notificações por 24 horas"
-                  title="Silenciar por 24 horas"
-                  className="inline-flex items-center justify-center rounded-md p-2 text-brand-muted hover:text-white hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-brand-accent transition-colors"
-                >
-                  <BellOff className="h-4 w-4" aria-hidden="true" />
-                </button>
-                <button
-                  onClick={() => setIsOpen(false)}
-                  aria-label="Fechar notificações"
-                  className="inline-flex items-center justify-center rounded-md p-2 text-brand-muted hover:text-white hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-brand-accent transition-colors"
-                >
-                  <X className="h-4 w-4" aria-hidden="true" />
-                </button>
-              </div>
-            </div>
-
-            {/* Filter chips */}
-            <div className="flex items-center gap-1.5 p-2 sm:p-3 border-b border-white/10 overflow-x-auto no-scrollbar">
-              {(['all', 'birthday', 'vacation', 'coverage', 'incomplete', 'driver', 'news'] as (NotificationType | 'all')[]).map((type) => {
-                const Icon = typeIcons[type];
-                const active = filterType === type;
-                return (
-                  <button
-                    key={type}
-                    onClick={() => setFilterType(type)}
-                    className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-1.5 text-[11px] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent ${
-                      active
-                        ? 'bg-brand-accent/20 text-white border border-brand-accent/40'
-                        : 'bg-white/5 text-brand-muted border border-white/5 hover:bg-white/10 hover:text-white'
-                    }`}
-                  >
-                    <Icon className="h-3 w-3" aria-hidden="true" />
-                    {typeLabels[type]}
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* List */}
-            <div className="flex-1 overflow-y-auto p-2 sm:p-3 space-y-2">
-              {filteredNotifications.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-8 text-center">
-                  <div className="h-12 w-12 rounded-full bg-brand-accent/10 flex items-center justify-center text-brand-accent mb-3">
-                    <Bell className="h-6 w-6" aria-hidden="true" />
+              {/* Header */}
+              <div className="flex items-center justify-between gap-2 px-3 py-2 sm:p-4 border-b border-white/10">
+                <div className="flex items-center gap-2 min-w-0">
+                  <div className="h-7 w-7 sm:h-8 sm:w-8 rounded-lg bg-brand-accent/15 flex items-center justify-center text-brand-accent shrink-0">
+                    <Bell className="h-3.5 w-3.5 sm:h-4 sm:w-4" aria-hidden="true" />
                   </div>
-                  <p className="text-sm font-semibold text-white">Nenhuma notificação</p>
-                  <p className="text-xs text-brand-muted mt-1">Nenhum alerta do tipo selecionado no momento.</p>
+                  <div className="min-w-0">
+                    <h3 className="typ-card-title text-white text-sm sm:text-base truncate">Notificações</h3>
+                    <p className="text-[10px] text-brand-muted truncate">
+                      {unreadCount > 0 ? `${unreadCount} não lida${unreadCount === 1 ? '' : 's'}` : 'Tudo em dia'}
+                    </p>
+                  </div>
                 </div>
-              ) : (
-                filteredNotifications.map((n) => {
-                  const Icon = n.icon;
-                  const isUnread = !readIds.has(n.id);
+                <div className="flex items-center gap-0.5 shrink-0">
+                  <button
+                    onClick={markAllAsRead}
+                    disabled={unreadFilteredCount === 0}
+                    aria-label="Marcar todas como lidas"
+                    title="Marcar todas como lidas"
+                    className="inline-flex items-center justify-center rounded-md p-2 min-h-9 min-w-9 text-brand-muted hover:text-white hover:bg-white/10 disabled:opacity-40 disabled:cursor-not-allowed focus-visible:ring-2 focus-visible:ring-brand-accent transition-colors"
+                  >
+                    <CheckCheck className="h-4 w-4" aria-hidden="true" />
+                  </button>
+                  <button
+                    onClick={handleSilence}
+                    aria-label="Silenciar notificações por 24 horas"
+                    title="Silenciar por 24 horas"
+                    className="inline-flex items-center justify-center rounded-md p-2 min-h-9 min-w-9 text-brand-muted hover:text-white hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-brand-accent transition-colors"
+                  >
+                    <BellOff className="h-4 w-4" aria-hidden="true" />
+                  </button>
+                  <button
+                    onClick={() => setIsOpen(false)}
+                    aria-label="Fechar notificações"
+                    className="inline-flex items-center justify-center rounded-md p-2 min-h-9 min-w-9 text-brand-muted hover:text-white hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-brand-accent transition-colors"
+                  >
+                    <X className="h-4 w-4" aria-hidden="true" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Filter chips */}
+              <div className="flex items-center gap-1.5 px-2 py-1.5 sm:p-3 border-b border-white/10 overflow-x-auto no-scrollbar">
+                {(['all', 'birthday', 'vacation', 'coverage', 'incomplete', 'driver', 'news'] as (NotificationType | 'all')[]).map((type) => {
+                  const Icon = typeIcons[type];
+                  const active = filterType === type;
                   return (
-                    <div
-                      key={n.id}
-                      className={`group relative rounded-xl p-3 transition-colors border ${
-                        isUnread
-                          ? 'bg-brand-accent/10 border-brand-accent/20'
-                          : 'bg-white/5 border-white/5 hover:bg-white/10'
+                    <button
+                      key={type}
+                      onClick={() => setFilterType(type)}
+                      className={`inline-flex items-center gap-1 whitespace-nowrap rounded-full px-2 py-1 sm:px-2.5 sm:py-1.5 text-[10px] sm:text-[11px] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent ${
+                        active
+                          ? 'bg-brand-accent/20 text-white border border-brand-accent/40'
+                          : 'bg-white/5 text-brand-muted border border-white/5 hover:bg-white/10 hover:text-white'
                       }`}
                     >
-                      <div className="flex items-start gap-3">
-                        <div
-                          className={`mt-0.5 h-8 w-8 shrink-0 rounded-lg flex items-center justify-center ${
-                            n.priority === 'high'
-                              ? 'bg-rose-500/15 text-rose-300'
-                              : n.priority === 'normal'
-                              ? 'bg-brand-accent/15 text-brand-accent'
-                              : 'bg-white/10 text-brand-muted'
-                          }`}
-                        >
-                          <Icon className="h-4 w-4" aria-hidden="true" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs sm:text-sm font-bold text-white leading-snug pr-12">
-                            {n.title}
-                          </p>
-                          <p className="text-[11px] sm:text-xs text-brand-muted mt-0.5 leading-relaxed">
-                            {n.description}
-                          </p>
-                          <div className="flex items-center justify-between mt-2">
-                            <span className="text-[10px] text-brand-accent/80 font-medium">
-                              {relativeDateLabel(n.date)}
-                            </span>
-                            <button
-                              onClick={() => handleAction(n)}
-                              className="inline-flex items-center gap-1 text-[11px] font-semibold text-brand-accent hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent rounded px-1 py-0.5"
-                            >
-                              {n.actionLabel}
-                              <ChevronRight className="h-3 w-3" aria-hidden="true" />
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-
-                      {isUnread && (
-                        <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-brand-accent" aria-hidden="true" />
-                      )}
-                    </div>
+                      <Icon className="h-3 w-3" aria-hidden="true" />
+                      {typeLabels[type]}
+                    </button>
                   );
-                })
-              )}
+                })}
+              </div>
+
+              {/* List */}
+              <div
+                className="flex-1 overflow-y-auto p-2 sm:p-3 space-y-1.5 sm:space-y-2"
+                style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0) + 0.5rem)' }}
+              >
+                {filteredNotifications.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-8 text-center">
+                    <div className="h-12 w-12 rounded-full bg-brand-accent/10 flex items-center justify-center text-brand-accent mb-3">
+                      <Bell className="h-6 w-6" aria-hidden="true" />
+                    </div>
+                    <p className="text-sm font-semibold text-white">Nenhuma notificação</p>
+                    <p className="text-xs text-brand-muted mt-1">Nenhum alerta do tipo selecionado no momento.</p>
+                  </div>
+                ) : (
+                  filteredNotifications.map((n) => (
+                    <SwipeableNotification
+                      key={n.id}
+                      n={n}
+                      isUnread={!readIds.has(n.id)}
+                      reducedMotion={reducedMotion}
+                      onAction={() => handleAction(n)}
+                      onDismiss={() => markAsRead(n.id)}
+                    />
+                  ))
+                )}
+              </div>
             </div>
-          </div>,
+          </>,
           document.body
         )}
 
