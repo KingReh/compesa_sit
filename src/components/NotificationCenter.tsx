@@ -461,15 +461,16 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
               role="dialog"
               aria-modal="true"
               aria-label="Central de notificações"
-              className="fixed z-[10001] sit-panel flex flex-col shadow-2xl shadow-black/40 overflow-hidden sm:rounded-xl rounded-t-2xl sm:rounded-t-xl"
+              className="fixed z-[10001] sit-panel flex flex-col shadow-2xl shadow-black/40 overflow-hidden rounded-t-2xl sm:rounded-xl sm:rounded-t-xl inset-x-0 bottom-0 sm:inset-x-auto sm:bottom-auto sm:top-[4.5rem] sm:right-3 sm:w-[min(28rem,calc(100vw-1.5rem))]"
               style={{
-                top: 'auto',
-                bottom: 'env(safe-area-inset-bottom, 0)',
-                left: 'env(safe-area-inset-left, 0)',
-                right: 'env(safe-area-inset-right, 0)',
-                width: 'auto',
+                paddingLeft: 'env(safe-area-inset-left, 0)',
+                paddingRight: 'env(safe-area-inset-right, 0)',
                 maxHeight: 'min(80dvh, calc(100dvh - 3rem))',
-                animation: reducedMotion ? 'none' : 'slideUp 0.22s ease-out',
+                animation: reducedMotion
+                  ? 'none'
+                  : typeof window !== 'undefined' && window.matchMedia('(min-width: 640px)').matches
+                  ? 'fadeIn 0.2s ease-out'
+                  : 'slideUp 0.22s ease-out',
               }}
             >
               {/* Grab handle (mobile only) */}
