@@ -92,7 +92,6 @@ export default function App() {
   const [isAjustarPontoOpen, setIsAjustarPontoOpen] = useState(false);
   const [isDriversModalOpen, setIsDriversModalOpen] = useState(false);
   const [isWelcomeOpen, setIsWelcomeOpen] = useState(false);
-  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
 
 
   // Handlers state
@@ -150,18 +149,6 @@ export default function App() {
   }, [user, isLoading]);
 
   // Global shortcut to open Command Palette (Ctrl+K / ⌘K).
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      const isMac = /Mac|iPod|iPhone|iPad/.test(navigator.platform);
-      const modifier = isMac ? e.metaKey : e.ctrlKey;
-      if (modifier && e.key.toLowerCase() === 'k') {
-        e.preventDefault();
-        setIsCommandPaletteOpen((prev) => !prev);
-      }
-    };
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, []);
 
   const handleSave = async (employee: Omit<Employee, 'id'> & { id?: string }) => {
     try {
@@ -356,16 +343,6 @@ export default function App() {
 
             {/* Profile and Logout option in Header */}
             <div className="flex items-center gap-2 sm:gap-4">
-              <button
-                onClick={() => setIsCommandPaletteOpen(true)}
-                aria-label="Abrir paleta de comandos (Ctrl+K)"
-                title="Pesquisar comando (Ctrl+K)"
-                className="inline-flex items-center justify-center gap-2 rounded-lg px-2.5 sm:px-3 py-2 text-xs font-semibold text-brand-muted hover:text-white hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent transition-colors min-h-11"
-              >
-                <Command className="h-4 w-4" aria-hidden="true" />
-                <span className="hidden sm:inline-flex items-center px-1.5 py-0.5 rounded bg-white/10 font-mono text-[10px]">⌘K</span>
-              </button>
-
               <NotificationCenter
                 employees={employees}
                 vacationPlans={vacationPlans}
@@ -579,36 +556,6 @@ export default function App() {
       <PWAInstallPrompt />
       <BirthdayToasts employees={employees} />
       <WelcomeModal isOpen={isWelcomeOpen} onClose={() => setIsWelcomeOpen(false)} />
-      <CommandPalette
-        isOpen={isCommandPaletteOpen}
-        onClose={() => setIsCommandPaletteOpen(false)}
-        employees={employees}
-        empresas={empresas}
-        contratos={contratos}
-        unidades={unidades}
-        coordenacoes={coordenacoes}
-        onNavigate={(view) => {
-          setCurrentView(view);
-          setIsCommandPaletteOpen(false);
-        }}
-        onViewEmployee={(emp) => {
-          setEmployeeToView(emp);
-          setIsCommandPaletteOpen(false);
-          setIsViewModalOpen(true);
-        }}
-        onOpenDrivers={() => {
-          setIsCommandPaletteOpen(false);
-          setIsDriversModalOpen(true);
-        }}
-        onOpenNewEmployee={() => {
-          setIsCommandPaletteOpen(false);
-          handleOpenNew();
-        }}
-        onLogout={() => {
-          setIsCommandPaletteOpen(false);
-          handleLogout();
-        }}
-      />
       <CorporateFABMenu empresas={empresas} onNavigateToConfig={() => setCurrentView('configuracao')} />
 
       {/* Toast: app already installed */}
