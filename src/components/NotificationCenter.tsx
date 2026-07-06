@@ -306,6 +306,141 @@ const buildNotifications = (
   return items;
 };
 
+interface SwipeableNotificationProps {
+  n: NotificationItem;
+  isUnread: boolean;
+  reducedMotion: boolean;
+  onAction: () => void;
+  onDismiss: () => void;
+}
+
+const SWIPE_THRESHOLD = 96;
+
+const SwipeableNotification: React.FC<SwipeableNotificationProps> = ({
+  n,
+  isUnread,
+  reducedMotion,
+  onAction,
+  onDismiss,
+}) => {
+  const Icon = n.icon;
+  const [dx, setDx] = useState(0);
+  const [dragging, setDragging] = useState(0); // 0 idle, 1 dragging, 2 removing
+  const startX = useRef<number | null>(null);
+  const startY = useRef<number | null>(null);
+  const locked = useRef<'h' | 'v' | null>(null);
+  const pointerId = useRef<number | null>(null);
+  const ref = useRef<HTMLDivElement>(null);
+
+  const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (e.pointerType === 'mouse') return; // swipe is a touch gesture
+    if (reducedMotion) return;
+    startX.current = e.clientX;
+    startY.current = e.clientY;
+    locked.current = null;
+    pointerId.current = e.pointerId;
+    setDragging(1);
+  };
+
+  const onPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (startX.current == null || startY.current == null) return;
+    const deltaX = e.clientX - startX.current;
+    const deltaY = e.clientY - startY.current;
+    if (!locked.current) {
+      if (Math.abs(deltaX) < 6 && Math.abs(deltaY) < 6) return;
+      locked.current = Math.abs(deltaX) > Math.abs(deltaY) ? 'h' : 'v';
+      if (locked.current === 'h') {
+        try {
+          ref.current?.setPointerCapture(e.pointerId);
+        } catch { /* noop */ }
+      }
+    }
+    if (locked.current === 'h') {
+      e.preventDefault();
+      setDx(deltaX);
+    }
+  };
+
+  const finish = () => {
+    if (locked.current === 'h' && Math.abs(dx) > SWIPE_THRESHOLD) {
+      setDragging(2);
+      const dir = dx > 0 ? 1 : -1;
+      setDx(dir * (ref.current?.offsetWidth || 400));
+      window.setTimeout(() => onDismiss(), 180);
+    } else {
+      setDx(0);
+      setDragging(0);
+    }
+    startX.current = null;
+    startY.current = null;
+    locked.current = null;
+    pointerId.current = null;
+  };
+
+  const opacity = 1 - Math.min(Math.abs(dx) / (SWIPE_THRESHOLD * 2), 0.7);
+  const transitionStyle = dragging === 1 ? 'none' : reducedMotion ? 'none' : 'transform 180ms ease-out, opacity 180ms ease-out';
+
+  return (
+    <div
+      ref={ref}
+      role="article"
+      aria-label={n.title}
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={finish}
+      onPointerCancel={finish}
+      className={`group relative rounded-xl p-2.5 sm:p-3 border touch-pan-y ${
+        isUnread
+          ? 'bg-brand-accent/10 border-brand-accent/20'
+          : 'bg-white/5 border-white/5 hover:bg-white/10'
+      }`}
+      style={{
+        transform: `translateX(${dx}px)`,
+        opacity,
+        transition: transitionStyle,
+      }}
+    >
+      <div className="flex items-start gap-2 sm:gap-3">
+        <div
+          className={`mt-0.5 h-7 w-7 sm:h-8 sm:w-8 shrink-0 rounded-lg flex items-center justify-center ${
+            n.priority === 'high'
+              ? 'bg-rose-500/15 text-rose-300'
+              : n.priority === 'normal'
+              ? 'bg-brand-accent/15 text-brand-accent'
+              : 'bg-white/10 text-brand-muted'
+          }`}
+        >
+          <Icon className="h-3.5 w-3.5 sm:h-4 sm:w-4" aria-hidden="true" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-[12px] sm:text-sm font-bold text-white leading-snug pr-8">
+            {n.title}
+          </p>
+          <p className="text-[11px] sm:text-xs text-brand-muted mt-0.5 leading-relaxed line-clamp-3">
+            {n.description}
+          </p>
+          <div className="flex items-center justify-between mt-1.5 sm:mt-2 gap-2">
+            <span className="text-[10px] text-brand-accent/80 font-medium">
+              {relativeDateLabel(n.date)}
+            </span>
+            <button
+              onClick={onAction}
+              className="inline-flex items-center gap-1 text-[11px] font-semibold text-brand-accent hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent rounded px-1.5 py-1 min-h-8"
+            >
+              {n.actionLabel}
+              <ChevronRight className="h-3 w-3" aria-hidden="true" />
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {isUnread && (
+        <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-brand-accent" aria-hidden="true" />
+      )}
+    </div>
+  );
+};
+
 export const NotificationCenter: React.FC<NotificationCenterProps> = ({
   employees,
   vacationPlans,
