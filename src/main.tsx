@@ -40,11 +40,14 @@ if (typeof window !== 'undefined') {
 }
 
 import { AuthProvider } from './context/AuthContext.tsx';
+import { FiltersProvider } from './context/FiltersContext.tsx';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <AuthProvider>
-      <App />
+      <FiltersProvider>
+        <App />
+      </FiltersProvider>
     </AuthProvider>
   </StrictMode>,
 );
