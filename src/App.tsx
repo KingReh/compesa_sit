@@ -486,7 +486,7 @@ export default function App() {
             </nav>
 
             {/* Injetando o Widget do Mapa de Lotações */}
-            <MapaLotacoesWidget unidades={unidades} employees={employees} />
+            <MapaLotacoesWidget unidades={unidades} employees={filteredEmployees} />
 
           </aside>
 
