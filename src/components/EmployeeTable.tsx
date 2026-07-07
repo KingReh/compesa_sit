@@ -90,37 +90,8 @@ export function EmployeeTable({ employees, unidades, contratos, searchQuery, onE
 
   // currentPage is transient — intentionally not persisted.
 
-  useEffect(() => {
-    try {
-      localStorage.setItem('@sit:selectedLotacao', selectedLotacao);
-    } catch (e) {
-      console.error(e);
-    }
-  }, [selectedLotacao]);
+  // Filtros (lotacao, coordenacao, empresa, contrato) são persistidos pelo FiltersProvider.
 
-  useEffect(() => {
-    try {
-      localStorage.setItem('@sit:selectedCoordenacao', selectedCoordenacao);
-    } catch (e) {
-      console.error(e);
-    }
-  }, [selectedCoordenacao]);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('@sit:selectedEmpresa', selectedEmpresa);
-    } catch (e) {
-      console.error(e);
-    }
-  }, [selectedEmpresa]);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('@sit:selectedContrato', selectedContrato);
-    } catch (e) {
-      console.error(e);
-    }
-  }, [selectedContrato]);
 
   useEffect(() => {
     try {
