@@ -33,6 +33,7 @@ import { vacationPlansService } from './services/vacationPlansService';
 
 export default function App() {
   const { user, isLoading, signOut } = useAuth();
+  const { searchQuery, setSearchQuery, applyFilters } = useFilters();
 
   const handleLogout = () => {
     signOut();
@@ -44,9 +45,13 @@ export default function App() {
   const [unidades, setUnidades] = useState<Unidade[]>([]);
   const [empresas, setEmpresas] = useState<Empresa[]>([]);
   const [vacationPlans, setVacationPlans] = useState<VacationPlan[]>([]);
-  const [searchQuery, setSearchQuery] = useState('');
   const [currentView, setCurrentView] = useState<'painel' | 'configuracao' | 'relatorios' | 'ferias'>('painel');
   const [installToast, setInstallToast] = useState(false);
+
+  // Fonte única da verdade: aplica os filtros globais em toda a aplicação.
+  // Central de Notificações, Mapa de Lotações e Painel Executivo compartilham
+  // exatamente o mesmo subconjunto de dados.
+  const filteredEmployees = React.useMemo(() => applyFilters(employees), [applyFilters, employees]);
 
   // One-time cleanup of legacy transient UI state persisted in localStorage.
   // We intentionally do NOT persist navigation, tabs, search queries, pagination
