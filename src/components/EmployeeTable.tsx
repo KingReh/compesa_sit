@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { Eye, Edit2, Trash2, ArrowUpDown, ChevronLeft, ChevronRight, UserRound, LayoutGrid, List, CheckCircle2, Filter, X, ChevronDown, MapPin, Building2, FileText, Car, Copy, Shirt, Briefcase, FileSignature } from 'lucide-react';
 import { Employee, Unidade, Contrato } from '../types';
+import { useFilters } from '../context/FiltersContext';
 
 interface EmployeeTableProps {
   employees: Employee[];
