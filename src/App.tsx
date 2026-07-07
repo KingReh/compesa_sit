@@ -22,6 +22,7 @@ import { CorporateFABMenu } from './components/CorporateFABMenu';
 import { AuthScreen } from './components/AuthScreen';
 import { WelcomeModal, isWelcomeSeen } from './components/WelcomeModal';
 import { NotificationCenter } from './components/NotificationCenter';
+import { useFilters } from './context/FiltersContext';
 import { empresasService } from './services/empresasService';
 import { coordenacoesService } from './services/coordenacoesService';
 import { unidadesService } from './services/unidadesService';
