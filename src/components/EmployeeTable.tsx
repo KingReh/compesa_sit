@@ -19,6 +19,20 @@ type SortField = 'nome' | 'matricula' | 'cpf' | 'especialidade' | 'coordenacao' 
 type SortOrder = 'asc' | 'desc';
 
 export function EmployeeTable({ employees, unidades, contratos, searchQuery, onEdit, onDelete, onView, onWhatsAppClick }: EmployeeTableProps) {
+  // Filtros globais (Single Source of Truth) — persistidos automaticamente
+  // pelo FiltersProvider e compartilhados com Central de Notificações e
+  // Mapa de Lotações.
+  const {
+    selectedLotacao,
+    selectedCoordenacao,
+    selectedEmpresa,
+    selectedContrato,
+    setSelectedLotacao,
+    setSelectedCoordenacao,
+    setSelectedEmpresa,
+    setSelectedContrato,
+  } = useFilters();
+
   const [sortField, setSortField] = useState<SortField>(() => {
     try {
       const saved = localStorage.getItem('@sit:sortField');
@@ -43,39 +57,6 @@ export function EmployeeTable({ employees, unidades, contratos, searchQuery, onE
   const itemsPerPage = 8;
 
   const [toast, setToast] = useState<string | null>(null);
-
-  // Dynamic filter state
-  const [selectedLotacao, setSelectedLotacao] = useState<string>(() => {
-    try {
-      return localStorage.getItem('@sit:selectedLotacao') || '';
-    } catch {
-      return '';
-    }
-  });
-
-  const [selectedCoordenacao, setSelectedCoordenacao] = useState<string>(() => {
-    try {
-      return localStorage.getItem('@sit:selectedCoordenacao') || '';
-    } catch {
-      return '';
-    }
-  });
-
-  const [selectedEmpresa, setSelectedEmpresa] = useState<string>(() => {
-    try {
-      return localStorage.getItem('@sit:selectedEmpresa') || '';
-    } catch {
-      return '';
-    }
-  });
-
-  const [selectedContrato, setSelectedContrato] = useState<string>(() => {
-    try {
-      return localStorage.getItem('@sit:selectedContrato') || '';
-    } catch {
-      return '';
-    }
-  });
 
   const [showFilters, setShowFilters] = useState<boolean>(() => {
     try {
