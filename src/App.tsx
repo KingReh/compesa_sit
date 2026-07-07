@@ -348,7 +348,7 @@ export default function App() {
             {/* Profile and Logout option in Header */}
             <div className="flex items-center gap-2 sm:gap-4">
               <NotificationCenter
-                employees={employees}
+                employees={filteredEmployees}
                 vacationPlans={vacationPlans}
                 onViewEmployee={(emp) => {
                   setEmployeeToView(emp);
