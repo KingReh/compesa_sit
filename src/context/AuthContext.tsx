@@ -26,6 +26,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<Profile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Bypass de login apenas em ambientes de preview do Lovable (nunca em produção
+  // publicada nem em build local que não seja preview). Permite editar o hero
+  // sem precisar autenticar.
+  const isLovablePreview = typeof window !== 'undefined' && (() => {
+    const h = window.location.hostname;
+    return (
+      h.startsWith('id-preview--') ||
+      h.startsWith('preview--') ||
+      h.endsWith('.lovableproject.com') ||
+      h.endsWith('.lovable.dev') ||
+      h === 'localhost' ||
+      h === '127.0.0.1'
+    );
+  })();
+
+  const PREVIEW_USER: Profile = {
+    id: 'preview-user',
+    nome: 'Preview Admin',
+    matricula: '000.000.000-00',
+    email: 'preview@lovable.dev',
+    perfil: 'Admin' as UserProfile,
+  };
+
   // Robust profile loader with retry to handle database trigger delay on signup
   const fetchProfileWithRetry = async (uid: string, retries = 5, delay = 300): Promise<Profile | null> => {
     for (let i = 0; i < retries; i++) {
@@ -90,6 +113,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
+    // No preview do Lovable, injeta um usuário fictício e ignora o fluxo real
+    // de autenticação para permitir a edição visual do hero e demais telas.
+    if (isLovablePreview) {
+      setUser(PREVIEW_USER);
+      setSession(null);
+      setIsLoading(false);
+      return;
+    }
+
     // Check active session immediately
     supabase.auth.getSession().then(({ data: { session: activeSession } }) => {
       loadUserData(activeSession);
@@ -98,9 +130,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Listen for auth changes — avoid unnecessary profile re-fetches on token refresh
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, changedSession) => {
       if (event === 'TOKEN_REFRESHED') {
-        // Token was auto-refreshed (e.g. tab regained focus). Update the session
-        // reference only — the user profile hasn't changed, so skip the DB round-trip
-        // to avoid cascading re-renders / full-page loading flickers.
         setSession(changedSession);
         return;
       }
