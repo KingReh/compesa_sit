@@ -116,15 +116,29 @@ export function VacationPlanning({ employees, coordenacoes, empresas }: Vacation
   const [toastMessage, setToastMessage] = useState('');
 
   // 3. Dropdown Search / Filter States
-  const [selectedCoords, setSelectedCoords] = useState<string[]>([]);
+  const [selectedCoords, setSelectedCoords] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem('@sit:vacation:selectedCoords');
+      const parsed = saved ? JSON.parse(saved) : [];
+      return Array.isArray(parsed) ? parsed.filter((v) => typeof v === 'string') : [];
+    } catch { return []; }
+  });
   const [coordSearch, setCoordSearch] = useState('');
   const [showCoordDropdown, setShowCoordDropdown] = useState(false);
 
-  const [selectedEmps, setSelectedEmps] = useState<string[]>([]);
+  const [selectedEmps, setSelectedEmps] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem('@sit:vacation:selectedEmps');
+      const parsed = saved ? JSON.parse(saved) : [];
+      return Array.isArray(parsed) ? parsed.filter((v) => typeof v === 'string') : [];
+    } catch { return []; }
+  });
   const [empSearch, setEmpSearch] = useState('');
   const [showEmpDropdown, setShowEmpDropdown] = useState(false);
 
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState<string>(() => {
+    try { return localStorage.getItem('@sit:vacation:searchQuery') || ''; } catch { return ''; }
+  });
 
   // Ref dropdown click-out side effects
   const coordDropdownRef = useRef<HTMLDivElement>(null);
@@ -192,10 +206,20 @@ export function VacationPlanning({ employees, coordenacoes, empresas }: Vacation
   }, [sortField]);
 
   useEffect(() => {
-    try {
-      localStorage.setItem('@sit:vacation:sortOrder', sortOrder);
-    } catch {}
+    try { localStorage.setItem('@sit:vacation:sortOrder', sortOrder); } catch {}
   }, [sortOrder]);
+
+  useEffect(() => {
+    try { localStorage.setItem('@sit:vacation:selectedCoords', JSON.stringify(selectedCoords)); } catch {}
+  }, [selectedCoords]);
+
+  useEffect(() => {
+    try { localStorage.setItem('@sit:vacation:selectedEmps', JSON.stringify(selectedEmps)); } catch {}
+  }, [selectedEmps]);
+
+  useEffect(() => {
+    try { localStorage.setItem('@sit:vacation:searchQuery', searchQuery); } catch {}
+  }, [searchQuery]);
 
   const meses = [
     "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
