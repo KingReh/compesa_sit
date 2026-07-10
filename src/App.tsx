@@ -59,22 +59,17 @@ export default function App() {
   // preferences remain persisted by their respective components.
   useEffect(() => {
     try {
+      // Chaves puramente transitórias de UI (nunca representam filtros do usuário).
+      // Filtros de dados (coords/empresas/busca/etc.) são preservados intencionalmente.
       const transientKeys = [
         '@sit:currentView',
         '@sit:reg:activeTab',
-        '@sit:reg:unidadeSearchQuery',
         '@sit:reg:unidadesCurrentPage',
-        '@sit:reg:empresaSearchQuery',
         '@sit:reg:empresasCurrentPage',
         '@sit:vacation:activeTab',
         '@sit:vacation:selectedDetailMonth',
-        '@sit:vacation:detailSearchQuery',
-        '@sit:vacation:selectedCoords',
-        '@sit:vacation:selectedEmps',
-        '@sit:vacation:searchQuery',
         '@sit:vacation:currentPage',
         '@sit:reports:activeSubTab',
-        '@sit:reports:statusTableSearch',
         '@sit:currentPage',
       ];
       transientKeys.forEach((k) => localStorage.removeItem(k));
