@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { Search, Plus, Building2, LayoutDashboard, UserPlus, FileText, Settings, Users, Calendar, LogOut, UserCheck, Download, CheckCircle2, Bell } from 'lucide-react';
+import { Search, Plus, Building2, LayoutDashboard, UserPlus, FileText, Settings, Users, Calendar, LogOut, UserCheck, Download, CheckCircle2, Bell, X } from 'lucide-react';
 import { Employee, Coordenacao, Contrato, Unidade, Empresa, AuthSession, VacationPlan } from './types';
 import { formatEmployeeName } from './utils';
 import { useAuth } from './context/AuthContext';
@@ -242,8 +242,19 @@ export default function App() {
                   placeholder="Pesquisar..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="sit-input block w-full rounded-lg py-2 sm:py-2.5 pl-10 pr-4 text-xs sm:text-sm"
+                  className="sit-input block w-full rounded-lg py-2 sm:py-2.5 pl-10 pr-10 text-xs sm:text-sm"
                 />
+                {searchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => setSearchQuery('')}
+                    className="absolute inset-y-0 right-0 flex items-center pr-3 text-brand-muted hover:text-white transition-colors"
+                    aria-label="Limpar pesquisa"
+                    title="Limpar pesquisa"
+                  >
+                    <X className="h-4 w-4" aria-hidden="true" />
+                  </button>
+                )}
               </div>
               <button
                 onClick={handleOpenNew}
