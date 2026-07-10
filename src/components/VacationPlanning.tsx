@@ -206,10 +206,20 @@ export function VacationPlanning({ employees, coordenacoes, empresas }: Vacation
   }, [sortField]);
 
   useEffect(() => {
-    try {
-      localStorage.setItem('@sit:vacation:sortOrder', sortOrder);
-    } catch {}
+    try { localStorage.setItem('@sit:vacation:sortOrder', sortOrder); } catch {}
   }, [sortOrder]);
+
+  useEffect(() => {
+    try { localStorage.setItem('@sit:vacation:selectedCoords', JSON.stringify(selectedCoords)); } catch {}
+  }, [selectedCoords]);
+
+  useEffect(() => {
+    try { localStorage.setItem('@sit:vacation:selectedEmps', JSON.stringify(selectedEmps)); } catch {}
+  }, [selectedEmps]);
+
+  useEffect(() => {
+    try { localStorage.setItem('@sit:vacation:searchQuery', searchQuery); } catch {}
+  }, [searchQuery]);
 
   const meses = [
     "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
