@@ -113,6 +113,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
+    // No preview do Lovable, injeta um usuário fictício e ignora o fluxo real
+    // de autenticação para permitir a edição visual do hero e demais telas.
+    if (isLovablePreview) {
+      setUser(PREVIEW_USER);
+      setSession(null);
+      setIsLoading(false);
+      return;
+    }
+
     // Check active session immediately
     supabase.auth.getSession().then(({ data: { session: activeSession } }) => {
       loadUserData(activeSession);
@@ -121,9 +130,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Listen for auth changes — avoid unnecessary profile re-fetches on token refresh
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, changedSession) => {
       if (event === 'TOKEN_REFRESHED') {
-        // Token was auto-refreshed (e.g. tab regained focus). Update the session
-        // reference only — the user profile hasn't changed, so skip the DB round-trip
-        // to avoid cascading re-renders / full-page loading flickers.
         setSession(changedSession);
         return;
       }
