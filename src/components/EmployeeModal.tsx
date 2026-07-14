@@ -60,6 +60,22 @@ export function EmployeeModal({ isOpen, onClose, onSave, employeeToEdit, coorden
   const fileInputRef = useRef<HTMLInputElement>(null);
   const nameInputRef = useRef<HTMLInputElement>(null);
   const cursorRef = useRef<{ start: number | null; end: number | null }>({ start: null, end: null });
+  const [lotacaoSearch, setLotacaoSearch] = useState('');
+  const [lotacaoOpen, setLotacaoOpen] = useState(false);
+  const lotacaoRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const onDoc = (e: MouseEvent) => {
+      if (lotacaoRef.current && !lotacaoRef.current.contains(e.target as Node)) {
+        setLotacaoOpen(false);
+        setLotacaoSearch('');
+      }
+    };
+    document.addEventListener('mousedown', onDoc);
+    return () => document.removeEventListener('mousedown', onDoc);
+  }, []);
+
+  const normalizeText = (s: string) => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 
   useEffect(() => {
     if (isOpen) {
