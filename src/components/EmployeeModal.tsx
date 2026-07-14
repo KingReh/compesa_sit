@@ -394,9 +394,26 @@ export function EmployeeModal({ isOpen, onClose, onSave, employeeToEdit, coorden
                           onChange={(e) => { setLotacaoSearch(e.target.value); setLotacaoOpen(true); }}
                           className={classNames(
                             "block w-full rounded-md sit-input py-1.5 px-2 text-xs placeholder:text-brand-muted/40",
-                            errors.lotacao ? "ring-1 ring-red-400" : ""
+                            errors.lotacao ? "ring-1 ring-red-400" : "",
+                            (lotacaoOpen ? lotacaoSearch : formData.lotacao) ? "pr-7" : ""
                           )}
                         />
+                        {(lotacaoOpen ? lotacaoSearch : formData.lotacao) && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setLotacaoSearch('');
+                              setFormData((prev) => ({ ...prev, lotacao: '' }));
+                              setLotacaoOpen(true);
+                              if (errors.lotacao) setErrors((prev) => ({ ...prev, lotacao: undefined }));
+                            }}
+                            className="absolute inset-y-0 right-0 flex items-center pr-2 text-brand-muted hover:text-white transition-colors"
+                            aria-label="Limpar lotação"
+                            title="Limpar lotação"
+                          >
+                            <X className="h-3.5 w-3.5" aria-hidden="true" />
+                          </button>
+                        )}
                         {lotacaoOpen && (
                           <ul className="absolute z-50 mt-1 w-full max-h-56 overflow-auto rounded-md bg-[#0b4d8f] border border-white/10 shadow-lg text-xs">
                             {(() => {
