@@ -384,20 +384,51 @@ export function EmployeeModal({ isOpen, onClose, onSave, employeeToEdit, coorden
 
                     <div className="sm:col-span-3">
                       <label className="block text-[10px] font-bold tracking-wider text-brand-muted uppercase mb-0.5">Lotação *</label>
-                      <select
-                        name="lotacao"
-                        value={formData.lotacao}
-                        onChange={handleChange}
-                        className={classNames(
-                          "block w-full rounded-md sit-input py-1.5 px-2 text-xs",
-                          errors.lotacao ? "ring-1 ring-red-400" : ""
+                      <div className="relative" ref={lotacaoRef}>
+                        <input
+                          type="text"
+                          autoComplete="off"
+                          value={lotacaoOpen ? lotacaoSearch : formData.lotacao}
+                          placeholder="Digite para buscar uma unidade..."
+                          onFocus={() => { setLotacaoOpen(true); setLotacaoSearch(''); }}
+                          onChange={(e) => { setLotacaoSearch(e.target.value); setLotacaoOpen(true); }}
+                          className={classNames(
+                            "block w-full rounded-md sit-input py-1.5 px-2 text-xs placeholder:text-brand-muted/40",
+                            errors.lotacao ? "ring-1 ring-red-400" : ""
+                          )}
+                        />
+                        {lotacaoOpen && (
+                          <ul className="absolute z-50 mt-1 w-full max-h-56 overflow-auto rounded-md bg-[#0b4d8f] border border-white/10 shadow-lg text-xs">
+                            {(() => {
+                              const q = normalizeText(lotacaoSearch);
+                              const items = Array.from(unidades)
+                                .sort((a, b) => a.nome.localeCompare(b.nome))
+                                .filter((u) => !q || normalizeText(u.nome).includes(q));
+                              if (items.length === 0) {
+                                return <li className="px-2 py-1.5 text-brand-muted">Nenhuma unidade encontrada</li>;
+                              }
+                              return items.map((u) => (
+                                <li
+                                  key={u.id}
+                                  className={classNames(
+                                    "px-2 py-1.5 cursor-pointer hover:bg-white/10",
+                                    formData.lotacao === u.nome ? "bg-white/10 font-semibold" : ""
+                                  )}
+                                  onMouseDown={(e) => {
+                                    e.preventDefault();
+                                    setFormData((prev) => ({ ...prev, lotacao: u.nome }));
+                                    setLotacaoOpen(false);
+                                    setLotacaoSearch('');
+                                    if (errors.lotacao) setErrors((prev) => ({ ...prev, lotacao: undefined }));
+                                  }}
+                                >
+                                  {u.nome}
+                                </li>
+                              ));
+                            })()}
+                          </ul>
                         )}
-                      >
-                        <option value="" className="bg-[#0b4d8f]">Selecione uma unidade...</option>
-                        {Array.from(unidades).sort((a,b) => a.nome.localeCompare(b.nome)).map((unidade) => (
-                          <option key={unidade.id} value={unidade.nome} className="bg-[#0b4d8f]">{unidade.nome}</option>
-                        ))}
-                      </select>
+                      </div>
                       {errors.lotacao && <p className="mt-0.5 text-[10px] text-red-400 font-semibold">{errors.lotacao}</p>}
                     </div>
 
