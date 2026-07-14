@@ -288,6 +288,7 @@ export function EmployeeModal({ isOpen, onClose, onSave, employeeToEdit, coorden
                         name="dataNascimento"
                         value={formData.dataNascimento}
                         onChange={handleChange}
+                        onPaste={handleDatePaste}
                         className="block w-full rounded-md sit-input py-1.5 px-2 text-xs !color-scheme-dark"
                       />
                     </div>
