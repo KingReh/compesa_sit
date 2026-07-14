@@ -114,6 +114,29 @@ export function EmployeeModal({ isOpen, onClose, onSave, employeeToEdit, coorden
     }
   };
 
+  const handleDatePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+    const raw = e.clipboardData.getData('text').trim();
+    if (!raw) return;
+    let iso = '';
+    const isoMatch = raw.match(/^(\d{4})[-\/.](\d{1,2})[-\/.](\d{1,2})/);
+    const dmyMatch = raw.match(/^(\d{1,2})[-\/.](\d{1,2})[-\/.](\d{2,4})/);
+    if (isoMatch) {
+      iso = `${isoMatch[1]}-${isoMatch[2].padStart(2, '0')}-${isoMatch[3].padStart(2, '0')}`;
+    } else if (dmyMatch) {
+      let y = parseInt(dmyMatch[3], 10);
+      if (y < 100) y += 2000;
+      iso = `${y}-${dmyMatch[2].padStart(2, '0')}-${dmyMatch[1].padStart(2, '0')}`;
+    } else {
+      return;
+    }
+    e.preventDefault();
+    const name = (e.currentTarget as HTMLInputElement).name;
+    setFormData((prev) => ({ ...prev, [name]: iso }));
+    if (errors[name as keyof Employee]) {
+      setErrors((prev) => ({ ...prev, [name]: undefined }));
+    }
+  };
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -265,6 +288,7 @@ export function EmployeeModal({ isOpen, onClose, onSave, employeeToEdit, coorden
                         name="dataNascimento"
                         value={formData.dataNascimento}
                         onChange={handleChange}
+                        onPaste={handleDatePaste}
                         className="block w-full rounded-md sit-input py-1.5 px-2 text-xs !color-scheme-dark"
                       />
                     </div>
@@ -469,6 +493,7 @@ export function EmployeeModal({ isOpen, onClose, onSave, employeeToEdit, coorden
                         name="dataAdmissao"
                         value={formData.dataAdmissao}
                         onChange={handleChange}
+                        onPaste={handleDatePaste}
                         className="block w-full rounded-md sit-input py-1 px-2 text-xs !color-scheme-dark"
                       />
                     </div>
