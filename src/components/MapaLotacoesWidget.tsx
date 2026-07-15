@@ -1,5 +1,6 @@
 import React, { useMemo, useState, useEffect } from 'react';
-import { MapPin, Users, Building2, ChevronDown, AlertTriangle } from 'lucide-react';
+import { MapPin, Users, Building2, ChevronDown, AlertTriangle, Map as MapIcon } from 'lucide-react';
+import { LotacoesMapModal } from './LotacoesMapModal';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
