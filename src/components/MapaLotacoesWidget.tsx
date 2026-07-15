@@ -1,5 +1,6 @@
 import React, { useMemo, useState, useEffect } from 'react';
-import { MapPin, Users, Building2, ChevronDown, AlertTriangle } from 'lucide-react';
+import { MapPin, Users, Building2, ChevronDown, AlertTriangle, Map as MapIcon } from 'lucide-react';
+import { LotacoesMapModal } from './LotacoesMapModal';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -47,6 +48,7 @@ function MapController({ coordsList }: { coordsList: [number, number][] }) {
 
 export function MapaLotacoesWidget({ unidades, employees }: MapaLotacoesWidgetProps) {
   const [isMobileExpanded, setIsMobileExpanded] = useState(false);
+  const [isMapModalOpen, setIsMapModalOpen] = useState(false);
 
   const { mapData, invalidUnits } = useMemo(() => {
     const data: { 
@@ -124,13 +126,14 @@ export function MapaLotacoesWidget({ unidades, employees }: MapaLotacoesWidgetPr
               <span className="text-[9px] font-bold uppercase tracking-wider font-mono">{invalidUnits.length} OMITIDA(S)</span>
             </div>
           )}
-          <div className="flex items-center gap-2 bg-black/40 px-2 py-1 rounded border border-white/5">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-            </span>
-            <span className="text-[9px] font-mono text-emerald-400/90 uppercase tracking-widest font-bold">LIVE</span>
-          </div>
+          <button
+            onClick={(e) => { e.stopPropagation(); setIsMapModalOpen(true); }}
+            className="group/btn flex items-center gap-1.5 bg-brand-accent/10 hover:bg-brand-accent/20 px-2.5 py-1 rounded-md border border-brand-accent/30 hover:border-brand-accent/60 text-brand-accent transition-all active:scale-95 shadow-sm hover:shadow-md hover:shadow-brand-accent/10"
+            title="Abrir painel geográfico completo"
+          >
+            <MapIcon className="w-3.5 h-3.5 group-hover/btn:scale-110 transition-transform" />
+            <span className="text-[10px] font-bold uppercase tracking-widest">Exibir Mapa</span>
+          </button>
           {/* Mobile indicator */}
           <div className="lg:hidden text-white/50">
             <ChevronDown className={`w-5 h-5 transition-transform duration-300 ${isMobileExpanded ? 'rotate-180' : ''}`} />
@@ -223,8 +226,14 @@ export function MapaLotacoesWidget({ unidades, employees }: MapaLotacoesWidgetPr
          <div className="absolute inset-0 pointer-events-none ring-1 ring-inset ring-white/10 z-[1]" />
          <div className="absolute inset-x-0 top-0 h-4 bg-gradient-to-b from-black/20 to-transparent pointer-events-none z-[1]" />
          <div className="absolute inset-x-0 bottom-0 h-4 bg-gradient-to-t from-black/20 to-transparent pointer-events-none z-[1]" />
+       </div>
       </div>
-      </div>
+      <LotacoesMapModal
+        isOpen={isMapModalOpen}
+        onClose={() => setIsMapModalOpen(false)}
+        unidades={unidades}
+        employees={employees}
+      />
     </div>
   );
 }
