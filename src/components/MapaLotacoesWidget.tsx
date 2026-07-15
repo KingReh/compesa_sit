@@ -126,13 +126,14 @@ export function MapaLotacoesWidget({ unidades, employees }: MapaLotacoesWidgetPr
               <span className="text-[9px] font-bold uppercase tracking-wider font-mono">{invalidUnits.length} OMITIDA(S)</span>
             </div>
           )}
-          <div className="flex items-center gap-2 bg-black/40 px-2 py-1 rounded border border-white/5">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-            </span>
-            <span className="text-[9px] font-mono text-emerald-400/90 uppercase tracking-widest font-bold">LIVE</span>
-          </div>
+          <button
+            onClick={(e) => { e.stopPropagation(); setIsMapModalOpen(true); }}
+            className="group/btn flex items-center gap-1.5 bg-brand-accent/10 hover:bg-brand-accent/20 px-2.5 py-1 rounded-md border border-brand-accent/30 hover:border-brand-accent/60 text-brand-accent transition-all active:scale-95 shadow-sm hover:shadow-md hover:shadow-brand-accent/10"
+            title="Abrir painel geográfico completo"
+          >
+            <MapIcon className="w-3.5 h-3.5 group-hover/btn:scale-110 transition-transform" />
+            <span className="text-[10px] font-bold uppercase tracking-widest">Exibir Mapa</span>
+          </button>
           {/* Mobile indicator */}
           <div className="lg:hidden text-white/50">
             <ChevronDown className={`w-5 h-5 transition-transform duration-300 ${isMobileExpanded ? 'rotate-180' : ''}`} />
