@@ -48,6 +48,7 @@ function MapController({ coordsList }: { coordsList: [number, number][] }) {
 
 export function MapaLotacoesWidget({ unidades, employees }: MapaLotacoesWidgetProps) {
   const [isMobileExpanded, setIsMobileExpanded] = useState(false);
+  const [isMapModalOpen, setIsMapModalOpen] = useState(false);
 
   const { mapData, invalidUnits } = useMemo(() => {
     const data: { 
