@@ -226,8 +226,7 @@ export function MapaLotacoesWidget({ unidades, employees }: MapaLotacoesWidgetPr
          <div className="absolute inset-0 pointer-events-none ring-1 ring-inset ring-white/10 z-[1]" />
          <div className="absolute inset-x-0 top-0 h-4 bg-gradient-to-b from-black/20 to-transparent pointer-events-none z-[1]" />
          <div className="absolute inset-x-0 bottom-0 h-4 bg-gradient-to-t from-black/20 to-transparent pointer-events-none z-[1]" />
-      </div>
-      </div>
+       </div>
       </div>
       <LotacoesMapModal
         isOpen={isMapModalOpen}
