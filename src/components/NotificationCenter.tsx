@@ -165,6 +165,10 @@ const buildNotifications = (
 
   for (const b of upcomingBirthdays) {
     const isToday = b.type === 'today';
+    const birthDt = parseLocalDate(b.employee.dataNascimento);
+    const nextBirthday = birthDt
+      ? new Date(currentYear, birthDt.getMonth(), birthDt.getDate())
+      : today;
     items.push({
       id: `birthday:${b.employee.id}:${isToday ? 'today' : 'week'}`,
       type: 'birthday',
@@ -173,8 +177,8 @@ const buildNotifications = (
         : `🎈 Aniversário em breve: ${formatEmployeeName(b.employee.nome)}`,
       description: isToday
         ? `${b.employee.nome} completa ${b.age} anos hoje. Aproveite para enviar seus parabéns!`
-        : `${b.employee.nome} completará ${b.age} anos ${relativeDateLabel(new Date(currentYear, new Date(b.employee.dataNascimento).getMonth(), new Date(b.employee.dataNascimento).getDate()))}.`,
-      date: today,
+        : `${b.employee.nome} completará ${b.age} anos ${relativeDateLabel(nextBirthday)}.`,
+      date: isToday ? today : nextBirthday,
       actionLabel: 'Ver ficha',
       action: () => onViewEmployee(b.employee),
       icon: Cake,
