@@ -668,31 +668,6 @@ export function LotacoesMapModal({
                 {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
               </button>
 
-              {/* Export menu Dropdown trigger */}
-              <div className="relative group/export">
-                <button
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-bold text-brand-bg bg-brand-accent hover:brightness-110 active:scale-95 transition-all cursor-pointer shadow-sm shadow-brand-accent/20"
-                  title="Exportar dados filtrados"
-                >
-                  <Download className="w-3.5 h-3.5" />
-                  <span>Exportar</span>
-                </button>
-                <div className="absolute right-0 mt-1 w-32 bg-slate-900 border border-slate-700/80 rounded-xl shadow-2xl z-[1200] hidden group-hover/export:block hover:block py-1 animate-scale-in">
-                  <button
-                    onClick={handleExportExcel}
-                    className="w-full text-left text-[11px] text-slate-300 hover:text-white hover:bg-white/[0.04] px-3.5 py-2 transition-colors cursor-pointer"
-                  >
-                    Exportar Excel (.xlsx)
-                  </button>
-                  <button
-                    onClick={handleExportPDF}
-                    className="w-full text-left text-[11px] text-slate-300 hover:text-white hover:bg-white/[0.04] px-3.5 py-2 transition-colors cursor-pointer"
-                  >
-                    Exportar PDF (.pdf)
-                  </button>
-                </div>
-              </div>
-
               <div className="w-px h-5 bg-white/10 mx-1"></div>
 
               <button
