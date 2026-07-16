@@ -17,7 +17,6 @@ import {
   RefreshCw,
   Maximize2,
   Minimize2,
-  Download,
   LocateFixed,
   Navigation,
   Plus,
@@ -40,9 +39,6 @@ import {
 import { Unidade, Employee, VacationPlan } from '../types';
 import { parseDMS } from '../utils';
 import { motion } from 'motion/react';
-import * as XLSX from 'xlsx';
-import { jsPDF } from 'jspdf';
-import 'jspdf-autotable';
 
 interface LotacoesMapModalProps {
   isOpen: boolean;
