@@ -17,7 +17,6 @@ import {
   RefreshCw,
   Maximize2,
   Minimize2,
-  Download,
   LocateFixed,
   Navigation,
   Plus,
@@ -40,9 +39,6 @@ import {
 import { Unidade, Employee, VacationPlan } from '../types';
 import { parseDMS } from '../utils';
 import { motion } from 'motion/react';
-import * as XLSX from 'xlsx';
-import { jsPDF } from 'jspdf';
-import 'jspdf-autotable';
 
 interface LotacoesMapModalProps {
   isOpen: boolean;
@@ -541,84 +537,6 @@ export function LotacoesMapModal({
     }, 800);
   };
 
-  // Exporters
-  const handleExportExcel = () => {
-    const dataToExport = filteredEmployees.map(emp => ({
-      Nome: emp.nome,
-      Matrícula: emp.matricula,
-      CPF: emp.cpf,
-      Especialidade: emp.especialidade,
-      Lotação: emp.lotacao,
-      Coordenação: emp.coordenacao,
-      Empresa: emp.empresa,
-      Contrato: emp.contrato,
-      Telefone: emp.telefone,
-      Endereço: emp.endereco,
-      Dirige: emp.autorizadoDirigir ? 'Sim' : 'Não'
-    }));
-    
-    const worksheet = XLSX.utils.json_to_sheet(dataToExport);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Terceirizados Filtrados');
-    
-    // Auto-adjust column widths
-    const maxCols = Object.keys(dataToExport[0] || {}).length;
-    worksheet['!cols'] = Array(maxCols).fill({ wch: 15 });
-
-    XLSX.writeFile(workbook, `SIT_Dashboard_Geografico_${new Date().toISOString().split('T')[0]}.xlsx`);
-  };
-
-  const handleExportPDF = () => {
-    const doc = new jsPDF({ orientation: 'landscape' });
-    
-    doc.setFillColor(3, 66, 137); // #034289
-    doc.rect(0, 0, 297, 24, 'F');
-    
-    doc.setTextColor(255, 255, 255);
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(16);
-    doc.text('SIT - SISTEMA INTEGRADO DE TERCEIRIZADOS', 14, 10);
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'normal');
-    doc.text('Relatório Geográfico Nominal de Alocação de Efetivo', 14, 17);
-    
-    doc.setTextColor(80, 80, 80);
-    doc.setFontSize(8);
-    const filtersLabel = `Filtros ativos: Lotações (${selectedLotacao.length}), Coordenações (${selectedCoordenacao.length}), Empresas (${selectedEmpresa.length}), Contratos (${selectedContrato.length})`;
-    doc.text(filtersLabel, 14, 29);
-    doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')}`, 240, 29);
-    
-    const tableData = filteredEmployees.map(emp => [
-      emp.nome,
-      emp.matricula,
-      emp.especialidade,
-      emp.lotacao,
-      emp.coordenacao,
-      emp.empresa,
-      emp.contrato
-    ]);
-    
-    (doc as any).autoTable({
-      head: [['Nome', 'Matrícula', 'Especialidade', 'Lotação / Unidade', 'Coordenação', 'Empresa', 'Contrato']],
-      body: tableData,
-      startY: 33,
-      theme: 'striped',
-      headStyles: { fillColor: [22, 90, 171], fontSize: 9 },
-      styles: { fontSize: 8 },
-      columnStyles: {
-        0: { cellWidth: 50 },
-        1: { cellWidth: 20 },
-        2: { cellWidth: 35 },
-        3: { cellWidth: 45 },
-        4: { cellWidth: 45 },
-        5: { cellWidth: 45 },
-        6: { cellWidth: 25 }
-      }
-    });
-    
-    doc.save(`SIT_Relatorio_Geografico_${new Date().toISOString().split('T')[0]}.pdf`);
-  };
-
   // Synced List lazy scrolling handler
   const handleScrollList = (e: React.UIEvent<HTMLDivElement>) => {
     const target = e.currentTarget;
@@ -749,31 +667,6 @@ export function LotacoesMapModal({
               >
                 {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
               </button>
-
-              {/* Export menu Dropdown trigger */}
-              <div className="relative group/export">
-                <button
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-bold text-brand-bg bg-brand-accent hover:brightness-110 active:scale-95 transition-all cursor-pointer shadow-sm shadow-brand-accent/20"
-                  title="Exportar dados filtrados"
-                >
-                  <Download className="w-3.5 h-3.5" />
-                  <span>Exportar</span>
-                </button>
-                <div className="absolute right-0 mt-1 w-32 bg-slate-900 border border-slate-700/80 rounded-xl shadow-2xl z-[1200] hidden group-hover/export:block hover:block py-1 animate-scale-in">
-                  <button
-                    onClick={handleExportExcel}
-                    className="w-full text-left text-[11px] text-slate-300 hover:text-white hover:bg-white/[0.04] px-3.5 py-2 transition-colors cursor-pointer"
-                  >
-                    Exportar Excel (.xlsx)
-                  </button>
-                  <button
-                    onClick={handleExportPDF}
-                    className="w-full text-left text-[11px] text-slate-300 hover:text-white hover:bg-white/[0.04] px-3.5 py-2 transition-colors cursor-pointer"
-                  >
-                    Exportar PDF (.pdf)
-                  </button>
-                </div>
-              </div>
 
               <div className="w-px h-5 bg-white/10 mx-1"></div>
 
