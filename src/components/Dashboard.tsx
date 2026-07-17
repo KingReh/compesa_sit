@@ -1,4 +1,5 @@
-import { Users, FileText, Briefcase, Car, LucideIcon } from 'lucide-react';
+import { Users, FileText, Briefcase, LucideIcon } from 'lucide-react';
+import blueCarIcon from '../assets/images/blue_car_blueprint_1781386584651.jpg';
 import { Employee, Unidade, Contrato } from '../types';
 
 interface DashboardProps {
@@ -8,21 +9,50 @@ interface DashboardProps {
   onDriversClick?: () => void;
 }
 
-export function Dashboard({ employees, unidades, contratos, onDriversClick }: DashboardProps) {
+export function Dashboard({
+  employees,
+  unidades,
+  contratos,
+  onDriversClick,
+}: DashboardProps) {
   const totalEmployees = employees.length;
-
   const totalContracts = contratos.length;
 
-  const specialtiesSet = new Set(employees.map(e => e.especialidade).filter(Boolean));
+  const specialtiesSet = new Set(
+    employees.map((e) => e.especialidade).filter(Boolean)
+  );
   const totalSpecialties = specialtiesSet.size;
 
-  const totalDrivers = employees.filter(e => e.autorizadoDirigir).length;
+  const totalDrivers = employees.filter((e) => e.autorizadoDirigir).length;
 
-  const stats: { name: string; value: number; icon: LucideIcon; clickable?: boolean }[] = [
-    { name: 'TOTAL TERCEIRIZADOS', value: totalEmployees, icon: Users },
-    { name: 'CONTRATOS ATIVOS', value: totalContracts, icon: FileText },
-    { name: 'ESPECIALIDADES', value: totalSpecialties, icon: Briefcase },
-    { name: 'CONDUTORES', value: totalDrivers, icon: Car, clickable: true },
+  const stats: {
+    name: string;
+    value: number;
+    icon?: LucideIcon;
+    image?: string;
+    clickable?: boolean;
+  }[] = [
+    {
+      name: 'TOTAL TERCEIRIZADOS',
+      value: totalEmployees,
+      icon: Users,
+    },
+    {
+      name: 'CONTRATOS ATIVOS',
+      value: totalContracts,
+      icon: FileText,
+    },
+    {
+      name: 'ESPECIALIDADES',
+      value: totalSpecialties,
+      icon: Briefcase,
+    },
+    {
+      name: 'CONDUTORES',
+      value: totalDrivers,
+      image: blueCarIcon,
+      clickable: true,
+    },
   ];
 
   return (
@@ -30,6 +60,7 @@ export function Dashboard({ employees, unidades, contratos, onDriversClick }: Da
       {stats.map((item) => {
         const Icon = item.icon;
         const isClickable = item.clickable && onDriversClick;
+
         return (
           <div
             key={item.name}
@@ -46,17 +77,41 @@ export function Dashboard({ employees, unidades, contratos, onDriversClick }: Da
                   }
                 : undefined
             }
-            aria-label={isClickable ? 'Ver condutores credenciados' : undefined}
-            title={isClickable ? 'Clique para ver condutores credenciados' : undefined}
+            aria-label={
+              isClickable ? 'Ver condutores credenciados' : undefined
+            }
+            title={
+              isClickable
+                ? 'Clique para ver condutores credenciados'
+                : undefined
+            }
             className={`sit-panel p-3 sm:p-4 hover:brightness-110 transition-all flex items-center gap-2.5 sm:gap-4 group ${
-              isClickable ? 'cursor-pointer hover:border-brand-accent/40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-accent' : ''
+              isClickable
+                ? 'cursor-pointer hover:border-brand-accent/40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-accent'
+                : ''
             }`}
           >
             <div className="flex shrink-0 items-center justify-center h-10 w-10 sm:h-14 sm:w-14 rounded-full sit-panel-inner">
-              <Icon className="h-5 w-5 sm:h-6 sm:w-6 text-brand-muted group-hover:text-white transition-colors" aria-hidden="true" />
+              {item.image ? (
+                <img
+                  src={item.image}
+                  alt={item.name}
+                  className="h-6 w-6 sm:h-8 sm:w-8 object-contain transition-transform duration-300 group-hover:scale-110"
+                />
+              ) : (
+                Icon && (
+                  <Icon
+                    className="h-5 w-5 sm:h-6 sm:w-6 text-brand-muted group-hover:text-white transition-colors"
+                    aria-hidden="true"
+                  />
+                )
+              )}
             </div>
+
             <div className="flex flex-col min-w-0">
-              <span className="typ-subtitle text-brand-muted truncate">{item.name}</span>
+              <span className="typ-subtitle text-brand-muted truncate">
+                {item.name}
+              </span>
               <span className="typ-stat mt-0.5 sm:mt-1">{item.value}</span>
             </div>
           </div>
