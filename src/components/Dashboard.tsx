@@ -96,7 +96,7 @@ export function Dashboard({
                 <img
                   src={item.image}
                   alt={item.name}
-                  className="h-9 w-9 sm:h-11 sm:w-11 object-contain transition-transform duration-300 group-hover:scale-110"
+                  className="h-10 w-10 sm:h-12 sm:w-12 object-contain transition-transform duration-300 group-hover:scale-110"
                 />
               ) : (
                 Icon && (
