@@ -106,7 +106,7 @@ export function ViewModal({ isOpen, onClose, employee, onAjustarPonto }: ViewMod
     >
       {/* Toast feedback for copy actions (mobile-friendly) */}
       {copiedLabel && (
-        <div className="fixed left-1/2 -translate-x-1/2 bottom-6 sm:bottom-10 z-[60] bg-emerald-500/95 text-white text-[11px] font-black uppercase tracking-wider px-4 py-2 rounded-full shadow-2xl flex items-center gap-2 animate-fade-in pointer-events-none">
+        <div className="fixed left-1/2 -translate-x-1/2 bottom-6 sm:bottom-10 z-[310] bg-emerald-500/95 text-white text-[11px] font-black uppercase tracking-wider px-4 py-2 rounded-full shadow-2xl flex items-center gap-2 animate-fade-in pointer-events-none">
           <Check className="w-3.5 h-3.5" />
           {copiedLabel} copiado
         </div>
