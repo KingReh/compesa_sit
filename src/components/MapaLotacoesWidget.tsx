@@ -1,11 +1,12 @@
 import React, { useMemo, useState, useEffect } from 'react';
-import { MapPin, Users, Building2, ChevronDown, AlertTriangle, Map as MapIcon } from 'lucide-react';
+import { MapPin, Users, Building2, ChevronDown, AlertTriangle } from 'lucide-react';
 import { LotacoesMapModal } from './LotacoesMapModal';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Unidade, Employee, VacationPlan } from '../types';
 import { parseDMS } from '../utils';
+import blueCarIcon from '../assets/images/blue_car_blueprint_1781386584651.jpg';
 
 interface MapaLotacoesWidgetProps {
   unidades: Unidade[];
@@ -142,7 +143,11 @@ export function MapaLotacoesWidget({
             title="Abrir painel geográfico completo"
             aria-label="Exibir mapa geográfico de lotações"
           >
-            <MapIcon className="w-3.5 h-3.5 group-hover/btn:scale-110 transition-transform" />
+            <img
+              src={blueCarIcon}
+              alt="Ícone de veículo"
+              className="w-3.5 h-3.5 object-contain group-hover/btn:scale-110 transition-transform"
+            />
             <span className="text-[10px] font-bold uppercase tracking-widest">Exibir Mapa</span>
           </button>
           {/* Mobile indicator */}
