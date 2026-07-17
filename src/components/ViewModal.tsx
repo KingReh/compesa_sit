@@ -102,11 +102,11 @@ export function ViewModal({ isOpen, onClose, employee, onAjustarPonto }: ViewMod
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
-      className="fixed inset-0 z-50 flex items-center sm:items-center justify-center overflow-y-auto overflow-x-hidden bg-black/75 backdrop-blur-md p-0 sm:p-6 animate-fade-in"
+      className="fixed inset-0 z-[300] flex items-center sm:items-center justify-center overflow-y-auto overflow-x-hidden bg-black/75 backdrop-blur-md p-0 sm:p-6 animate-fade-in"
     >
       {/* Toast feedback for copy actions (mobile-friendly) */}
       {copiedLabel && (
-        <div className="fixed left-1/2 -translate-x-1/2 bottom-6 sm:bottom-10 z-[60] bg-emerald-500/95 text-white text-[11px] font-black uppercase tracking-wider px-4 py-2 rounded-full shadow-2xl flex items-center gap-2 animate-fade-in pointer-events-none">
+        <div className="fixed left-1/2 -translate-x-1/2 bottom-6 sm:bottom-10 z-[310] bg-emerald-500/95 text-white text-[11px] font-black uppercase tracking-wider px-4 py-2 rounded-full shadow-2xl flex items-center gap-2 animate-fade-in pointer-events-none">
           <Check className="w-3.5 h-3.5" />
           {copiedLabel} copiado
         </div>
