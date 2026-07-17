@@ -1153,7 +1153,6 @@ export function LotacoesMapModal({
               <span className="sm:hidden">COMPESA SIT</span>
             </div>
           </div>
-          </div>
 
           {/* Lado Direito - Painel Analítico / Lista Sincronizada (30%) */}
           <aside className="w-full lg:w-[360px] border-t lg:border-t-0 lg:border-l border-white/10 bg-black/20 flex flex-col overflow-hidden shrink-0 select-none">
