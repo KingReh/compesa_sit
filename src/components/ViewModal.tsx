@@ -102,7 +102,7 @@ export function ViewModal({ isOpen, onClose, employee, onAjustarPonto }: ViewMod
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
-      className="fixed inset-0 z-50 flex items-center sm:items-center justify-center overflow-y-auto overflow-x-hidden bg-black/75 backdrop-blur-md p-0 sm:p-6 animate-fade-in"
+      className="fixed inset-0 z-[300] flex items-center sm:items-center justify-center overflow-y-auto overflow-x-hidden bg-black/75 backdrop-blur-md p-0 sm:p-6 animate-fade-in"
     >
       {/* Toast feedback for copy actions (mobile-friendly) */}
       {copiedLabel && (
