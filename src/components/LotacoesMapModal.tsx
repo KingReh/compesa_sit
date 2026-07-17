@@ -153,11 +153,11 @@ function MultiSelectDropdown({
   };
 
   return (
-    <div className="relative shrink-0" ref={containerRef}>
+    <div className="relative shrink-0 flex-1 min-w-[calc(50%-0.3125rem)] sm:flex-none sm:min-w-0" ref={containerRef}>
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-1.5 bg-black/40 hover:bg-black/60 text-white text-[11px] rounded-lg px-2.5 py-1.5 border border-white/10 hover:border-brand-accent/50 transition duration-150 active:scale-95 cursor-pointer max-w-[160px] sm:max-w-[200px]"
+        className="w-full flex items-center gap-1.5 bg-black/40 hover:bg-black/60 text-white text-[11px] rounded-lg px-2.5 min-h-[36px] py-1.5 border border-white/10 hover:border-brand-accent/50 transition duration-150 active:scale-95 cursor-pointer sm:max-w-[200px]"
       >
         <Icon className="w-3.5 h-3.5 text-brand-muted shrink-0" />
         <span className="truncate flex-1 text-left">
@@ -167,7 +167,7 @@ function MultiSelectDropdown({
       </button>
 
       {isOpen && (
-        <div className="absolute left-0 mt-1 w-64 bg-[#0a1120] border border-brand-border/40 rounded-xl shadow-2xl z-[1100] flex flex-col max-h-72 overflow-hidden animate-scale-in">
+        <div className="absolute left-0 right-0 sm:right-auto mt-1 sm:w-64 bg-[#0a1120] border border-brand-border/40 rounded-xl shadow-2xl z-[1100] flex flex-col max-h-72 overflow-hidden animate-scale-in">
           <div className="p-2 border-b border-white/5 bg-black/20">
             <div className="relative">
               <Search className="w-3 h-3 text-white/40 absolute left-2 top-1/2 -translate-y-1/2" />
@@ -176,12 +176,12 @@ function MultiSelectDropdown({
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder={`Buscar ${label.toLowerCase()}...`}
-                className="w-full bg-black/40 border border-white/10 text-[11px] text-white rounded-md pl-7 pr-2.5 py-1 focus:outline-none focus:border-brand-accent/50 placeholder:text-white/30"
+                className="w-full bg-black/40 border border-white/10 text-[11px] text-white rounded-md pl-7 pr-2.5 py-1.5 focus:outline-none focus:border-brand-accent/50 placeholder:text-white/30"
                 autoFocus
               />
             </div>
           </div>
-          <div className="flex-1 overflow-y-auto p-1 space-y-0.5 styled-scrollbars-light">
+          <div className="flex-1 overflow-y-auto p-1 space-y-0.5 styled-scrollbars-light overscroll-contain">
             {filteredOptions.length === 0 ? (
               <p className="text-[10px] text-white/40 italic p-3 text-center">Nenhum resultado</p>
             ) : (
@@ -192,10 +192,10 @@ function MultiSelectDropdown({
                     key={opt}
                     type="button"
                     onClick={() => toggleOption(opt)}
-                    className="w-full flex items-center justify-between text-left text-[11px] text-slate-300 hover:text-white hover:bg-white/[0.04] px-2.5 py-1.5 rounded-md transition-colors cursor-pointer"
+                    className="w-full flex items-center justify-between text-left text-[11px] text-slate-300 hover:text-white hover:bg-white/[0.04] px-2.5 py-2 rounded-md transition-colors cursor-pointer"
                   >
                     <span className="truncate pr-2">{opt}</span>
-                    <div className={`w-3.5 h-3.5 rounded border border-white/20 flex items-center justify-center transition-colors ${isChecked ? 'bg-brand-accent border-brand-accent' : 'bg-black/30'}`}>
+                    <div className={`w-4 h-4 rounded border border-white/20 flex items-center justify-center transition-colors shrink-0 ${isChecked ? 'bg-brand-accent border-brand-accent' : 'bg-black/30'}`}>
                       {isChecked && <Check className="w-2.5 h-2.5 text-brand-bg stroke-[3]" />}
                     </div>
                   </button>
@@ -280,6 +280,7 @@ export function LotacoesMapModal({
   // Distance ruler tool state
   const [isRulerActive, setIsRulerActive] = useState(false);
   const [rulerPoints, setRulerPoints] = useState<[number, number][]>([]);
+  const [isStyleMenuOpen, setIsStyleMenuOpen] = useState(false);
 
   // Synced List scroll limit
   const [visibleCount, setVisibleCount] = useState(50);
@@ -1044,67 +1045,83 @@ export function LotacoesMapModal({
             {/* Custom Interactive Floating Map Controls */}
             <div className="absolute top-4 left-4 z-[999] flex flex-col gap-2 select-none">
               
-              {/* Tile Styles Card Selector */}
-              <div className="relative group/styles">
+              {/* Tile Styles Card Selector (click-toggle for touch support) */}
+              <div className="relative">
                 <button
-                  className="flex items-center justify-center w-9 h-9 rounded-xl bg-[#0c1322]/90 backdrop-blur border border-white/10 text-white hover:text-brand-accent hover:border-brand-accent/50 shadow-lg transition active:scale-95 cursor-pointer"
+                  type="button"
+                  onClick={() => setIsStyleMenuOpen(v => !v)}
+                  className={`flex items-center justify-center w-10 h-10 rounded-xl backdrop-blur border shadow-lg transition active:scale-95 cursor-pointer ${
+                    isStyleMenuOpen
+                      ? 'bg-brand-accent/20 border-brand-accent text-brand-accent'
+                      : 'bg-[#0c1322]/90 border-white/10 text-white hover:text-brand-accent hover:border-brand-accent/50'
+                  }`}
                   title="Estilos de visualização do mapa"
+                  aria-label="Escolher estilo do mapa"
+                  aria-expanded={isStyleMenuOpen}
                 >
                   <MapIcon className="w-4 h-4" />
                 </button>
-                <div className="absolute left-0 mt-1.5 w-44 bg-[#0a1120] border border-brand-border/40 rounded-xl shadow-2xl z-[1200] hidden group-hover/styles:block py-1.5 animate-scale-in">
-                  <p className="px-3 py-1 text-[8px] font-bold text-white/40 uppercase tracking-wider border-b border-white/5 mb-1 select-none">Selecione o Estilo</p>
-                  {MAP_STYLES.map(style => (
-                    <button
-                      key={style.id}
-                      onClick={() => setMapStyle(style.id)}
-                      className={`w-full text-left text-[11px] px-3.5 py-1.5 transition-colors cursor-pointer flex items-center justify-between ${
-                        mapStyle === style.id ? 'text-brand-accent font-bold bg-white/[0.04]' : 'text-slate-300 hover:text-white hover:bg-white/[0.02]'
-                      }`}
-                    >
-                      <span>{style.name}</span>
-                      {mapStyle === style.id && <Check className="w-3 h-3 text-brand-accent" />}
-                    </button>
-                  ))}
-                </div>
+                {isStyleMenuOpen && (
+                  <>
+                    <div className="fixed inset-0 z-[1150]" onClick={() => setIsStyleMenuOpen(false)} />
+                    <div className="absolute left-0 mt-1.5 w-48 bg-[#0a1120] border border-brand-border/40 rounded-xl shadow-2xl z-[1200] py-1.5 animate-scale-in">
+                      <p className="px-3 py-1 text-[8px] font-bold text-white/40 uppercase tracking-wider border-b border-white/5 mb-1 select-none">Selecione o Estilo</p>
+                      {MAP_STYLES.map(style => (
+                        <button
+                          key={style.id}
+                          type="button"
+                          onClick={() => { setMapStyle(style.id); setIsStyleMenuOpen(false); }}
+                          className={`w-full text-left text-[11px] px-3.5 py-2 transition-colors cursor-pointer flex items-center justify-between ${
+                            mapStyle === style.id ? 'text-brand-accent font-bold bg-white/[0.04]' : 'text-slate-300 hover:text-white hover:bg-white/[0.02]'
+                          }`}
+                        >
+                          <span>{style.name}</span>
+                          {mapStyle === style.id && <Check className="w-3 h-3 text-brand-accent" />}
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                )}
               </div>
 
               {/* Locate Controls */}
               <button
                 onClick={handleLocateUser}
-                className={`flex items-center justify-center w-9 h-9 rounded-xl border backdrop-blur shadow-lg transition active:scale-95 cursor-pointer ${
+                className={`flex items-center justify-center w-10 h-10 rounded-xl border backdrop-blur shadow-lg transition active:scale-95 cursor-pointer ${
                   userLocation 
                     ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-400' 
                     : 'bg-[#0c1322]/90 border-white/10 text-white hover:text-brand-accent hover:border-brand-accent/50'
                 }`}
                 title="Mostrar minha localização atual"
+                aria-label="Mostrar minha localização"
               >
                 <Navigation className="w-4 h-4" />
               </button>
 
               <button
                 onClick={handleFitAll}
-                className="flex items-center justify-center w-9 h-9 rounded-xl bg-[#0c1322]/90 backdrop-blur border border-white/10 text-white hover:text-brand-accent hover:border-brand-accent/50 shadow-lg transition active:scale-95 cursor-pointer"
+                className="flex items-center justify-center w-10 h-10 rounded-xl bg-[#0c1322]/90 backdrop-blur border border-white/10 text-white hover:text-brand-accent hover:border-brand-accent/50 shadow-lg transition active:scale-95 cursor-pointer"
                 title="Centralizar e focar todos os marcadores"
+                aria-label="Centralizar todos os marcadores"
               >
                 <LocateFixed className="w-4 h-4" />
               </button>
             </div>
 
             {/* Top-Right Ruler Measure Toolbar */}
-            <div className="absolute top-4 right-4 z-[999] flex items-center gap-1.5 select-none">
+            <div className="absolute top-4 right-4 z-[999] flex flex-col-reverse sm:flex-row items-end sm:items-center gap-1.5 select-none max-w-[calc(100%-1rem)]">
               {isRulerActive && (
-                <div className="flex items-center gap-2 bg-[#0c1322]/95 backdrop-blur px-3 py-1.5 rounded-xl border border-brand-accent/30 text-white text-[10px] shadow-lg animate-scale-in">
-                  <span className="w-1.5 h-1.5 rounded-full bg-brand-accent animate-ping" />
-                  <span>
-                    {rulerPoints.length === 0 && 'Clique no mapa para marcar o ponto inicial'}
-                    {rulerPoints.length === 1 && 'Clique em outro ponto para medir'}
+                <div className="flex items-center gap-2 bg-[#0c1322]/95 backdrop-blur px-3 py-1.5 rounded-xl border border-brand-accent/30 text-white text-[10px] shadow-lg animate-scale-in max-w-[80vw] sm:max-w-none">
+                  <span className="w-1.5 h-1.5 rounded-full bg-brand-accent animate-ping shrink-0" />
+                  <span className="truncate">
+                    {rulerPoints.length === 0 && 'Toque no mapa para marcar o ponto inicial'}
+                    {rulerPoints.length === 1 && 'Toque em outro ponto para medir'}
                     {rulerPoints.length === 2 && `Distância: ${measuredDistance}`}
                   </span>
                   {rulerPoints.length > 0 && (
                     <button
                       onClick={() => setRulerPoints([])}
-                      className="ml-2 text-rose-400 hover:text-rose-300 font-bold uppercase text-[8px] cursor-pointer"
+                      className="ml-2 text-rose-400 hover:text-rose-300 font-bold uppercase text-[8px] cursor-pointer shrink-0"
                     >
                       Reiniciar
                     </button>
@@ -1117,22 +1134,25 @@ export function LotacoesMapModal({
                   setIsRulerActive(!isRulerActive);
                   setRulerPoints([]);
                 }}
-                className={`flex items-center justify-center w-9 h-9 rounded-xl border backdrop-blur shadow-lg transition active:scale-95 cursor-pointer ${
+                className={`flex items-center justify-center w-10 h-10 rounded-xl border backdrop-blur shadow-lg transition active:scale-95 cursor-pointer ${
                   isRulerActive 
                     ? 'bg-brand-accent/20 border-brand-accent text-brand-accent' 
                     : 'bg-[#0c1322]/90 border-white/10 text-white hover:text-brand-accent hover:border-brand-accent/50'
                 }`}
                 title="Medição de distância (Régua)"
+                aria-label="Alternar régua de medição"
               >
                 <Ruler className="w-4 h-4" />
               </button>
             </div>
 
             {/* Bottom Inset Compass Coordinates overlay */}
-            <div className="absolute bottom-4 right-4 z-[999] bg-[#0c1322]/80 backdrop-blur px-3 py-1.5 rounded-xl border border-white/5 text-[9px] text-white/50 font-mono shadow-md pointer-events-none select-none flex items-center gap-1.5">
+            <div className="absolute bottom-3 right-3 sm:bottom-4 sm:right-4 z-[999] bg-[#0c1322]/80 backdrop-blur px-2 sm:px-3 py-1 sm:py-1.5 rounded-xl border border-white/5 text-[9px] text-white/50 font-mono shadow-md pointer-events-none select-none flex items-center gap-1.5">
               <Compass className="w-3.5 h-3.5 text-brand-accent animate-spin" style={{ animationDuration: '8s' }} />
-              <span>COMPESA SIT REGION | Lat: Recife Default</span>
+              <span className="hidden sm:inline">COMPESA SIT REGION | Lat: Recife Default</span>
+              <span className="sm:hidden">COMPESA SIT</span>
             </div>
+          </div>
           </div>
 
           {/* Lado Direito - Painel Analítico / Lista Sincronizada (30%) */}
