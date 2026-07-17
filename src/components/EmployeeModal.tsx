@@ -195,7 +195,7 @@ export function EmployeeModal({ isOpen, onClose, onSave, employeeToEdit, coorden
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-3 sm:p-4 md:p-6 animate-fade-in overflow-hidden"
+      className="fixed inset-0 z-[300] flex items-center justify-center bg-black/70 backdrop-blur-sm p-3 sm:p-4 md:p-6 animate-fade-in overflow-hidden"
     >
       <div className="sit-panel relative w-full max-w-4xl max-h-[92vh] md:max-h-[85vh] flex flex-col overflow-hidden shadow-2xl">
         <form onSubmit={handleSubmit} className="flex flex-col h-full overflow-hidden">
