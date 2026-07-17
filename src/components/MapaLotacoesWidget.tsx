@@ -1,11 +1,12 @@
 import React, { useMemo, useState, useEffect } from 'react';
-import { MapPin, Users, Building2, ChevronDown, AlertTriangle, Map as MapIcon } from 'lucide-react';
+import { MapPin, Users, Building2, ChevronDown, AlertTriangle } from 'lucide-react';
 import { LotacoesMapModal } from './LotacoesMapModal';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Unidade, Employee, VacationPlan } from '../types';
 import { parseDMS } from '../utils';
+import blueCarIcon from '../assets/images/blue_car_blueprint_1781386584651.jpg';
 
 interface MapaLotacoesWidgetProps {
   unidades: Unidade[];
