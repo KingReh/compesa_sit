@@ -143,7 +143,11 @@ export function MapaLotacoesWidget({
             title="Abrir painel geográfico completo"
             aria-label="Exibir mapa geográfico de lotações"
           >
-            <MapIcon className="w-3.5 h-3.5 group-hover/btn:scale-110 transition-transform" />
+            <img
+              src={blueCarIcon}
+              alt="Ícone de veículo"
+              className="w-3.5 h-3.5 object-contain group-hover/btn:scale-110 transition-transform"
+            />
             <span className="text-[10px] font-bold uppercase tracking-widest">Exibir Mapa</span>
           </button>
           {/* Mobile indicator */}
