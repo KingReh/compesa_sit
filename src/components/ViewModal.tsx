@@ -52,7 +52,7 @@ export function ViewModal({ isOpen, onClose, employee, onAjustarPonto }: ViewMod
       `*Contrato:* ${employee.contrato || 'Não informado'}`,
       '_______________________________'
     ];
-    const text = lines.join('\n\n');
+    const text = lines.join('\n');
     navigator.clipboard.writeText(text);
     setCopiedLabel('Ficha completa');
     setTimeout(() => {
