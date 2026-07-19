@@ -42,6 +42,24 @@ export function ViewModal({ isOpen, onClose, employee, onAjustarPonto }: ViewMod
     }
   }, [isOpen, employee]);
 
+  const handleCopyAll = () => {
+    if (!employee) return;
+    const lines = [
+      `*Funcionário:* ${employee.nome || 'Não informado'}`,
+      `*Matrícula:* ${employee.matricula || 'Não informada'}`,
+      `*Especialidade:* ${employee.especialidade || 'Não informada'}`,
+      `*CPF:* ${employee.cpf || 'Não informado'}`,
+      `*Contrato:* ${employee.contrato || 'Não informado'}`,
+      '_______________________________'
+    ];
+    const text = lines.join('\n\n');
+    navigator.clipboard.writeText(text);
+    setCopiedLabel('Ficha completa');
+    setTimeout(() => {
+      setCopiedLabel(null);
+    }, 1800);
+  };
+
   if (!isOpen || !employee) return null;
 
   // Calculadora de idade em tempo real
