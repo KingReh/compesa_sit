@@ -50,7 +50,7 @@ export function ViewModal({ isOpen, onClose, employee, onAjustarPonto }: ViewMod
       `*Especialidade:* ${employee.especialidade || 'Não informada'}`,
       `*CPF:* ${employee.cpf || 'Não informado'}`,
       `*Contrato:* ${employee.contrato || 'Não informado'}`,
-      '_______________________________'
+      '━━━━━━━━━━━━━━━'
     ];
     const text = lines.join('\n');
     navigator.clipboard.writeText(text);
