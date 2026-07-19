@@ -482,6 +482,18 @@ export function ViewModal({ isOpen, onClose, employee, onAjustarPonto }: ViewMod
             SIT - SISTEMA INTEGRADO DE TERCEIRIZADOS • GPM
           </p>
           <div className="flex items-stretch sm:items-center justify-end w-full sm:w-auto gap-2 sm:gap-3">
+            <button
+              onClick={handleCopyAll}
+              className="flex-1 sm:flex-none inline-flex justify-center items-center gap-x-1.5 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 text-white hover:text-white transition-all active:scale-95 cursor-pointer shadow-sm px-4 py-2.5 sm:py-2 font-bold text-xs"
+              title="Copiar dados do colaborador para o WhatsApp"
+            >
+              {copiedLabel === 'Ficha completa' ? (
+                <Check className="w-4 h-4 text-emerald-400" />
+              ) : (
+                <Copy className="w-4 h-4 text-brand-accent" />
+              )}
+              <span>{copiedLabel === 'Ficha completa' ? 'Copiado' : 'Copiar Ficha'}</span>
+            </button>
             {onAjustarPonto && (
               <button
                 onClick={() => onAjustarPonto(employee)}
