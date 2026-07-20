@@ -268,7 +268,17 @@ export function LotacoesMapModal({
   const [selectedUnidade, setSelectedUnidade] = useState<string[]>([]);
   
   // Map and sidebar interactive states
-  const [mapStyle, setMapStyle] = useState('dark');
+  const MAP_STYLE_STORAGE_KEY = '@sit:lotacoesMap:style';
+  const [mapStyle, setMapStyle] = useState<string>(() => {
+    try {
+      const saved = localStorage.getItem(MAP_STYLE_STORAGE_KEY);
+      if (saved && MAP_STYLES.some(s => s.id === saved)) return saved;
+    } catch { /* noop */ }
+    return 'dark';
+  });
+  useEffect(() => {
+    try { localStorage.setItem(MAP_STYLE_STORAGE_KEY, mapStyle); } catch { /* noop */ }
+  }, [mapStyle]);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [activeTab, setActiveTab] = useState<'metrics' | 'list'>('metrics');
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<string | null>(null);
