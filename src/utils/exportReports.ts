@@ -39,6 +39,14 @@ function formatDate(d?: string) {
   return formatLocalDateBR(d);
 }
 
+function normalizeSexo(s?: string): string {
+  const v = (s || '').trim().toUpperCase();
+  if (!v) return '';
+  if (v === 'M' || v.startsWith('MASC')) return 'Masculino';
+  if (v === 'F' || v.startsWith('FEM')) return 'Feminino';
+  return s || '';
+}
+
 function getTimestamp(): string {
   const now = new Date();
   const pad = (n: number) => String(n).padStart(2, '0');
