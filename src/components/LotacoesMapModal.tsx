@@ -59,7 +59,7 @@ const MAP_STYLES = [
   { id: 'terrain', name: 'Terreno (Google)', url: 'https://mt1.google.com/vt/lyrs=p&x={x}&y={y}&z={z}' },
 ];
 
-// Helper to calculate distance in km
+// Helper to calculate distance in km (Haversine)
 function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
   const R = 6371; // Earth's radius in km
   const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -70,6 +70,30 @@ function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: numbe
     Math.sin(dLon / 2) * Math.sin(dLon / 2);
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return R * c;
+}
+
+// Format distance: metros abaixo de 1 km, senão km com 2 casas
+function formatDistance(km: number): string {
+  if (!isFinite(km) || km <= 0) return '0 m';
+  if (km < 1) return `${(km * 1000).toFixed(0)} m`;
+  if (km < 10) return `${km.toFixed(2)} km`;
+  return `${km.toFixed(1)} km`;
+}
+
+// Bearing initial (azimute) em graus 0-360
+function calculateBearing(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const φ1 = lat1 * Math.PI / 180;
+  const φ2 = lat2 * Math.PI / 180;
+  const Δλ = (lon2 - lon1) * Math.PI / 180;
+  const y = Math.sin(Δλ) * Math.cos(φ2);
+  const x = Math.cos(φ1) * Math.sin(φ2) - Math.sin(φ1) * Math.cos(φ2) * Math.cos(Δλ);
+  const θ = Math.atan2(y, x);
+  return (θ * 180 / Math.PI + 360) % 360;
+}
+
+function compassDirection(deg: number): string {
+  const dirs = ['N', 'NE', 'L', 'SE', 'S', 'SO', 'O', 'NO'];
+  return dirs[Math.round(deg / 45) % 8];
 }
 
 // Controller component to center & handle map actions programmatically
@@ -287,10 +311,13 @@ export function LotacoesMapModal({
   const [shouldFitBounds, setShouldFitBounds] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  // Distance ruler tool state
+  // Distance ruler tool state (multi-point)
   const [isRulerActive, setIsRulerActive] = useState(false);
   const [rulerPoints, setRulerPoints] = useState<[number, number][]>([]);
+  const [rulerCursor, setRulerCursor] = useState<[number, number] | null>(null);
+  const [isRulerFinished, setIsRulerFinished] = useState(false);
   const [isStyleMenuOpen, setIsStyleMenuOpen] = useState(false);
+  const [rulerCopied, setRulerCopied] = useState(false);
 
   // Synced List scroll limit
   const [visibleCount, setVisibleCount] = useState(50);
@@ -304,17 +331,43 @@ export function LotacoesMapModal({
     return () => clearTimeout(handler);
   }, [search]);
 
-  // Handle ESC key to close
+  // Ruler helpers
+  const resetRuler = () => { setRulerPoints([]); setRulerCursor(null); setIsRulerFinished(false); setRulerCopied(false); };
+  const toggleRuler = () => {
+    setIsRulerActive(prev => { if (prev) resetRuler(); return !prev; });
+  };
+  const undoRulerPoint = () => {
+    setRulerPoints(prev => prev.slice(0, -1));
+    setIsRulerFinished(false);
+    setRulerCopied(false);
+  };
+  const finishRuler = () => {
+    setIsRulerFinished(true);
+    setRulerCursor(null);
+  };
+
+  // Handle keyboard shortcuts (ESC / Backspace / Enter)
   useEffect(() => {
     if (!isOpen) return;
     const handleKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      const isTyping = target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable);
       if (e.key === 'Escape') {
         if (isRulerActive) {
           setIsRulerActive(false);
-          setRulerPoints([]);
+          resetRuler();
         } else {
           onClose();
         }
+        return;
+      }
+      if (!isRulerActive || isTyping) return;
+      if (e.key === 'Backspace' && rulerPoints.length > 0) {
+        e.preventDefault();
+        undoRulerPoint();
+      } else if (e.key === 'Enter' && rulerPoints.length >= 2 && !isRulerFinished) {
+        e.preventDefault();
+        finishRuler();
       }
     };
     document.body.style.overflow = 'hidden';
@@ -323,7 +376,7 @@ export function LotacoesMapModal({
       document.body.style.overflow = 'unset';
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [isOpen, onClose, isRulerActive]);
+  }, [isOpen, onClose, isRulerActive, rulerPoints.length, isRulerFinished]);
 
   // Unique filter option helpers
   const uniq = (arr: (string | undefined)[]) =>
@@ -569,43 +622,103 @@ export function LotacoesMapModal({
     }
   };
 
-  // Handle map click for ruler measurement
+  // Handle map events for ruler measurement (click, dblclick, mousemove)
   const MapEventsHandler = () => {
     const map = useMap();
     useEffect(() => {
       if (!isRulerActive) return;
+
+      // Disable double-click zoom while ruler is active so dblclick can finish measurement
+      map.doubleClickZoom.disable();
+
+      const container = map.getContainer();
+      container.classList.add('ruler-active');
+
       const onMapClick = (e: L.LeafletMouseEvent) => {
-        const newPoint: [number, number] = [e.latlng.lat, e.latlng.lng];
-        setRulerPoints(prev => {
-          if (prev.length >= 2) {
-            return [newPoint]; // Reset to point 1 on third click
-          }
-          return [...prev, newPoint];
-        });
+        if (isRulerFinished) {
+          // Start a new measurement
+          setIsRulerFinished(false);
+          setRulerCopied(false);
+          setRulerPoints([[e.latlng.lat, e.latlng.lng]]);
+          return;
+        }
+        setRulerPoints(prev => [...prev, [e.latlng.lat, e.latlng.lng]]);
+        setRulerCopied(false);
       };
+
+      const onMapDblClick = (e: L.LeafletMouseEvent) => {
+        e.originalEvent?.preventDefault?.();
+        // Finalize: current click already added the point, so just finish
+        setIsRulerFinished(true);
+        setRulerCursor(null);
+      };
+
+      const onMouseMove = (e: L.LeafletMouseEvent) => {
+        if (isRulerFinished) return;
+        setRulerCursor([e.latlng.lat, e.latlng.lng]);
+      };
+
+      const onMouseOut = () => setRulerCursor(null);
+
       map.on('click', onMapClick);
+      map.on('dblclick', onMapDblClick);
+      map.on('mousemove', onMouseMove);
+      map.on('mouseout', onMouseOut);
       return () => {
         map.off('click', onMapClick);
+        map.off('dblclick', onMapDblClick);
+        map.off('mousemove', onMouseMove);
+        map.off('mouseout', onMouseOut);
+        map.doubleClickZoom.enable();
+        container.classList.remove('ruler-active');
       };
-    }, [isRulerActive, map]);
+    }, [isRulerActive, isRulerFinished, map]);
 
     return null;
   };
 
-  // Measured distance text helper
-  const measuredDistance = useMemo(() => {
-    if (rulerPoints.length === 2) {
-      const km = calculateDistance(
-        rulerPoints[0][0], rulerPoints[0][1],
-        rulerPoints[1][0], rulerPoints[1][1]
-      );
-      if (km < 1) {
-        return `${(km * 1000).toFixed(0)} metros`;
-      }
-      return `${km.toFixed(2)} km`;
+  // Segment distances (km) and total
+  const rulerStats = useMemo(() => {
+    const segments: { from: [number, number]; to: [number, number]; km: number; mid: [number, number] }[] = [];
+    for (let i = 1; i < rulerPoints.length; i++) {
+      const a = rulerPoints[i - 1];
+      const b = rulerPoints[i];
+      const km = calculateDistance(a[0], a[1], b[0], b[1]);
+      const mid: [number, number] = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
+      segments.push({ from: a, to: b, km, mid });
     }
-    return null;
-  }, [rulerPoints]);
+    const totalKm = segments.reduce((s, x) => s + x.km, 0);
+    let previewKm = 0;
+    let bearingDeg: number | null = null;
+    if (!isRulerFinished && rulerCursor && rulerPoints.length > 0) {
+      const last = rulerPoints[rulerPoints.length - 1];
+      previewKm = calculateDistance(last[0], last[1], rulerCursor[0], rulerCursor[1]);
+      bearingDeg = calculateBearing(last[0], last[1], rulerCursor[0], rulerCursor[1]);
+    } else if (rulerPoints.length >= 2) {
+      const p1 = rulerPoints[rulerPoints.length - 2];
+      const p2 = rulerPoints[rulerPoints.length - 1];
+      bearingDeg = calculateBearing(p1[0], p1[1], p2[0], p2[1]);
+    }
+    return { segments, totalKm, previewKm, bearingDeg };
+  }, [rulerPoints, rulerCursor, isRulerFinished]);
+
+  const copyRulerResult = async () => {
+    if (rulerPoints.length < 2) return;
+    const lines: string[] = [];
+    lines.push(`Medição no mapa — ${rulerPoints.length} pontos, ${rulerStats.segments.length} segmento(s)`);
+    rulerStats.segments.forEach((s, i) => {
+      lines.push(`  Segmento ${i + 1}: ${formatDistance(s.km)}`);
+    });
+    lines.push(`Distância total: ${formatDistance(rulerStats.totalKm)}`);
+    lines.push('');
+    lines.push('Pontos (lat, lng):');
+    rulerPoints.forEach((p, i) => lines.push(`  ${i + 1}. ${p[0].toFixed(6)}, ${p[1].toFixed(6)}`));
+    try {
+      await navigator.clipboard.writeText(lines.join('\n'));
+      setRulerCopied(true);
+      setTimeout(() => setRulerCopied(false), 1800);
+    } catch { /* noop */ }
+  };
 
   if (!isOpen) return null;
 
@@ -1032,22 +1145,55 @@ export function LotacoesMapModal({
                 </Marker>
               )}
 
-              {/* Ruler line rendering */}
+              {/* Ruler line rendering (multi-point + live preview + segment labels) */}
               {isRulerActive && rulerPoints.length > 0 && (
                 <>
-                  <Polyline positions={rulerPoints} color="#38bdf8" dashArray="6, 6" weight={3} />
-                  {rulerPoints.map((pt, i) => (
+                  {/* Committed polyline (solid) */}
+                  {rulerPoints.length >= 2 && (
+                    <Polyline positions={rulerPoints} color="#38bdf8" weight={3} opacity={0.95} />
+                  )}
+                  {/* Live preview from last point to cursor (dashed) */}
+                  {!isRulerFinished && rulerCursor && (
+                    <Polyline
+                      positions={[rulerPoints[rulerPoints.length - 1], rulerCursor]}
+                      color="#38bdf8"
+                      dashArray="6, 8"
+                      weight={2}
+                      opacity={0.7}
+                    />
+                  )}
+                  {/* Segment midpoint labels */}
+                  {rulerStats.segments.map((s, i) => (
                     <Marker
-                      key={i}
-                      position={pt}
+                      key={`seg-${i}`}
+                      position={s.mid}
+                      interactive={false}
                       icon={L.divIcon({
-                        html: `<div class="w-3.5 h-3.5 rounded-full bg-brand-accent border border-white shadow"></div>`,
-                        className: 'ruler-marker bg-transparent border-0',
-                        iconSize: [14, 14],
-                        iconAnchor: [7, 7]
+                        html: `<div style="transform:translate(-50%,-50%);background:rgba(12,19,34,0.92);border:1px solid rgba(56,189,248,0.5);color:#e0f2fe;font:600 10px system-ui,sans-serif;padding:2px 6px;border-radius:6px;white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,0.4);">${formatDistance(s.km)}</div>`,
+                        className: 'ruler-seg-label bg-transparent border-0',
+                        iconSize: [0, 0],
+                        iconAnchor: [0, 0],
                       })}
                     />
                   ))}
+                  {/* Numbered vertex markers */}
+                  {rulerPoints.map((pt, i) => {
+                    const isFirst = i === 0;
+                    const isLast = i === rulerPoints.length - 1;
+                    const color = isFirst ? '#22c55e' : isLast ? '#38bdf8' : '#0ea5e9';
+                    return (
+                      <Marker
+                        key={`pt-${i}`}
+                        position={pt}
+                        icon={L.divIcon({
+                          html: `<div style="width:18px;height:18px;border-radius:9999px;background:${color};border:2px solid #fff;box-shadow:0 2px 4px rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;font:800 9px system-ui,sans-serif;color:#0c1322;">${i + 1}</div>`,
+                          className: 'ruler-marker bg-transparent border-0',
+                          iconSize: [18, 18],
+                          iconAnchor: [9, 9],
+                        })}
+                      />
+                    );
+                  })}
                 </>
               )}
             </MapContainer>
@@ -1119,38 +1265,107 @@ export function LotacoesMapModal({
             </div>
 
             {/* Top-Right Ruler Measure Toolbar */}
-            <div className="absolute top-4 right-4 z-[999] flex flex-col-reverse sm:flex-row items-end sm:items-center gap-1.5 select-none max-w-[calc(100%-1rem)]">
+            <div className="absolute top-4 right-4 z-[999] flex flex-col items-end gap-1.5 select-none max-w-[calc(100%-1rem)]">
               {isRulerActive && (
-                <div className="flex items-center gap-2 bg-[#0c1322]/95 backdrop-blur px-3 py-1.5 rounded-xl border border-brand-accent/30 text-white text-[10px] shadow-lg animate-scale-in max-w-[80vw] sm:max-w-none">
-                  <span className="w-1.5 h-1.5 rounded-full bg-brand-accent animate-ping shrink-0" />
-                  <span className="truncate">
-                    {rulerPoints.length === 0 && 'Toque no mapa para marcar o ponto inicial'}
-                    {rulerPoints.length === 1 && 'Toque em outro ponto para medir'}
-                    {rulerPoints.length === 2 && `Distância: ${measuredDistance}`}
-                  </span>
-                  {rulerPoints.length > 0 && (
-                    <button
-                      onClick={() => setRulerPoints([])}
-                      className="ml-2 text-rose-400 hover:text-rose-300 font-bold uppercase text-[8px] cursor-pointer shrink-0"
-                    >
-                      Reiniciar
-                    </button>
+                <div className="flex flex-col gap-1.5 bg-[#0c1322]/95 backdrop-blur px-3 py-2 rounded-xl border border-brand-accent/30 text-white text-[10px] shadow-lg animate-scale-in w-[min(320px,85vw)]">
+                  {/* Status / hint */}
+                  <div className="flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-brand-accent animate-ping shrink-0" />
+                    <span className="truncate text-white/80">
+                      {isRulerFinished && 'Medição concluída — clique para iniciar uma nova'}
+                      {!isRulerFinished && rulerPoints.length === 0 && 'Clique no mapa para o ponto inicial'}
+                      {!isRulerFinished && rulerPoints.length === 1 && 'Clique para adicionar pontos • duplo-clique para finalizar'}
+                      {!isRulerFinished && rulerPoints.length >= 2 && `${rulerPoints.length} pontos • duplo-clique para finalizar`}
+                    </span>
+                  </div>
+
+                  {/* Distance readout */}
+                  {(rulerPoints.length >= 1 || rulerStats.totalKm > 0) && (
+                    <div className="flex items-center justify-between gap-2 bg-white/[0.04] rounded-md px-2 py-1.5 border border-white/5">
+                      <div className="flex flex-col leading-tight min-w-0">
+                        <span className="text-[8px] font-bold uppercase tracking-wider text-brand-accent/80">Distância total</span>
+                        <span className="text-sm font-black text-white truncate">
+                          {formatDistance(rulerStats.totalKm + (isRulerFinished ? 0 : rulerStats.previewKm))}
+                        </span>
+                      </div>
+                      {rulerStats.bearingDeg !== null && (
+                        <div className="flex flex-col leading-tight items-end shrink-0">
+                          <span className="text-[8px] font-bold uppercase tracking-wider text-white/40">Rumo</span>
+                          <span className="text-[10px] font-mono text-white/80">
+                            {Math.round(rulerStats.bearingDeg)}° {compassDirection(rulerStats.bearingDeg)}
+                          </span>
+                        </div>
+                      )}
+                    </div>
                   )}
+
+                  {/* Actions */}
+                  <div className="flex items-center gap-1 flex-wrap">
+                    <button
+                      type="button"
+                      onClick={undoRulerPoint}
+                      disabled={rulerPoints.length === 0}
+                      className="flex items-center gap-1 px-2 py-1 rounded-md bg-white/5 hover:bg-white/10 border border-white/10 text-white/80 text-[9px] font-bold uppercase tracking-wider disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition"
+                      title="Desfazer último ponto (Backspace)"
+                    >
+                      <ChevronUp className="w-2.5 h-2.5 rotate-180" /> Desfazer
+                    </button>
+                    {!isRulerFinished && rulerPoints.length >= 2 && (
+                      <button
+                        type="button"
+                        onClick={finishRuler}
+                        className="flex items-center gap-1 px-2 py-1 rounded-md bg-brand-accent/15 hover:bg-brand-accent/25 border border-brand-accent/40 text-brand-accent text-[9px] font-bold uppercase tracking-wider cursor-pointer transition"
+                        title="Finalizar medição (Enter ou duplo-clique)"
+                      >
+                        <Check className="w-2.5 h-2.5" /> Finalizar
+                      </button>
+                    )}
+                    {rulerPoints.length >= 2 && (
+                      <button
+                        type="button"
+                        onClick={copyRulerResult}
+                        className={`flex items-center gap-1 px-2 py-1 rounded-md border text-[9px] font-bold uppercase tracking-wider cursor-pointer transition ${
+                          rulerCopied
+                            ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-300'
+                            : 'bg-white/5 hover:bg-white/10 border-white/10 text-white/80'
+                        }`}
+                        title="Copiar resumo da medição"
+                      >
+                        {rulerCopied ? <Check className="w-2.5 h-2.5" /> : <Copy className="w-2.5 h-2.5" />}
+                        {rulerCopied ? 'Copiado' : 'Copiar'}
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={resetRuler}
+                      disabled={rulerPoints.length === 0}
+                      className="flex items-center gap-1 px-2 py-1 rounded-md bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 text-rose-300 text-[9px] font-bold uppercase tracking-wider disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition ml-auto"
+                      title="Limpar medição"
+                    >
+                      <Trash2 className="w-2.5 h-2.5" /> Limpar
+                    </button>
+                  </div>
+
+                  {/* Keyboard hints (desktop only) */}
+                  <div className="hidden sm:flex items-center gap-2 text-[8px] text-white/40 border-t border-white/5 pt-1">
+                    <span><kbd className="px-1 py-0.5 bg-white/5 rounded font-mono">Esc</kbd> sair</span>
+                    <span><kbd className="px-1 py-0.5 bg-white/5 rounded font-mono">⌫</kbd> desfazer</span>
+                    <span><kbd className="px-1 py-0.5 bg-white/5 rounded font-mono">↵</kbd> finalizar</span>
+                  </div>
                 </div>
               )}
 
               <button
-                onClick={() => {
-                  setIsRulerActive(!isRulerActive);
-                  setRulerPoints([]);
-                }}
+                type="button"
+                onClick={toggleRuler}
                 className={`flex items-center justify-center w-10 h-10 rounded-xl border backdrop-blur shadow-lg transition active:scale-95 cursor-pointer ${
-                  isRulerActive 
-                    ? 'bg-brand-accent/20 border-brand-accent text-brand-accent' 
+                  isRulerActive
+                    ? 'bg-brand-accent/20 border-brand-accent text-brand-accent'
                     : 'bg-[#0c1322]/90 border-white/10 text-white hover:text-brand-accent hover:border-brand-accent/50'
                 }`}
                 title="Medição de distância (Régua)"
                 aria-label="Alternar régua de medição"
+                aria-pressed={isRulerActive}
               >
                 <Ruler className="w-4 h-4" />
               </button>
