@@ -380,3 +380,9 @@ html, body, #root {
 }
 
 
+
+/* Ruler tool: crosshair cursor while active on Leaflet map */
+.leaflet-container.ruler-active,
+.leaflet-container.ruler-active .leaflet-interactive {
+  cursor: crosshair !important;
+}
