@@ -39,6 +39,14 @@ function formatDate(d?: string) {
   return formatLocalDateBR(d);
 }
 
+function normalizeSexo(s?: string): string {
+  const v = (s || '').trim().toUpperCase();
+  if (!v) return '';
+  if (v === 'M' || v.startsWith('MASC')) return 'Masculino';
+  if (v === 'F' || v.startsWith('FEM')) return 'Feminino';
+  return s || '';
+}
+
 function getTimestamp(): string {
   const now = new Date();
   const pad = (n: number) => String(n).padStart(2, '0');
@@ -110,7 +118,7 @@ function buildSheets(data: ReportExportData) {
     'Data Nascimento', 'Data Admissão', 'Camisa', 'Calça', 'SPT', 'Autorizado a Dirigir'
   ];
   const employeesRows = filteredEmployees.map(e => [
-    e.matricula, formatEmployeeName(e.nome || ''), e.cpf, e.sexo, e.empresa, e.coordenacao, e.lotacao,
+    e.matricula, formatEmployeeName(e.nome || ''), e.cpf, normalizeSexo(e.sexo), e.empresa, e.coordenacao, e.lotacao,
     e.especialidade, e.contrato, e.escalaTrabalho, e.telefone, e.endereco,
     formatDate(e.dataNascimento), formatDate(e.dataAdmissao),
     e.camisa || '', e.calca || '', e.spt ?? '', e.autorizadoDirigir ? 'Sim' : 'Não'
