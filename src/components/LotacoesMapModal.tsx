@@ -101,24 +101,26 @@ function MapController({
   coords,
   focusCoords,
   userLocation,
-  shouldFitBounds
+  shouldFitBounds,
+  onFitDone
 }: {
   coords: [number, number][];
   focusCoords: [number, number] | null;
   userLocation: [number, number] | null;
   shouldFitBounds: boolean;
+  onFitDone: () => void;
 }) {
   const map = useMap();
 
   useEffect(() => {
     if (focusCoords) {
-      map.setView(focusCoords, 14, { animate: true, duration: 1 });
+      map.setView(focusCoords, Math.max(map.getZoom(), 14), { animate: true, duration: 1 });
     }
   }, [focusCoords, map]);
 
   useEffect(() => {
     if (userLocation) {
-      map.setView(userLocation, 13, { animate: true });
+      map.setView(userLocation, Math.max(map.getZoom(), 13), { animate: true });
     }
   }, [userLocation, map]);
 
@@ -126,8 +128,11 @@ function MapController({
     if (shouldFitBounds && coords.length > 0) {
       const bounds = L.latLngBounds(coords);
       map.fitBounds(bounds, { padding: [50, 50], maxZoom: 12 });
+      onFitDone();
     }
-  }, [coords, shouldFitBounds, map]);
+    // Only run when the fit flag flips on — preserves user's manual zoom otherwise.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [shouldFitBounds]);
 
   return null;
 }
@@ -965,6 +970,7 @@ export function LotacoesMapModal({
                 focusCoords={focusCoords}
                 userLocation={userLocation}
                 shouldFitBounds={shouldFitBounds}
+                onFitDone={() => setShouldFitBounds(false)}
               />
               <MapEventsHandler />
 
