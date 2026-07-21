@@ -34,7 +34,11 @@ import {
   Trash2,
   Ruler,
   Info,
-  Check
+  Check,
+  Eye,
+  EyeOff,
+  Route as RouteIcon,
+  Clock
 } from 'lucide-react';
 import { Unidade, Employee, VacationPlan } from '../types';
 import { parseDMS } from '../utils';
@@ -278,6 +282,48 @@ function buildEmployeeMarkerIcon(emp: Employee, count: number, isSelected: boole
   });
 }
 
+// Unit-only marker (pin building style) used in "Apenas Unidades" mode
+function buildUnitMarkerIcon(nome: string, isSelected: boolean) {
+  const color = isSelected ? '#fbbf24' : '#38bdf8';
+  const ring = isSelected ? 'rgba(251,191,36,0.28)' : 'rgba(56,189,248,0.18)';
+  return L.divIcon({
+    html: `
+      <div style="position:relative;width:34px;height:44px;transition:all .2s ease;">
+        <div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:44px;height:44px;border-radius:9999px;background:${ring};animation:lotPing 2.4s ease-out infinite;"></div>
+        <svg viewBox="0 0 24 32" width="34" height="44" xmlns="http://www.w3.org/2000/svg" style="filter:drop-shadow(0 3px 4px rgba(0,0,0,.5));position:relative;">
+          <path d="M12 0C5.4 0 0 5.2 0 11.6 0 20.4 12 32 12 32s12-11.6 12-20.4C24 5.2 18.6 0 12 0z" fill="${color}" stroke="#0c1322" stroke-width="1.5"/>
+          <circle cx="12" cy="11.5" r="4.6" fill="#0c1322"/>
+          <path d="M9.2 13.5V9.5h1.6v1.4h1.2V9.5h1.6v4h-1.6v-1.4h-1.2v1.4z" fill="${color}"/>
+        </svg>
+        <div title="${nome.replace(/"/g,'&quot;')}" style="position:absolute;left:50%;top:100%;transform:translate(-50%,4px);background:rgba(12,19,34,.92);border:1px solid rgba(56,189,248,.35);color:#e0f2fe;font:700 9px system-ui,sans-serif;padding:2px 6px;border-radius:6px;white-space:nowrap;max-width:180px;overflow:hidden;text-overflow:ellipsis;pointer-events:none;">${nome}</div>
+      </div>
+    `,
+    className: 'unit-only-marker bg-transparent border-0',
+    iconSize: [34, 44],
+    iconAnchor: [17, 42],
+    popupAnchor: [0, -40]
+  });
+}
+
+// Query OSRM public routing (driving) — returns distance (km), duration (min), and geometry.
+async function fetchOsrmRoute(
+  from: [number, number],
+  to: [number, number]
+): Promise<{ km: number; min: number; geometry: [number, number][] } | null> {
+  try {
+    const url = `https://router.project-osrm.org/route/v1/driving/${from[1]},${from[0]};${to[1]},${to[0]}?overview=full&geometries=geojson`;
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    const data = await res.json();
+    const r = data?.routes?.[0];
+    if (!r) return null;
+    const coords: [number, number][] = (r.geometry?.coordinates || []).map((c: [number, number]) => [c[1], c[0]]);
+    return { km: (r.distance || 0) / 1000, min: (r.duration || 0) / 60, geometry: coords };
+  } catch {
+    return null;
+  }
+}
+
 export function LotacoesMapModal({
   isOpen,
   onClose,
@@ -319,10 +365,22 @@ export function LotacoesMapModal({
   // Distance ruler tool state (multi-point)
   const [isRulerActive, setIsRulerActive] = useState(false);
   const [rulerPoints, setRulerPoints] = useState<[number, number][]>([]);
+  const [rulerPointNames, setRulerPointNames] = useState<(string | null)[]>([]);
   const [rulerCursor, setRulerCursor] = useState<[number, number] | null>(null);
   const [isRulerFinished, setIsRulerFinished] = useState(false);
   const [isStyleMenuOpen, setIsStyleMenuOpen] = useState(false);
   const [rulerCopied, setRulerCopied] = useState(false);
+  const [routeInfo, setRouteInfo] = useState<{ km: number; min: number; geometry: [number, number][] } | null>(null);
+  const [routeLoading, setRouteLoading] = useState(false);
+
+  // "Apenas Unidades" view mode — hides all collaborator markers
+  const ONLY_UNITS_KEY = '@sit:lotacoesMap:onlyUnits';
+  const [onlyUnitsMode, setOnlyUnitsMode] = useState<boolean>(() => {
+    try { return localStorage.getItem(ONLY_UNITS_KEY) === '1'; } catch { return false; }
+  });
+  useEffect(() => {
+    try { localStorage.setItem(ONLY_UNITS_KEY, onlyUnitsMode ? '1' : '0'); } catch { /* noop */ }
+  }, [onlyUnitsMode]);
 
   // Synced List scroll limit
   const [visibleCount, setVisibleCount] = useState(50);
@@ -337,14 +395,39 @@ export function LotacoesMapModal({
   }, [search]);
 
   // Ruler helpers
-  const resetRuler = () => { setRulerPoints([]); setRulerCursor(null); setIsRulerFinished(false); setRulerCopied(false); };
+  const resetRuler = () => {
+    setRulerPoints([]);
+    setRulerPointNames([]);
+    setRulerCursor(null);
+    setIsRulerFinished(false);
+    setRulerCopied(false);
+    setRouteInfo(null);
+    setRouteLoading(false);
+  };
   const toggleRuler = () => {
     setIsRulerActive(prev => { if (prev) resetRuler(); return !prev; });
   };
+  const addRulerPoint = (coords: [number, number], name: string | null) => {
+    // Restart if the previous run was already finalized
+    if (isRulerFinished) {
+      setIsRulerFinished(false);
+      setRulerCopied(false);
+      setRouteInfo(null);
+      setRulerPoints([coords]);
+      setRulerPointNames([name]);
+      return;
+    }
+    setRulerPoints(prev => [...prev, coords]);
+    setRulerPointNames(prev => [...prev, name]);
+    setRulerCopied(false);
+    setRouteInfo(null);
+  };
   const undoRulerPoint = () => {
     setRulerPoints(prev => prev.slice(0, -1));
+    setRulerPointNames(prev => prev.slice(0, -1));
     setIsRulerFinished(false);
     setRulerCopied(false);
+    setRouteInfo(null);
   };
   const finishRuler = () => {
     setIsRulerFinished(true);
@@ -640,15 +723,10 @@ export function LotacoesMapModal({
       container.classList.add('ruler-active');
 
       const onMapClick = (e: L.LeafletMouseEvent) => {
-        if (isRulerFinished) {
-          // Start a new measurement
-          setIsRulerFinished(false);
-          setRulerCopied(false);
-          setRulerPoints([[e.latlng.lat, e.latlng.lng]]);
-          return;
-        }
-        setRulerPoints(prev => [...prev, [e.latlng.lat, e.latlng.lng]]);
-        setRulerCopied(false);
+        // Ignore clicks that originated on a marker/popup (they call addRulerPoint themselves).
+        const orig = e.originalEvent as any;
+        if (orig?._sitRulerHandled) return;
+        addRulerPoint([e.latlng.lat, e.latlng.lng], null);
       };
 
       const onMapDblClick = (e: L.LeafletMouseEvent) => {
@@ -724,6 +802,32 @@ export function LotacoesMapModal({
       setTimeout(() => setRulerCopied(false), 1800);
     } catch { /* noop */ }
   };
+
+  // Fetch OSRM driving route whenever we have exactly 2 committed points.
+  useEffect(() => {
+    if (!isRulerActive) return;
+    if (rulerPoints.length !== 2) { setRouteInfo(null); return; }
+    let cancelled = false;
+    setRouteLoading(true);
+    setRouteInfo(null);
+    fetchOsrmRoute(rulerPoints[0], rulerPoints[1])
+      .then(r => { if (!cancelled) setRouteInfo(r); })
+      .finally(() => { if (!cancelled) setRouteLoading(false); });
+    return () => { cancelled = true; };
+  }, [isRulerActive, rulerPoints]);
+
+  // All unidades with valid coords, respecting only the unit-name filter — used by "Apenas Unidades".
+  const unitOnlyLocations = useMemo(() => {
+    return unidades
+      .filter(u => selectedUnidade.length === 0 || selectedUnidade.includes(u.nome))
+      .map(u => {
+        const lat = parseDMS(u.latitude);
+        const lng = parseDMS(u.longitude);
+        if (lat === null || lng === null) return null;
+        return { unidade: u, coords: [lat, lng] as [number, number] };
+      })
+      .filter((x): x is { unidade: Unidade; coords: [number, number] } => !!x);
+  }, [unidades, selectedUnidade]);
 
   if (!isOpen) return null;
 
@@ -974,10 +1078,47 @@ export function LotacoesMapModal({
               />
               <MapEventsHandler />
 
+              {/* Unit-only markers (Apenas Unidades mode) */}
+              {onlyUnitsMode && unitOnlyLocations.map((u) => {
+                const isSel = rulerPointNames.includes(u.unidade.nome);
+                return (
+                  <Marker
+                    key={`unit-${u.unidade.id}`}
+                    position={u.coords}
+                    icon={buildUnitMarkerIcon(u.unidade.nome, isSel)}
+                    eventHandlers={{
+                      click: (e) => {
+                        const orig = (e as any).originalEvent;
+                        if (orig) orig._sitRulerHandled = true;
+                        if (isRulerActive) {
+                          addRulerPoint(u.coords, u.unidade.nome);
+                          return;
+                        }
+                        setFocusCoords(u.coords);
+                      }
+                    }}
+                  >
+                    {!isRulerActive && (
+                      <Popup className="geo-popup" minWidth={220} maxWidth={260}>
+                        <div className="p-3 bg-gradient-to-br from-[#0b1220] via-[#0e1726] to-[#0b1220] rounded-xl border border-brand-border/30 text-slate-100 select-none">
+                          <div className="flex items-center gap-1.5 pb-2 border-b border-white/5">
+                            <Building2 className="w-3.5 h-3.5 text-brand-accent" />
+                            <span className="text-[11px] font-bold uppercase tracking-wider truncate">{u.unidade.nome}</span>
+                          </div>
+                          <p className="text-[9px] text-brand-muted mt-2 font-mono">
+                            {u.coords[0].toFixed(5)}, {u.coords[1].toFixed(5)}
+                          </p>
+                        </div>
+                      </Popup>
+                    )}
+                  </Marker>
+                );
+              })}
+
               {/* Cluster and Unit markers rendering */}
-              {mapLocations.map((d) => {
+              {!onlyUnitsMode && mapLocations.map((d) => {
                 const markerKey = `${d.unidade.id}-${d.emps.map(e => e.id).join('-')}`;
-                const isUnitSelected = d.emps.some(e => e.id === selectedEmployeeId);
+                const isUnitSelected = d.emps.some(e => e.id === selectedEmployeeId) || rulerPointNames.includes(d.unidade.nome);
                 const firstEmp = d.emps[0];
 
                 return (
@@ -986,13 +1127,20 @@ export function LotacoesMapModal({
                     position={d.coords}
                     icon={buildEmployeeMarkerIcon(firstEmp, d.emps.length, isUnitSelected)}
                     eventHandlers={{
-                      click: () => {
+                      click: (e) => {
+                        const orig = (e as any).originalEvent;
+                        if (orig) orig._sitRulerHandled = true;
+                        if (isRulerActive) {
+                          addRulerPoint(d.coords, d.unidade.nome);
+                          return;
+                        }
                         setSelectedEmployeeId(firstEmp.id);
                         setFocusCoords(d.coords);
                       }
                     }}
                   >
-                    <Popup className="geo-popup" minWidth={310} maxWidth={330}>
+                    {!isRulerActive && (
+                      <Popup className="geo-popup" minWidth={310} maxWidth={330}>
                       <div className="p-3 bg-gradient-to-br from-[#0b1220] via-[#0e1726] to-[#0b1220] rounded-xl border border-brand-border/30">
                         {/* Popup Header */}
                         <div className="flex items-center justify-between pb-2 mb-2.5 border-b border-white/5 select-none">
@@ -1125,6 +1273,7 @@ export function LotacoesMapModal({
                         </div>
                       </div>
                     </Popup>
+                    )}
                   </Marker>
                 );
               })}
@@ -1200,6 +1349,10 @@ export function LotacoesMapModal({
                       />
                     );
                   })}
+                  {/* Real driving route (OSRM) — replaces straight line for 2-point measurements */}
+                  {routeInfo && routeInfo.geometry.length > 1 && (
+                    <Polyline positions={routeInfo.geometry} color="#f59e0b" weight={4} opacity={0.9} />
+                  )}
                 </>
               )}
             </MapContainer>
@@ -1268,6 +1421,22 @@ export function LotacoesMapModal({
               >
                 <LocateFixed className="w-4 h-4" />
               </button>
+
+              {/* Apenas Unidades toggle — hides all collaborator markers */}
+              <button
+                type="button"
+                onClick={() => setOnlyUnitsMode(v => !v)}
+                className={`flex items-center justify-center w-10 h-10 rounded-xl border backdrop-blur shadow-lg transition active:scale-95 cursor-pointer ${
+                  onlyUnitsMode
+                    ? 'bg-brand-accent/20 border-brand-accent text-brand-accent'
+                    : 'bg-[#0c1322]/90 border-white/10 text-white hover:text-brand-accent hover:border-brand-accent/50'
+                }`}
+                title={onlyUnitsMode ? 'Exibir todos os marcadores (unidades + colaboradores)' : 'Visualizar apenas unidades no mapa'}
+                aria-label="Alternar modo apenas unidades"
+                aria-pressed={onlyUnitsMode}
+              >
+                {onlyUnitsMode ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
             </div>
 
             {/* Top-Right Ruler Measure Toolbar */}
@@ -1279,17 +1448,49 @@ export function LotacoesMapModal({
                     <span className="w-1.5 h-1.5 rounded-full bg-brand-accent animate-ping shrink-0" />
                     <span className="truncate text-white/80">
                       {isRulerFinished && 'Medição concluída — clique para iniciar uma nova'}
-                      {!isRulerFinished && rulerPoints.length === 0 && 'Clique no mapa para o ponto inicial'}
-                      {!isRulerFinished && rulerPoints.length === 1 && 'Clique para adicionar pontos • duplo-clique para finalizar'}
+                      {!isRulerFinished && rulerPoints.length === 0 && 'Clique em um marcador ou no mapa para definir a origem'}
+                      {!isRulerFinished && rulerPoints.length === 1 && 'Clique em outro marcador ou ponto para definir o destino'}
                       {!isRulerFinished && rulerPoints.length >= 2 && `${rulerPoints.length} pontos • duplo-clique para finalizar`}
                     </span>
                   </div>
+
+                  {/* Route info (origin/destination + estimated driving time) */}
+                  {rulerPoints.length >= 2 && (
+                    <div className="flex flex-col gap-1 bg-amber-500/[0.06] rounded-md px-2 py-1.5 border border-amber-500/20">
+                      <div className="flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-wider text-amber-300/90">
+                        <RouteIcon className="w-3 h-3" /> Rota
+                      </div>
+                      <div className="flex items-start gap-1.5 text-[10px] text-white/90 leading-tight">
+                        <span className="w-3.5 h-3.5 rounded-full bg-emerald-500/90 text-[8px] font-black text-[#0c1322] flex items-center justify-center shrink-0 mt-[1px]">A</span>
+                        <span className="truncate">{rulerPointNames[0] || 'Ponto inicial'}</span>
+                      </div>
+                      <div className="flex items-start gap-1.5 text-[10px] text-white/90 leading-tight">
+                        <span className="w-3.5 h-3.5 rounded-full bg-brand-accent text-[8px] font-black text-[#0c1322] flex items-center justify-center shrink-0 mt-[1px]">B</span>
+                        <span className="truncate">{rulerPointNames[rulerPointNames.length - 1] || 'Ponto final'}</span>
+                      </div>
+                      {rulerPoints.length === 2 && (
+                        <div className="flex items-center gap-1.5 text-[9px] text-white/70 pt-0.5 border-t border-white/5 mt-0.5">
+                          <Clock className="w-2.5 h-2.5 text-amber-300" />
+                          {routeLoading && <span className="italic text-white/50">Calculando tempo…</span>}
+                          {!routeLoading && routeInfo && (
+                            <span>
+                              <span className="text-amber-300 font-bold">{formatDistance(routeInfo.km)}</span> por via •{' '}
+                              <span className="text-amber-300 font-bold">{routeInfo.min < 60 ? `${Math.round(routeInfo.min)} min` : `${Math.floor(routeInfo.min / 60)}h ${Math.round(routeInfo.min % 60)}m`}</span>
+                            </span>
+                          )}
+                          {!routeLoading && !routeInfo && (
+                            <span className="italic text-white/40">Tempo de deslocamento indisponível</span>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )}
 
                   {/* Distance readout */}
                   {(rulerPoints.length >= 1 || rulerStats.totalKm > 0) && (
                     <div className="flex items-center justify-between gap-2 bg-white/[0.04] rounded-md px-2 py-1.5 border border-white/5">
                       <div className="flex flex-col leading-tight min-w-0">
-                        <span className="text-[8px] font-bold uppercase tracking-wider text-brand-accent/80">Distância total</span>
+                        <span className="text-[8px] font-bold uppercase tracking-wider text-brand-accent/80">Distância (linha reta)</span>
                         <span className="text-sm font-black text-white truncate">
                           {formatDistance(rulerStats.totalKm + (isRulerFinished ? 0 : rulerStats.previewKm))}
                         </span>
