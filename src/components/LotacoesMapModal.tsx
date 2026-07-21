@@ -1421,6 +1421,22 @@ export function LotacoesMapModal({
               >
                 <LocateFixed className="w-4 h-4" />
               </button>
+
+              {/* Apenas Unidades toggle — hides all collaborator markers */}
+              <button
+                type="button"
+                onClick={() => setOnlyUnitsMode(v => !v)}
+                className={`flex items-center justify-center w-10 h-10 rounded-xl border backdrop-blur shadow-lg transition active:scale-95 cursor-pointer ${
+                  onlyUnitsMode
+                    ? 'bg-brand-accent/20 border-brand-accent text-brand-accent'
+                    : 'bg-[#0c1322]/90 border-white/10 text-white hover:text-brand-accent hover:border-brand-accent/50'
+                }`}
+                title={onlyUnitsMode ? 'Exibir todos os marcadores (unidades + colaboradores)' : 'Visualizar apenas unidades no mapa'}
+                aria-label="Alternar modo apenas unidades"
+                aria-pressed={onlyUnitsMode}
+              >
+                {onlyUnitsMode ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
             </div>
 
             {/* Top-Right Ruler Measure Toolbar */}
