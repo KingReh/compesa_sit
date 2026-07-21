@@ -970,6 +970,7 @@ export function LotacoesMapModal({
                 focusCoords={focusCoords}
                 userLocation={userLocation}
                 shouldFitBounds={shouldFitBounds}
+                onFitDone={() => setShouldFitBounds(false)}
               />
               <MapEventsHandler />
 
