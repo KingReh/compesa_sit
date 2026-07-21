@@ -1448,17 +1448,49 @@ export function LotacoesMapModal({
                     <span className="w-1.5 h-1.5 rounded-full bg-brand-accent animate-ping shrink-0" />
                     <span className="truncate text-white/80">
                       {isRulerFinished && 'Medição concluída — clique para iniciar uma nova'}
-                      {!isRulerFinished && rulerPoints.length === 0 && 'Clique no mapa para o ponto inicial'}
-                      {!isRulerFinished && rulerPoints.length === 1 && 'Clique para adicionar pontos • duplo-clique para finalizar'}
+                      {!isRulerFinished && rulerPoints.length === 0 && 'Clique em um marcador ou no mapa para definir a origem'}
+                      {!isRulerFinished && rulerPoints.length === 1 && 'Clique em outro marcador ou ponto para definir o destino'}
                       {!isRulerFinished && rulerPoints.length >= 2 && `${rulerPoints.length} pontos • duplo-clique para finalizar`}
                     </span>
                   </div>
+
+                  {/* Route info (origin/destination + estimated driving time) */}
+                  {rulerPoints.length >= 2 && (
+                    <div className="flex flex-col gap-1 bg-amber-500/[0.06] rounded-md px-2 py-1.5 border border-amber-500/20">
+                      <div className="flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-wider text-amber-300/90">
+                        <RouteIcon className="w-3 h-3" /> Rota
+                      </div>
+                      <div className="flex items-start gap-1.5 text-[10px] text-white/90 leading-tight">
+                        <span className="w-3.5 h-3.5 rounded-full bg-emerald-500/90 text-[8px] font-black text-[#0c1322] flex items-center justify-center shrink-0 mt-[1px]">A</span>
+                        <span className="truncate">{rulerPointNames[0] || 'Ponto inicial'}</span>
+                      </div>
+                      <div className="flex items-start gap-1.5 text-[10px] text-white/90 leading-tight">
+                        <span className="w-3.5 h-3.5 rounded-full bg-brand-accent text-[8px] font-black text-[#0c1322] flex items-center justify-center shrink-0 mt-[1px]">B</span>
+                        <span className="truncate">{rulerPointNames[rulerPointNames.length - 1] || 'Ponto final'}</span>
+                      </div>
+                      {rulerPoints.length === 2 && (
+                        <div className="flex items-center gap-1.5 text-[9px] text-white/70 pt-0.5 border-t border-white/5 mt-0.5">
+                          <Clock className="w-2.5 h-2.5 text-amber-300" />
+                          {routeLoading && <span className="italic text-white/50">Calculando tempo…</span>}
+                          {!routeLoading && routeInfo && (
+                            <span>
+                              <span className="text-amber-300 font-bold">{formatDistance(routeInfo.km)}</span> por via •{' '}
+                              <span className="text-amber-300 font-bold">{routeInfo.min < 60 ? `${Math.round(routeInfo.min)} min` : `${Math.floor(routeInfo.min / 60)}h ${Math.round(routeInfo.min % 60)}m`}</span>
+                            </span>
+                          )}
+                          {!routeLoading && !routeInfo && (
+                            <span className="italic text-white/40">Tempo de deslocamento indisponível</span>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )}
 
                   {/* Distance readout */}
                   {(rulerPoints.length >= 1 || rulerStats.totalKm > 0) && (
                     <div className="flex items-center justify-between gap-2 bg-white/[0.04] rounded-md px-2 py-1.5 border border-white/5">
                       <div className="flex flex-col leading-tight min-w-0">
-                        <span className="text-[8px] font-bold uppercase tracking-wider text-brand-accent/80">Distância total</span>
+                        <span className="text-[8px] font-bold uppercase tracking-wider text-brand-accent/80">Distância (linha reta)</span>
                         <span className="text-sm font-black text-white truncate">
                           {formatDistance(rulerStats.totalKm + (isRulerFinished ? 0 : rulerStats.previewKm))}
                         </span>
