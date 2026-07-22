@@ -377,7 +377,7 @@ export function LotacoesMapModal({
   const [isRulerFinished, setIsRulerFinished] = useState(false);
   const [isStyleMenuOpen, setIsStyleMenuOpen] = useState(false);
   const [rulerCopied, setRulerCopied] = useState(false);
-  const [routeInfo, setRouteInfo] = useState<{ km: number; min: number; geometry: [number, number][] } | null>(null);
+  const [routes, setRoutes] = useState<OsrmRoute[]>([]);
   const [routeLoading, setRouteLoading] = useState(false);
 
   // "Apenas Unidades" view mode — hides all collaborator markers
