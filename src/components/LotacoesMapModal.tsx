@@ -305,22 +305,29 @@ function buildUnitMarkerIcon(nome: string, isSelected: boolean) {
   });
 }
 
-// Query OSRM public routing (driving) — returns distance (km), duration (min), and geometry.
-async function fetchOsrmRoute(
+export type OsrmRoute = { km: number; min: number; geometry: [number, number][] };
+
+// Query OSRM public routing (driving) — returns up to N alternative routes ordered by duration.
+async function fetchOsrmRoutes(
   from: [number, number],
   to: [number, number]
-): Promise<{ km: number; min: number; geometry: [number, number][] } | null> {
+): Promise<OsrmRoute[]> {
   try {
-    const url = `https://router.project-osrm.org/route/v1/driving/${from[1]},${from[0]};${to[1]},${to[0]}?overview=full&geometries=geojson`;
+    const url = `https://router.project-osrm.org/route/v1/driving/${from[1]},${from[0]};${to[1]},${to[0]}?overview=full&geometries=geojson&alternatives=3&steps=false`;
     const res = await fetch(url);
-    if (!res.ok) return null;
+    if (!res.ok) return [];
     const data = await res.json();
-    const r = data?.routes?.[0];
-    if (!r) return null;
-    const coords: [number, number][] = (r.geometry?.coordinates || []).map((c: [number, number]) => [c[1], c[0]]);
-    return { km: (r.distance || 0) / 1000, min: (r.duration || 0) / 60, geometry: coords };
+    const routes = Array.isArray(data?.routes) ? data.routes : [];
+    const mapped: OsrmRoute[] = routes.map((r: any) => ({
+      km: (r.distance || 0) / 1000,
+      min: (r.duration || 0) / 60,
+      geometry: (r.geometry?.coordinates || []).map((c: [number, number]) => [c[1], c[0]] as [number, number])
+    })).filter((r: OsrmRoute) => r.geometry.length > 1);
+    // Sort by duration ascending (fastest first)
+    mapped.sort((a: OsrmRoute, b: OsrmRoute) => a.min - b.min);
+    return mapped;
   } catch {
-    return null;
+    return [];
   }
 }
 
