@@ -817,7 +817,7 @@ export function LotacoesMapModal({
     let cancelled = false;
     setRouteLoading(true);
     setRoutes([]);
-    fetchOsrmRoute(rulerPoints[0], rulerPoints[1])
+    fetchOsrmRoutes(rulerPoints[0], rulerPoints[1])
       .then(r => { if (!cancelled) setRoutes(r); })
       .finally(() => { if (!cancelled) setRouteLoading(false); });
     return () => { cancelled = true; };
