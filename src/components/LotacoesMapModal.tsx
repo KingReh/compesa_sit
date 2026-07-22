@@ -1483,17 +1483,50 @@ export function LotacoesMapModal({
                         <span className="truncate">{rulerPointNames[rulerPointNames.length - 1] || 'Ponto final'}</span>
                       </div>
                       {rulerPoints.length === 2 && (
-                        <div className="flex items-center gap-1.5 text-[9px] text-white/70 pt-0.5 border-t border-white/5 mt-0.5">
-                          <Clock className="w-2.5 h-2.5 text-amber-300" />
-                          {routeLoading && <span className="italic text-white/50">Calculando tempo…</span>}
-                          {!routeLoading && routeInfo && (
-                            <span>
-                              <span className="text-amber-300 font-bold">{formatDistance(routeInfo.km)}</span> por via •{' '}
-                              <span className="text-amber-300 font-bold">{routeInfo.min < 60 ? `${Math.round(routeInfo.min)} min` : `${Math.floor(routeInfo.min / 60)}h ${Math.round(routeInfo.min % 60)}m`}</span>
+                        <div className="flex flex-col gap-1 pt-1 border-t border-white/5 mt-0.5">
+                          {routeLoading && (
+                            <span className="flex items-center gap-1.5 text-[9px] italic text-white/50">
+                              <Clock className="w-2.5 h-2.5 text-amber-300 animate-pulse" />
+                              Calculando rotas alternativas…
                             </span>
                           )}
-                          {!routeLoading && !routeInfo && (
-                            <span className="italic text-white/40">Tempo de deslocamento indisponível</span>
+                          {!routeLoading && routes.length > 0 && routes.slice(0, 2).map((r, idx) => {
+                            const isFast = idx === 0;
+                            const dur = r.min < 60
+                              ? `${Math.round(r.min)} min`
+                              : `${Math.floor(r.min / 60)}h ${Math.round(r.min % 60)}m`;
+                            return (
+                              <div
+                                key={`ri-${idx}`}
+                                className={`flex items-center gap-1.5 text-[9px] rounded px-1.5 py-1 border ${
+                                  isFast
+                                    ? 'bg-amber-500/10 border-amber-500/30 text-white/90'
+                                    : 'bg-violet-500/10 border-violet-500/30 text-white/80'
+                                }`}
+                              >
+                                <span
+                                  className={`w-2 h-2 rounded-full shrink-0 ${isFast ? 'bg-amber-400' : 'bg-violet-400'}`}
+                                  style={isFast ? undefined : { boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.4)' }}
+                                />
+                                <span className={`font-bold uppercase tracking-wider ${isFast ? 'text-amber-300' : 'text-violet-300'}`}>
+                                  {isFast ? 'Mais rápida' : 'Alternativa'}
+                                </span>
+                                <span className="ml-auto">
+                                  <span className={`font-bold ${isFast ? 'text-amber-300' : 'text-violet-200'}`}>{formatDistance(r.km)}</span>
+                                  {' • '}
+                                  <span className={`font-bold ${isFast ? 'text-amber-300' : 'text-violet-200'}`}>{dur}</span>
+                                </span>
+                              </div>
+                            );
+                          })}
+                          {!routeLoading && routes.length === 1 && (
+                            <span className="text-[9px] italic text-white/40">Sem rota alternativa disponível para este trecho.</span>
+                          )}
+                          {!routeLoading && routes.length === 0 && (
+                            <span className="flex items-center gap-1.5 text-[9px] italic text-white/40">
+                              <Clock className="w-2.5 h-2.5" />
+                              Tempo de deslocamento indisponível
+                            </span>
                           )}
                         </div>
                       )}
