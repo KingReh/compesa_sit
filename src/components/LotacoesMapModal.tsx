@@ -305,22 +305,29 @@ function buildUnitMarkerIcon(nome: string, isSelected: boolean) {
   });
 }
 
-// Query OSRM public routing (driving) — returns distance (km), duration (min), and geometry.
-async function fetchOsrmRoute(
+export type OsrmRoute = { km: number; min: number; geometry: [number, number][] };
+
+// Query OSRM public routing (driving) — returns up to N alternative routes ordered by duration.
+async function fetchOsrmRoutes(
   from: [number, number],
   to: [number, number]
-): Promise<{ km: number; min: number; geometry: [number, number][] } | null> {
+): Promise<OsrmRoute[]> {
   try {
-    const url = `https://router.project-osrm.org/route/v1/driving/${from[1]},${from[0]};${to[1]},${to[0]}?overview=full&geometries=geojson`;
+    const url = `https://router.project-osrm.org/route/v1/driving/${from[1]},${from[0]};${to[1]},${to[0]}?overview=full&geometries=geojson&alternatives=3&steps=false`;
     const res = await fetch(url);
-    if (!res.ok) return null;
+    if (!res.ok) return [];
     const data = await res.json();
-    const r = data?.routes?.[0];
-    if (!r) return null;
-    const coords: [number, number][] = (r.geometry?.coordinates || []).map((c: [number, number]) => [c[1], c[0]]);
-    return { km: (r.distance || 0) / 1000, min: (r.duration || 0) / 60, geometry: coords };
+    const routes = Array.isArray(data?.routes) ? data.routes : [];
+    const mapped: OsrmRoute[] = routes.map((r: any) => ({
+      km: (r.distance || 0) / 1000,
+      min: (r.duration || 0) / 60,
+      geometry: (r.geometry?.coordinates || []).map((c: [number, number]) => [c[1], c[0]] as [number, number])
+    })).filter((r: OsrmRoute) => r.geometry.length > 1);
+    // Sort by duration ascending (fastest first)
+    mapped.sort((a: OsrmRoute, b: OsrmRoute) => a.min - b.min);
+    return mapped;
   } catch {
-    return null;
+    return [];
   }
 }
 
@@ -370,7 +377,7 @@ export function LotacoesMapModal({
   const [isRulerFinished, setIsRulerFinished] = useState(false);
   const [isStyleMenuOpen, setIsStyleMenuOpen] = useState(false);
   const [rulerCopied, setRulerCopied] = useState(false);
-  const [routeInfo, setRouteInfo] = useState<{ km: number; min: number; geometry: [number, number][] } | null>(null);
+  const [routes, setRoutes] = useState<OsrmRoute[]>([]);
   const [routeLoading, setRouteLoading] = useState(false);
 
   // "Apenas Unidades" view mode — hides all collaborator markers
@@ -401,7 +408,7 @@ export function LotacoesMapModal({
     setRulerCursor(null);
     setIsRulerFinished(false);
     setRulerCopied(false);
-    setRouteInfo(null);
+    setRoutes([]);
     setRouteLoading(false);
   };
   const toggleRuler = () => {
@@ -412,7 +419,7 @@ export function LotacoesMapModal({
     if (isRulerFinished) {
       setIsRulerFinished(false);
       setRulerCopied(false);
-      setRouteInfo(null);
+      setRoutes([]);
       setRulerPoints([coords]);
       setRulerPointNames([name]);
       return;
@@ -420,14 +427,14 @@ export function LotacoesMapModal({
     setRulerPoints(prev => [...prev, coords]);
     setRulerPointNames(prev => [...prev, name]);
     setRulerCopied(false);
-    setRouteInfo(null);
+    setRoutes([]);
   };
   const undoRulerPoint = () => {
     setRulerPoints(prev => prev.slice(0, -1));
     setRulerPointNames(prev => prev.slice(0, -1));
     setIsRulerFinished(false);
     setRulerCopied(false);
-    setRouteInfo(null);
+    setRoutes([]);
   };
   const finishRuler = () => {
     setIsRulerFinished(true);
@@ -806,28 +813,32 @@ export function LotacoesMapModal({
   // Fetch OSRM driving route whenever we have exactly 2 committed points.
   useEffect(() => {
     if (!isRulerActive) return;
-    if (rulerPoints.length !== 2) { setRouteInfo(null); return; }
+    if (rulerPoints.length !== 2) { setRoutes([]); return; }
     let cancelled = false;
     setRouteLoading(true);
-    setRouteInfo(null);
-    fetchOsrmRoute(rulerPoints[0], rulerPoints[1])
-      .then(r => { if (!cancelled) setRouteInfo(r); })
+    setRoutes([]);
+    fetchOsrmRoutes(rulerPoints[0], rulerPoints[1])
+      .then(r => { if (!cancelled) setRoutes(r); })
       .finally(() => { if (!cancelled) setRouteLoading(false); });
     return () => { cancelled = true; };
   }, [isRulerActive, rulerPoints]);
 
-  // All unidades with valid coords, respecting only the unit-name filter — used by "Apenas Unidades".
+  // Unidades exibidas em "Apenas Unidades": só as que possuem ao menos 1 colaborador cadastrado
+  // (respeitando os filtros ativos), reduzindo carga visual e ruído no mapa.
   const unitOnlyLocations = useMemo(() => {
+    const populated = new Set(mapLocations.map(l => l.unidade.id));
     return unidades
+      .filter(u => populated.has(u.id))
       .filter(u => selectedUnidade.length === 0 || selectedUnidade.includes(u.nome))
       .map(u => {
         const lat = parseDMS(u.latitude);
         const lng = parseDMS(u.longitude);
         if (lat === null || lng === null) return null;
-        return { unidade: u, coords: [lat, lng] as [number, number] };
+        const empCount = mapLocations.find(l => l.unidade.id === u.id)?.emps.length ?? 0;
+        return { unidade: u, coords: [lat, lng] as [number, number], empCount };
       })
-      .filter((x): x is { unidade: Unidade; coords: [number, number] } => !!x);
-  }, [unidades, selectedUnidade]);
+      .filter((x): x is { unidade: Unidade; coords: [number, number]; empCount: number } => !!x);
+  }, [unidades, selectedUnidade, mapLocations]);
 
   if (!isOpen) return null;
 
@@ -1349,10 +1360,17 @@ export function LotacoesMapModal({
                       />
                     );
                   })}
-                  {/* Real driving route (OSRM) — replaces straight line for 2-point measurements */}
-                  {routeInfo && routeInfo.geometry.length > 1 && (
-                    <Polyline positions={routeInfo.geometry} color="#f59e0b" weight={4} opacity={0.9} />
-                  )}
+                  {/* Real driving routes (OSRM) — fastest highlighted + alternative dimmed */}
+                  {routes.slice(0, 2).map((r, idx) => (
+                    <Polyline
+                      key={`route-${idx}`}
+                      positions={r.geometry}
+                      color={idx === 0 ? '#f59e0b' : '#a78bfa'}
+                      weight={idx === 0 ? 5 : 3.5}
+                      opacity={idx === 0 ? 0.95 : 0.7}
+                      dashArray={idx === 0 ? undefined : '10, 6'}
+                    />
+                  ))}
                 </>
               )}
             </MapContainer>
@@ -1469,17 +1487,50 @@ export function LotacoesMapModal({
                         <span className="truncate">{rulerPointNames[rulerPointNames.length - 1] || 'Ponto final'}</span>
                       </div>
                       {rulerPoints.length === 2 && (
-                        <div className="flex items-center gap-1.5 text-[9px] text-white/70 pt-0.5 border-t border-white/5 mt-0.5">
-                          <Clock className="w-2.5 h-2.5 text-amber-300" />
-                          {routeLoading && <span className="italic text-white/50">Calculando tempo…</span>}
-                          {!routeLoading && routeInfo && (
-                            <span>
-                              <span className="text-amber-300 font-bold">{formatDistance(routeInfo.km)}</span> por via •{' '}
-                              <span className="text-amber-300 font-bold">{routeInfo.min < 60 ? `${Math.round(routeInfo.min)} min` : `${Math.floor(routeInfo.min / 60)}h ${Math.round(routeInfo.min % 60)}m`}</span>
+                        <div className="flex flex-col gap-1 pt-1 border-t border-white/5 mt-0.5">
+                          {routeLoading && (
+                            <span className="flex items-center gap-1.5 text-[9px] italic text-white/50">
+                              <Clock className="w-2.5 h-2.5 text-amber-300 animate-pulse" />
+                              Calculando rotas alternativas…
                             </span>
                           )}
-                          {!routeLoading && !routeInfo && (
-                            <span className="italic text-white/40">Tempo de deslocamento indisponível</span>
+                          {!routeLoading && routes.length > 0 && routes.slice(0, 2).map((r, idx) => {
+                            const isFast = idx === 0;
+                            const dur = r.min < 60
+                              ? `${Math.round(r.min)} min`
+                              : `${Math.floor(r.min / 60)}h ${Math.round(r.min % 60)}m`;
+                            return (
+                              <div
+                                key={`ri-${idx}`}
+                                className={`flex items-center gap-1.5 text-[9px] rounded px-1.5 py-1 border ${
+                                  isFast
+                                    ? 'bg-amber-500/10 border-amber-500/30 text-white/90'
+                                    : 'bg-violet-500/10 border-violet-500/30 text-white/80'
+                                }`}
+                              >
+                                <span
+                                  className={`w-2 h-2 rounded-full shrink-0 ${isFast ? 'bg-amber-400' : 'bg-violet-400'}`}
+                                  style={isFast ? undefined : { boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.4)' }}
+                                />
+                                <span className={`font-bold uppercase tracking-wider ${isFast ? 'text-amber-300' : 'text-violet-300'}`}>
+                                  {isFast ? 'Mais rápida' : 'Alternativa'}
+                                </span>
+                                <span className="ml-auto">
+                                  <span className={`font-bold ${isFast ? 'text-amber-300' : 'text-violet-200'}`}>{formatDistance(r.km)}</span>
+                                  {' • '}
+                                  <span className={`font-bold ${isFast ? 'text-amber-300' : 'text-violet-200'}`}>{dur}</span>
+                                </span>
+                              </div>
+                            );
+                          })}
+                          {!routeLoading && routes.length === 1 && (
+                            <span className="text-[9px] italic text-white/40">Sem rota alternativa disponível para este trecho.</span>
+                          )}
+                          {!routeLoading && routes.length === 0 && (
+                            <span className="flex items-center gap-1.5 text-[9px] italic text-white/40">
+                              <Clock className="w-2.5 h-2.5" />
+                              Tempo de deslocamento indisponível
+                            </span>
                           )}
                         </div>
                       )}
