@@ -823,18 +823,22 @@ export function LotacoesMapModal({
     return () => { cancelled = true; };
   }, [isRulerActive, rulerPoints]);
 
-  // All unidades with valid coords, respecting only the unit-name filter — used by "Apenas Unidades".
+  // Unidades exibidas em "Apenas Unidades": só as que possuem ao menos 1 colaborador cadastrado
+  // (respeitando os filtros ativos), reduzindo carga visual e ruído no mapa.
   const unitOnlyLocations = useMemo(() => {
+    const populated = new Set(mapLocations.map(l => l.unidade.id));
     return unidades
+      .filter(u => populated.has(u.id))
       .filter(u => selectedUnidade.length === 0 || selectedUnidade.includes(u.nome))
       .map(u => {
         const lat = parseDMS(u.latitude);
         const lng = parseDMS(u.longitude);
         if (lat === null || lng === null) return null;
-        return { unidade: u, coords: [lat, lng] as [number, number] };
+        const empCount = mapLocations.find(l => l.unidade.id === u.id)?.emps.length ?? 0;
+        return { unidade: u, coords: [lat, lng] as [number, number], empCount };
       })
-      .filter((x): x is { unidade: Unidade; coords: [number, number] } => !!x);
-  }, [unidades, selectedUnidade]);
+      .filter((x): x is { unidade: Unidade; coords: [number, number]; empCount: number } => !!x);
+  }, [unidades, selectedUnidade, mapLocations]);
 
   if (!isOpen) return null;
 
