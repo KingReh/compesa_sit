@@ -1356,10 +1356,17 @@ export function LotacoesMapModal({
                       />
                     );
                   })}
-                  {/* Real driving route (OSRM) — replaces straight line for 2-point measurements */}
-                  {routeInfo && routeInfo.geometry.length > 1 && (
-                    <Polyline positions={routeInfo.geometry} color="#f59e0b" weight={4} opacity={0.9} />
-                  )}
+                  {/* Real driving routes (OSRM) — fastest highlighted + alternative dimmed */}
+                  {routes.slice(0, 2).map((r, idx) => (
+                    <Polyline
+                      key={`route-${idx}`}
+                      positions={r.geometry}
+                      color={idx === 0 ? '#f59e0b' : '#a78bfa'}
+                      weight={idx === 0 ? 5 : 3.5}
+                      opacity={idx === 0 ? 0.95 : 0.7}
+                      dashArray={idx === 0 ? undefined : '10, 6'}
+                    />
+                  ))}
                 </>
               )}
             </MapContainer>
