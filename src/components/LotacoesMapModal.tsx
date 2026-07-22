@@ -408,7 +408,7 @@ export function LotacoesMapModal({
     setRulerCursor(null);
     setIsRulerFinished(false);
     setRulerCopied(false);
-    setRouteInfo(null);
+    setRoutes([]);
     setRouteLoading(false);
   };
   const toggleRuler = () => {
@@ -419,7 +419,7 @@ export function LotacoesMapModal({
     if (isRulerFinished) {
       setIsRulerFinished(false);
       setRulerCopied(false);
-      setRouteInfo(null);
+      setRoutes([]);
       setRulerPoints([coords]);
       setRulerPointNames([name]);
       return;
@@ -427,14 +427,14 @@ export function LotacoesMapModal({
     setRulerPoints(prev => [...prev, coords]);
     setRulerPointNames(prev => [...prev, name]);
     setRulerCopied(false);
-    setRouteInfo(null);
+    setRoutes([]);
   };
   const undoRulerPoint = () => {
     setRulerPoints(prev => prev.slice(0, -1));
     setRulerPointNames(prev => prev.slice(0, -1));
     setIsRulerFinished(false);
     setRulerCopied(false);
-    setRouteInfo(null);
+    setRoutes([]);
   };
   const finishRuler = () => {
     setIsRulerFinished(true);
@@ -813,12 +813,12 @@ export function LotacoesMapModal({
   // Fetch OSRM driving route whenever we have exactly 2 committed points.
   useEffect(() => {
     if (!isRulerActive) return;
-    if (rulerPoints.length !== 2) { setRouteInfo(null); return; }
+    if (rulerPoints.length !== 2) { setRoutes([]); return; }
     let cancelled = false;
     setRouteLoading(true);
-    setRouteInfo(null);
+    setRoutes([]);
     fetchOsrmRoute(rulerPoints[0], rulerPoints[1])
-      .then(r => { if (!cancelled) setRouteInfo(r); })
+      .then(r => { if (!cancelled) setRoutes(r); })
       .finally(() => { if (!cancelled) setRouteLoading(false); });
     return () => { cancelled = true; };
   }, [isRulerActive, rulerPoints]);
