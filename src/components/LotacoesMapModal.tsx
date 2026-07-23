@@ -38,7 +38,8 @@ import {
   Eye,
   EyeOff,
   Route as RouteIcon,
-  Clock
+  Clock,
+  ArrowLeftRight
 } from 'lucide-react';
 import { Unidade, Employee, VacationPlan } from '../types';
 import { parseDMS } from '../utils';
