@@ -38,7 +38,8 @@ import {
   Eye,
   EyeOff,
   Route as RouteIcon,
-  Clock
+  Clock,
+  ArrowLeftRight
 } from 'lucide-react';
 import { Unidade, Employee, VacationPlan } from '../types';
 import { parseDMS } from '../utils';
@@ -439,6 +440,12 @@ export function LotacoesMapModal({
   const finishRuler = () => {
     setIsRulerFinished(true);
     setRulerCursor(null);
+  };
+  const swapRulerPoints = () => {
+    setRulerPoints(prev => prev.length === 2 ? [prev[1], prev[0]] : prev);
+    setRulerPointNames(prev => prev.length === 2 ? [prev[1], prev[0]] : prev);
+    setRulerCopied(false);
+    setRoutes([]);
   };
 
   // Handle keyboard shortcuts (ESC / Backspace / Enter)
@@ -1460,7 +1467,7 @@ export function LotacoesMapModal({
             {/* Top-Right Ruler Measure Toolbar */}
             <div className="absolute top-4 right-4 z-[999] flex flex-col items-end gap-1.5 select-none max-w-[calc(100%-1rem)]">
               {isRulerActive && (
-                <div className="flex flex-col gap-1.5 bg-[#0c1322]/95 backdrop-blur px-3 py-2 rounded-xl border border-brand-accent/30 text-white text-[10px] shadow-lg animate-scale-in w-[min(320px,85vw)]">
+                <div className="flex flex-col gap-1.5 bg-[#0c1322]/95 backdrop-blur px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl border border-brand-accent/30 text-white text-[10px] shadow-lg animate-scale-in w-[min(280px,72vw)] sm:w-[320px]">
                   {/* Status / hint */}
                   <div className="flex items-center gap-2">
                     <span className="w-1.5 h-1.5 rounded-full bg-brand-accent animate-ping shrink-0" />
@@ -1477,14 +1484,27 @@ export function LotacoesMapModal({
                     <div className="flex flex-col gap-1 bg-amber-500/[0.06] rounded-md px-2 py-1.5 border border-amber-500/20">
                       <div className="flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-wider text-amber-300/90">
                         <RouteIcon className="w-3 h-3" /> Rota
+                        {rulerPoints.length === 2 && (
+                          <button
+                            type="button"
+                            onClick={swapRulerPoints}
+                            className="ml-auto flex items-center gap-1 px-1.5 py-0.5 rounded bg-white/5 hover:bg-brand-accent/20 border border-white/10 hover:border-brand-accent/40 text-white/80 hover:text-brand-accent text-[8px] font-bold uppercase tracking-wider cursor-pointer transition"
+                            title="Inverter origem e destino"
+                          >
+                            <ArrowLeftRight className="w-2.5 h-2.5" />
+                            <span className="hidden sm:inline">Inverter</span>
+                          </button>
+                        )}
                       </div>
-                      <div className="flex items-start gap-1.5 text-[10px] text-white/90 leading-tight">
-                        <span className="w-3.5 h-3.5 rounded-full bg-emerald-500/90 text-[8px] font-black text-[#0c1322] flex items-center justify-center shrink-0 mt-[1px]">A</span>
-                        <span className="truncate">{rulerPointNames[0] || 'Ponto inicial'}</span>
-                      </div>
-                      <div className="flex items-start gap-1.5 text-[10px] text-white/90 leading-tight">
-                        <span className="w-3.5 h-3.5 rounded-full bg-brand-accent text-[8px] font-black text-[#0c1322] flex items-center justify-center shrink-0 mt-[1px]">B</span>
-                        <span className="truncate">{rulerPointNames[rulerPointNames.length - 1] || 'Ponto final'}</span>
+                      <div className="flex flex-col gap-0.5">
+                        <div className="flex items-start gap-1.5 text-[10px] text-white/90 leading-tight">
+                          <span className="w-3.5 h-3.5 rounded-full bg-emerald-500/90 text-[8px] font-black text-[#0c1322] flex items-center justify-center shrink-0 mt-[1px]">A</span>
+                          <span className="truncate">{rulerPointNames[0] || 'Ponto inicial'}</span>
+                        </div>
+                        <div className="flex items-start gap-1.5 text-[10px] text-white/90 leading-tight">
+                          <span className="w-3.5 h-3.5 rounded-full bg-brand-accent text-[8px] font-black text-[#0c1322] flex items-center justify-center shrink-0 mt-[1px]">B</span>
+                          <span className="truncate">{rulerPointNames[rulerPointNames.length - 1] || 'Ponto final'}</span>
+                        </div>
                       </div>
                       {rulerPoints.length === 2 && (
                         <div className="flex flex-col gap-1 pt-1 border-t border-white/5 mt-0.5">
