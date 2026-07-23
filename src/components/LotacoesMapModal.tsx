@@ -1031,19 +1031,35 @@ export function LotacoesMapModal({
 
           {/* Clear Filters options */}
           {hasActiveFilters && (
-            <button
-              onClick={handleClearAll}
-              className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-rose-400 hover:text-rose-300 bg-rose-500/10 border border-rose-500/20 px-2.5 py-1.5 rounded-lg transition active:scale-95 cursor-pointer ml-auto"
-              title="Limpar todos os filtros selecionados"
-            >
-              <Trash2 className="w-3.5 h-3.5" />
-              <span>Limpar Todos</span>
-            </button>
+            <>
+              <button
+                onClick={() => setShowFilterChips(v => !v)}
+                className={`flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider px-2.5 py-1.5 rounded-lg transition active:scale-95 cursor-pointer ml-auto border ${
+                  showFilterChips
+                    ? 'text-brand-accent bg-brand-accent/10 border-brand-accent/30'
+                    : 'text-white/70 hover:text-white bg-white/5 hover:bg-white/10 border-white/10'
+                }`}
+                title={showFilterChips ? 'Ocultar chips de filtros' : 'Mostrar chips de filtros ativos'}
+                aria-pressed={showFilterChips}
+              >
+                <Filter className="w-3.5 h-3.5" />
+                <span>{showFilterChips ? 'Ocultar Filtros' : 'Ver Filtros'}</span>
+              </button>
+              <button
+                onClick={handleClearAll}
+                className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-rose-400 hover:text-rose-300 bg-rose-500/10 border border-rose-500/20 px-2.5 py-1.5 rounded-lg transition active:scale-95 cursor-pointer"
+                title="Limpar todos os filtros selecionados"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>Limpar Todos</span>
+              </button>
+            </>
           )}
         </div>
 
-        {/* Selected Chips row */}
-        {hasActiveFilters && (
+        {/* Selected Chips row — hidden by default; user toggles via "Ver Filtros" */}
+        {hasActiveFilters && showFilterChips && (
+
           <div className="px-4 sm:px-6 py-2 bg-white/[0.005] border-b border-white/5 flex flex-wrap gap-1.5 select-none shrink-0 overflow-x-auto max-h-[85px] styled-scrollbars-light">
             <span className="text-[8px] font-bold text-white/40 uppercase self-center tracking-widest mr-1">Filtros:</span>
             {search && (
