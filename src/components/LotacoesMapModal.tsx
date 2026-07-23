@@ -1467,7 +1467,7 @@ export function LotacoesMapModal({
             {/* Top-Right Ruler Measure Toolbar */}
             <div className="absolute top-4 right-4 z-[999] flex flex-col items-end gap-1.5 select-none max-w-[calc(100%-1rem)]">
               {isRulerActive && (
-                <div className="flex flex-col gap-1.5 bg-[#0c1322]/95 backdrop-blur px-3 py-2 rounded-xl border border-brand-accent/30 text-white text-[10px] shadow-lg animate-scale-in w-[min(320px,85vw)]">
+                <div className="flex flex-col gap-1.5 bg-[#0c1322]/95 backdrop-blur px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl border border-brand-accent/30 text-white text-[10px] shadow-lg animate-scale-in w-[min(280px,72vw)] sm:w-[320px]">
                   {/* Status / hint */}
                   <div className="flex items-center gap-2">
                     <span className="w-1.5 h-1.5 rounded-full bg-brand-accent animate-ping shrink-0" />
