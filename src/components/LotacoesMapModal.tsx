@@ -1118,6 +1118,8 @@ export function LotacoesMapModal({
                 key={mapStyle}
               />
               <MapController 
+                resizeKey={`${isFullscreen ? 'fs' : 'wn'}`}
+
                 coords={mapLocations.map(loc => loc.coords)}
                 focusCoords={focusCoords}
                 userLocation={userLocation}
