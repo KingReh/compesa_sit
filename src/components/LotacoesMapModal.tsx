@@ -1556,8 +1556,6 @@ export function LotacoesMapModal({
                       )}
                     </div>
                   )}
-                    </div>
-                  )}
 
                   {/* Distance readout */}
                   {(rulerPoints.length >= 1 || rulerStats.totalKm > 0) && (
