@@ -375,6 +375,8 @@ export function LotacoesMapModal({
     try { localStorage.setItem(MAP_STYLE_STORAGE_KEY, mapStyle); } catch { /* noop */ }
   }, [mapStyle]);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [showFilterChips, setShowFilterChips] = useState(false);
+
   const [activeTab, setActiveTab] = useState<'metrics' | 'list'>('metrics');
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<string | null>(null);
   const [focusCoords, setFocusCoords] = useState<[number, number] | null>(null);
