@@ -1690,7 +1690,7 @@ export function LotacoesMapModal({
           </div>
 
           {/* Lado Direito - Painel Analítico / Lista Sincronizada (30%) */}
-          <aside className="w-full lg:w-[360px] border-t lg:border-t-0 lg:border-l border-white/10 bg-black/20 flex flex-col overflow-hidden shrink-0 select-none">
+          <aside className={`w-full lg:w-[360px] border-t lg:border-t-0 lg:border-l border-white/10 bg-black/20 flex-col overflow-hidden shrink-0 select-none ${isFullscreen ? 'hidden' : 'flex'}`}>
             
             {/* Sidebar View Tabs selector */}
             <div className="flex border-b border-white/10 bg-black/45 p-1">
