@@ -107,13 +107,15 @@ function MapController({
   focusCoords,
   userLocation,
   shouldFitBounds,
-  onFitDone
+  onFitDone,
+  resizeKey
 }: {
   coords: [number, number][];
   focusCoords: [number, number] | null;
   userLocation: [number, number] | null;
   shouldFitBounds: boolean;
   onFitDone: () => void;
+  resizeKey?: string | number;
 }) {
   const map = useMap();
 
@@ -139,8 +141,18 @@ function MapController({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [shouldFitBounds]);
 
+  // Invalidate map size when container size changes (fullscreen toggle, sidebar hide, etc.)
+  // Fixes blank tiles / partial rendering after layout changes.
+  useEffect(() => {
+    if (resizeKey === undefined) return;
+    const t1 = setTimeout(() => map.invalidateSize({ animate: false }), 60);
+    const t2 = setTimeout(() => map.invalidateSize({ animate: false }), 320);
+    return () => { clearTimeout(t1); clearTimeout(t2); };
+  }, [resizeKey, map]);
+
   return null;
 }
+
 
 // Custom select dropdown component supporting search and multi-select
 function MultiSelectDropdown({
