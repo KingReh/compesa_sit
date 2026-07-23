@@ -441,6 +441,12 @@ export function LotacoesMapModal({
     setIsRulerFinished(true);
     setRulerCursor(null);
   };
+  const swapRulerPoints = () => {
+    setRulerPoints(prev => prev.length === 2 ? [prev[1], prev[0]] : prev);
+    setRulerPointNames(prev => prev.length === 2 ? [prev[1], prev[0]] : prev);
+    setRulerCopied(false);
+    setRoutes([]);
+  };
 
   // Handle keyboard shortcuts (ESC / Backspace / Enter)
   useEffect(() => {
