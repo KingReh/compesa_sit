@@ -1378,7 +1378,7 @@ export function LotacoesMapModal({
                         className: 'ruler-seg-label bg-transparent border-0',
                         iconSize: [0, 0],
                         iconAnchor: [0, 0],
-                      })
+                      })}
                     />
                   ))}
                   {/* Numbered vertex markers */}
