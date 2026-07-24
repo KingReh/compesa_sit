@@ -1460,18 +1460,23 @@ export function LotacoesMapModal({
               {/* Ruler line rendering (multi-point + live preview + segment labels) */}
               {isRulerActive && rulerPoints.length > 0 && (
                 <>
-                  {/* Committed polyline (solid) */}
+                  {/* Committed polyline (solid) with zoom-aware weight for readability */}
                   {rulerPoints.length >= 2 && (
-                    <Polyline positions={rulerPoints} color="#38bdf8" weight={3} opacity={0.95} />
+                    <ZoomAwarePolyline
+                      positions={rulerPoints}
+                      color="#38bdf8"
+                      baseWeight={4}
+                      opacity={0.95}
+                    />
                   )}
                   {/* Live preview from last point to cursor (dashed) */}
                   {!isRulerFinished && rulerCursor && (
-                    <Polyline
+                    <ZoomAwarePolyline
                       positions={[rulerPoints[rulerPoints.length - 1], rulerCursor]}
-                      color="#38bdf8"
-                      dashArray="6, 8"
-                      weight={2}
-                      opacity={0.7}
+                      color="#7dd3fc"
+                      baseWeight={3}
+                      opacity={0.85}
+                      dashArray="8, 8"
                     />
                   )}
                   {/* Segment midpoint labels */}
@@ -1508,17 +1513,19 @@ export function LotacoesMapModal({
                   })}
                   {/* Real driving routes (OSRM) — fastest highlighted + alternative dimmed */}
                   {routes.slice(0, 2).map((r, idx) => (
-                    <Polyline
+                    <RoutePolyline
                       key={`route-${idx}`}
                       positions={r.geometry}
                       color={idx === 0 ? '#3759F9' : '#6010C0'}
-                      weight={idx === 0 ? 5 : 3.5}
-                      opacity={idx === 0 ? 0.95 : 0.7}
-                      dashArray={idx === 0 ? undefined : '10, 6'}
+                      baseWeight={idx === 0 ? 5.5 : 4}
+                      opacity={idx === 0 ? 0.95 : 0.8}
+                      dashArray={idx === 0 ? undefined : '12, 10'}
+                      isFastest={idx === 0}
                     />
                   ))}
                 </>
               )}
+
             </MapContainer>
 
             {/* Custom Interactive Floating Map Controls */}
