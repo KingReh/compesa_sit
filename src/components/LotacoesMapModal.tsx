@@ -1374,11 +1374,11 @@ export function LotacoesMapModal({
                       position={s.mid}
                       interactive={false}
                       icon={L.divIcon({
-                        html: `<div style="transform:translate(-50%,-50%);background:rgba(12,19,34,0.92);border:1px solid rgba(56,189,248,0.5);color:#e0f2fe;font:600 10px system-ui,sans-serif;padding:2px 6px;border-radius:6px;white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,0.4);">${formatDistance(s.km)}</div>`,
+                        html: `<div style="transform:translate(-50%,-50%);display:inline-block;min-width:42px;text-align:center;background:rgba(12,19,34,0.92);border:1px solid rgba(56,189,248,0.5);color:#e0f2fe;font:600 11px system-ui,sans-serif;padding:3px 8px;border-radius:6px;white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,0.4);box-sizing:border-box;">${formatDistance(s.km)}</div>`,
                         className: 'ruler-seg-label bg-transparent border-0',
                         iconSize: [0, 0],
                         iconAnchor: [0, 0],
-                      })}
+                      })
                     />
                   ))}
                   {/* Numbered vertex markers */}
