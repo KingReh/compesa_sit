@@ -1404,7 +1404,7 @@ export function LotacoesMapModal({
                     <Polyline
                       key={`route-${idx}`}
                       positions={r.geometry}
-                      color={idx === 0 ? '#f59e0b' : '#a78bfa'}
+                      color={idx === 0 ? '#3759F9' : '#6010C0'}
                       weight={idx === 0 ? 5 : 3.5}
                       opacity={idx === 0 ? 0.95 : 0.7}
                       dashArray={idx === 0 ? undefined : '10, 6'}
