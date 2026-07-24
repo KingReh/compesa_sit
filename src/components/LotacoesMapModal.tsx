@@ -101,6 +101,112 @@ function compassDirection(deg: number): string {
   return dirs[Math.round(deg / 45) % 8];
 }
 
+// Hook that returns current zoom so polylines can scale their weight dynamically
+function useMapZoom() {
+  const map = useMap();
+  const [zoom, setZoom] = useState(map.getZoom());
+  useEffect(() => {
+    const handler = () => setZoom(map.getZoom());
+    map.on('zoom', handler);
+    setZoom(map.getZoom());
+    return () => { map.off('zoom', handler); };
+  }, [map]);
+  return zoom;
+}
+
+// Polyline that scales its stroke weight based on current zoom to stay readable
+// at both zoomed-out and zoomed-in views. Base weight is calibrated around zoom 12.
+function ZoomAwarePolyline({
+  positions,
+  color,
+  baseWeight,
+  opacity,
+  dashArray,
+  className,
+  lineCap = 'round',
+  lineJoin = 'round'
+}: {
+  positions: [number, number][];
+  color: string;
+  baseWeight: number;
+  opacity: number;
+  dashArray?: string;
+  className?: string;
+  lineCap?: 'round' | 'butt' | 'square';
+  lineJoin?: 'round' | 'bevel' | 'miter';
+}) {
+  const zoom = useMapZoom();
+  // Smoothly increase weight at high zooms and keep it legible at low zooms
+  const weight = Math.max(baseWeight, baseWeight + (zoom - 12) * 0.35);
+
+  return (
+    <Polyline
+      positions={positions}
+      color={color}
+      weight={weight}
+      opacity={opacity}
+      dashArray={dashArray}
+      className={className}
+      lineCap={lineCap}
+      lineJoin={lineJoin}
+    />
+  );
+}
+
+// Route polyline with a dark halo outline so it stays visible on any tile style
+function RoutePolyline({
+  positions,
+  color,
+  baseWeight,
+  opacity,
+  dashArray,
+  isFastest
+}: {
+  positions: [number, number][];
+  color: string;
+  baseWeight: number;
+  opacity: number;
+  dashArray?: string;
+  isFastest: boolean;
+}) {
+  const zoom = useMapZoom();
+  const weight = Math.max(baseWeight, baseWeight + (zoom - 12) * 0.35);
+  const outlineWeight = weight + 3.5;
+
+  return (
+    <>
+      <Polyline
+        positions={positions}
+        color="#0b1220"
+        weight={outlineWeight}
+        opacity={0.42}
+        lineCap="round"
+        lineJoin="round"
+      />
+      <Polyline
+        positions={positions}
+        color={color}
+        weight={weight}
+        opacity={opacity}
+        dashArray={dashArray}
+        lineCap="round"
+        lineJoin="round"
+      />
+      {isFastest && (
+        <Polyline
+          positions={positions}
+          color="#ffffff"
+          weight={Math.max(1, weight * 0.25)}
+          opacity={0.5}
+          dashArray="2, 10"
+          lineCap="round"
+          lineJoin="round"
+        />
+      )}
+    </>
+  );
+}
+
 // Controller component to center & handle map actions programmatically
 function MapController({
   coords,
@@ -152,6 +258,7 @@ function MapController({
 
   return null;
 }
+
 
 
 // Custom select dropdown component supporting search and multi-select
@@ -1353,18 +1460,23 @@ export function LotacoesMapModal({
               {/* Ruler line rendering (multi-point + live preview + segment labels) */}
               {isRulerActive && rulerPoints.length > 0 && (
                 <>
-                  {/* Committed polyline (solid) */}
+                  {/* Committed polyline (solid) with zoom-aware weight for readability */}
                   {rulerPoints.length >= 2 && (
-                    <Polyline positions={rulerPoints} color="#38bdf8" weight={3} opacity={0.95} />
+                    <ZoomAwarePolyline
+                      positions={rulerPoints}
+                      color="#38bdf8"
+                      baseWeight={4}
+                      opacity={0.95}
+                    />
                   )}
                   {/* Live preview from last point to cursor (dashed) */}
                   {!isRulerFinished && rulerCursor && (
-                    <Polyline
+                    <ZoomAwarePolyline
                       positions={[rulerPoints[rulerPoints.length - 1], rulerCursor]}
-                      color="#38bdf8"
-                      dashArray="6, 8"
-                      weight={2}
-                      opacity={0.7}
+                      color="#7dd3fc"
+                      baseWeight={3}
+                      opacity={0.85}
+                      dashArray="8, 8"
                     />
                   )}
                   {/* Segment midpoint labels */}
@@ -1401,17 +1513,19 @@ export function LotacoesMapModal({
                   })}
                   {/* Real driving routes (OSRM) — fastest highlighted + alternative dimmed */}
                   {routes.slice(0, 2).map((r, idx) => (
-                    <Polyline
+                    <RoutePolyline
                       key={`route-${idx}`}
                       positions={r.geometry}
                       color={idx === 0 ? '#3759F9' : '#6010C0'}
-                      weight={idx === 0 ? 5 : 3.5}
-                      opacity={idx === 0 ? 0.95 : 0.7}
-                      dashArray={idx === 0 ? undefined : '10, 6'}
+                      baseWeight={idx === 0 ? 5.5 : 4}
+                      opacity={idx === 0 ? 0.95 : 0.8}
+                      dashArray={idx === 0 ? undefined : '12, 10'}
+                      isFastest={idx === 0}
                     />
                   ))}
                 </>
               )}
+
             </MapContainer>
 
             {/* Custom Interactive Floating Map Controls */}
