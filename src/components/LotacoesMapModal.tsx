@@ -101,6 +101,112 @@ function compassDirection(deg: number): string {
   return dirs[Math.round(deg / 45) % 8];
 }
 
+// Hook that returns current zoom so polylines can scale their weight dynamically
+function useMapZoom() {
+  const map = useMap();
+  const [zoom, setZoom] = useState(map.getZoom());
+  useEffect(() => {
+    const handler = () => setZoom(map.getZoom());
+    map.on('zoom', handler);
+    setZoom(map.getZoom());
+    return () => { map.off('zoom', handler); };
+  }, [map]);
+  return zoom;
+}
+
+// Polyline that scales its stroke weight based on current zoom to stay readable
+// at both zoomed-out and zoomed-in views. Base weight is calibrated around zoom 12.
+function ZoomAwarePolyline({
+  positions,
+  color,
+  baseWeight,
+  opacity,
+  dashArray,
+  className,
+  lineCap = 'round',
+  lineJoin = 'round'
+}: {
+  positions: [number, number][];
+  color: string;
+  baseWeight: number;
+  opacity: number;
+  dashArray?: string;
+  className?: string;
+  lineCap?: 'round' | 'butt' | 'square';
+  lineJoin?: 'round' | 'bevel' | 'miter';
+}) {
+  const zoom = useMapZoom();
+  // Smoothly increase weight at high zooms and keep it legible at low zooms
+  const weight = Math.max(baseWeight, baseWeight + (zoom - 12) * 0.35);
+
+  return (
+    <Polyline
+      positions={positions}
+      color={color}
+      weight={weight}
+      opacity={opacity}
+      dashArray={dashArray}
+      className={className}
+      lineCap={lineCap}
+      lineJoin={lineJoin}
+    />
+  );
+}
+
+// Route polyline with a dark halo outline so it stays visible on any tile style
+function RoutePolyline({
+  positions,
+  color,
+  baseWeight,
+  opacity,
+  dashArray,
+  isFastest
+}: {
+  positions: [number, number][];
+  color: string;
+  baseWeight: number;
+  opacity: number;
+  dashArray?: string;
+  isFastest: boolean;
+}) {
+  const zoom = useMapZoom();
+  const weight = Math.max(baseWeight, baseWeight + (zoom - 12) * 0.35);
+  const outlineWeight = weight + 3.5;
+
+  return (
+    <>
+      <Polyline
+        positions={positions}
+        color="#0b1220"
+        weight={outlineWeight}
+        opacity={0.42}
+        lineCap="round"
+        lineJoin="round"
+      />
+      <Polyline
+        positions={positions}
+        color={color}
+        weight={weight}
+        opacity={opacity}
+        dashArray={dashArray}
+        lineCap="round"
+        lineJoin="round"
+      />
+      {isFastest && (
+        <Polyline
+          positions={positions}
+          color="#ffffff"
+          weight={Math.max(1, weight * 0.25)}
+          opacity={0.5}
+          dashArray="2, 10"
+          lineCap="round"
+          lineJoin="round"
+        />
+      )}
+    </>
+  );
+}
+
 // Controller component to center & handle map actions programmatically
 function MapController({
   coords,
@@ -152,6 +258,7 @@ function MapController({
 
   return null;
 }
+
 
 
 // Custom select dropdown component supporting search and multi-select
