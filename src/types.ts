@@ -85,4 +85,40 @@ export interface AuthSession {
   expiresAt: number; // timestamp in ms
 }
 
+/* ------------------------------------------------------------------ */
+/* Banco de Horas                                                      */
+/* ------------------------------------------------------------------ */
+
+export type TipoHoraExtra = 'EX50' | 'EX100';
+
+export type OperacaoBancoHoras = 'adicionar' | 'retirar';
+
+export interface MovimentacaoBancoHoras {
+  id: string;
+  employeeId: string;
+  tipo: TipoHoraExtra;
+  operacao: OperacaoBancoHoras;
+  /** Quantidade movimentada, em minutos. */
+  minutos: number;
+  /** Saldo (em minutos) do tipo movimentado logo após a operação. */
+  saldoApos: number;
+  motivo: string;
+  /** Data da movimentação no formato YYYY-MM-DD. */
+  data: string;
+  /** Nome do usuário responsável pela movimentação. */
+  responsavel: string;
+  /** Timestamp ISO de criação do registro. */
+  criadoEm: string;
+}
+
+export interface SaldoBancoHoras {
+  /** Saldo EX50% em minutos. */
+  ex50: number;
+  /** Saldo EX100% em minutos. */
+  ex100: number;
+  /** Soma dos saldos em minutos. */
+  total: number;
+}
+
+
 

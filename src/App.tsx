@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { Search, Plus, Building2, LayoutDashboard, UserPlus, FileText, Settings, Users, Calendar, LogOut, UserCheck, Download, CheckCircle2, Bell, X } from 'lucide-react';
+import { Search, Plus, Building2, LayoutDashboard, UserPlus, FileText, Settings, Users, Calendar, Clock, LogOut, UserCheck, Download, CheckCircle2, Bell, X } from 'lucide-react';
 import { Employee, Coordenacao, Contrato, Unidade, Empresa, AuthSession, VacationPlan } from './types';
 import { formatEmployeeName } from './utils';
 import { useAuth } from './context/AuthContext';
@@ -15,6 +15,7 @@ import { RegistrationPanel } from './components/RegistrationPanel';
 import { WhatsAppConfirmModal } from './components/WhatsAppConfirmModal';
 import { MapaLotacoesWidget } from './components/MapaLotacoesWidget';
 import { VacationPlanning } from './components/VacationPlanning';
+import { BancoHoras } from './components/BancoHoras';
 import { Reports } from './components/Reports';
 import { PWAInstallPrompt } from './components/PWAInstallPrompt';
 import { BirthdayToasts } from './components/BirthdayToasts';
@@ -45,7 +46,7 @@ export default function App() {
   const [unidades, setUnidades] = useState<Unidade[]>([]);
   const [empresas, setEmpresas] = useState<Empresa[]>([]);
   const [vacationPlans, setVacationPlans] = useState<VacationPlan[]>([]);
-  const [currentView, setCurrentView] = useState<'painel' | 'configuracao' | 'relatorios' | 'ferias'>('painel');
+  const [currentView, setCurrentView] = useState<'painel' | 'configuracao' | 'relatorios' | 'ferias' | 'banco-horas'>('painel');
   const [installToast, setInstallToast] = useState(false);
 
   // Fonte única da verdade: aplica os filtros globais em toda a aplicação.
@@ -297,6 +298,9 @@ export default function App() {
         />
       );
     }
+    if (currentView === 'banco-horas') {
+      return <BancoHoras employees={employees} />;
+    }
     if (currentView === 'relatorios') {
       return (
         <Reports
@@ -459,6 +463,13 @@ export default function App() {
                 >
                   <Calendar className="w-5 h-5 shrink-0" />
                   <span className="text-sm">Planejamento de Férias</span>
+                </button>
+                <button
+                  onClick={() => setCurrentView('banco-horas')}
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors text-left ${currentView === 'banco-horas' ? 'bg-black/20 text-white font-medium shadow-inner' : 'text-brand-muted hover:text-white hover:bg-black/10'}`}
+                >
+                  <Clock className="w-5 h-5 shrink-0" />
+                  <span className="text-sm">Banco de Horas</span>
                 </button>
                 <button
                   onClick={() => setCurrentView('relatorios')}
