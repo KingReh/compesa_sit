@@ -1,95 +1,56 @@
-# Sugestão de novo recurso: **Central de Notificações + Command Palette**
+# Banco de Horas — Nova seção (somente frontend)
 
-Foco: **Experiência do Usuário** • Esforço: **Novo recurso médio**
+Nova página "Banco de Horas" para acompanhar horas extras acumuladas (EX50% e EX100%) por colaborador, com saldos, movimentações e histórico. Sem qualquer alteração no backend/banco nesta etapa.
 
-Dois módulos complementares que trabalham juntos para reduzir cliques, dar visibilidade proativa de eventos importantes e acelerar a navegação — sem alterar regras de negócio existentes.
+## Navegação
 
----
+- Novo item "Banco de Horas" no menu lateral (ícone de relógio), na mesma lista de Painel Executivo / Férias / Relatórios / Configurações.
+- Nova view `banco-horas` no controle de views do App, seguindo o padrão atual.
 
-## 1. Central de Notificações (sino no cabeçalho)
+## Página principal
 
-Um painel unificado, acessível pelo ícone de sino no header (ao lado do botão "Sair"), que agrega em tempo real eventos relevantes derivados dos dados já carregados na sessão.
+Cabeçalho com título e 3 cards de KPI no padrão visual existente:
+- Total EX50% acumulado
+- Total EX100% acumulado
+- Colaboradores com saldo positivo
 
-### Tipos de notificações (geradas automaticamente a partir do estado atual)
+Barra de ferramentas:
+- Campo de pesquisa por nome/matrícula com botão "X" de limpeza rápida (mesmo padrão do Painel).
+- Filtro por tipo de saldo: Todos / Com EX50% / Com EX100% / Sem saldo.
+- Ordenação: Nome, Maior EX50%, Maior EX100%, Maior total.
+- Alternância tabela / cards (desktop mostra tabela, mobile sempre cards).
 
-- 🎂 **Aniversariantes** (hoje e da semana) — consolidando o mesmo cálculo já feito pelo `BirthdayToasts`.
-- 🏖️ **Férias começando nos próximos 7 dias** — a partir de `vacationPlansService`.
-- ⚠️ **Impacto de cobertura** — alerta quando um mês tem mais de X% do efetivo de uma coordenação em férias no mesmo período.
-- 📄 **Cadastros incompletos** — funcionários sem `telefone`, `foto` ou `dataNascimento` preenchidos.
-- 🚗 **Condutores** — quando alguém for marcado como "autorizado a dirigir" e faltarem dados obrigatórios.
-- 🆕 **Novidades do sistema** — mensagens estáticas versionadas (changelog leve).
+Listagem:
+- Desktop: tabela com foto+nome, matrícula, lotação, EX50%, EX100%, Total, ações.
+- Mobile: cards empilhados com os mesmos dados e botões de ação em largura total.
+- Saldos exibidos em formato `HH:MM` com destaque de cor (positivo/zerado).
+- Ações por linha: "Movimentar" e "Detalhes".
 
-### Comportamento
+## Movimentação (modal)
 
-- Badge com contador de não lidas no sino.
-- Painel dropdown ancorado (largura ~380px desktop / full-width mobile) com filtro por tipo.
-- Cada item tem: ícone, título, descrição curta, timestamp relativo (“hoje”, “em 2 dias”) e uma **ação primária** (ex: “Ver funcionário”, “Abrir cronograma”).
-- Estado "lida/não lida" persistido em `localStorage` (`@sit:notifications:read`).
-- Botão "Marcar todas como lidas" e "Silenciar até amanhã".
-- Respeita `prefers-reduced-motion` e safe-area no mobile.
+Modal no padrão dos modais existentes (portal + overlay desfocado), com:
+- Tipo da hora: EX50% / EX100% (toggle)
+- Operação: Adicionar / Retirar (toggle, cores verde/vermelho)
+- Quantidade de horas: entrada em `HH:MM` com máscara e validação
+- Data da movimentação (padrão: hoje, aceita colar data como nos outros campos)
+- Motivo/descrição (obrigatório, textarea)
+- Prévia do saldo resultante antes de confirmar
+- Bloqueio de retirada maior que o saldo, com mensagem clara
+- Ao confirmar, o saldo é atualizado imediatamente na lista e a movimentação entra no histórico.
 
----
+## Detalhes e histórico (drawer/modal)
 
-## 2. Command Palette (⌘K / Ctrl+K)
-
-Barra de comandos global inspirada em ferramentas modernas (Linear, Raycast, GitHub), acionada por atalho de teclado ou por um botão discreto no header.
-
-### Capacidades
-
-- **Navegação instantânea**: “Ir para Painel”, “Ir para Férias”, “Ir para Relatórios”, “Ir para Configuração”.
-- **Busca global de funcionários** por nome, matrícula ou CPF, abrindo direto o `ViewModal`.
-- **Busca de empresas, contratos, unidades e coordenações** com ação de abrir na aba correspondente do `RegistrationPanel`.
-- **Ações rápidas**: “Cadastrar novo funcionário”, “Exportar relatório XLSX”, “Ver condutores credenciados”, “Sair do sistema”.
-- **Histórico** dos últimos 5 comandos usados (persistido em `localStorage`).
-
-### UX
-
-- Atalho `Ctrl/⌘ + K` global; `Esc` fecha; setas navegam; `Enter` executa.
-- Resultados agrupados por seção (Navegação · Pessoas · Empresas · Ações).
-- Modal centralizado com backdrop `blur`, focus trap e ARIA (`role="dialog"`).
-- Dica visual "⌘K" no header ao lado da busca existente.
-
----
+- Cabeçalho com foto, nome, matrícula, lotação e os dois saldos.
+- Histórico em tabela (desktop) / timeline de cards (mobile) com: data, tipo da hora, operação (badge + / -), quantidade, saldo após a movimentação, motivo e responsável.
+- Filtro do histórico por tipo de hora e ordenação por data (mais recente primeiro).
+- Estado vazio ilustrado quando não houver movimentações.
 
 ## Detalhes técnicos
 
-```text
-src/components/
-├── NotificationCenter/
-│   ├── NotificationCenter.tsx      # botão-sino + dropdown
-│   ├── useNotifications.ts         # deriva itens de employees/vacations
-│   ├── NotificationItem.tsx
-│   └── notificationStore.ts        # read/unread em localStorage
-└── CommandPalette/
-    ├── CommandPalette.tsx          # modal + input + lista
-    ├── useCommandItems.ts          # gera itens a partir do estado do App
-    └── useHotkey.ts                # registra ⌘K globalmente
-```
-
-Integrações no `App.tsx`:
-
-- Injetar `NotificationCenter` no header (perto do botão "Sair").
-- Montar `CommandPalette` em nível de app; expor callbacks já existentes (`setCurrentView`, `handleOpenNew`, `setIsDriversModalOpen`, `handleView`) para as ações.
-- Reaproveitar `parseLocalDate`, `formatEmployeeName` e `vacationPlansService` já presentes.
-
-Estilo:
-- Usar as classes/tokens existentes (`sit-panel`, `sit-panel-inner`, `brand-accent`, `brand-muted`) — sem introduzir novo design system.
-- Animações leves com `motion/react` (já instalado).
-
-Acessibilidade:
-- Sino e trigger do palette com `aria-label` e `aria-expanded`.
-- Focus trap, `Esc` para fechar, navegação por teclado completa.
-- Anúncio via `aria-live="polite"` quando novas notificações aparecerem.
-
-Sem alterações de backend, sem novas dependências, sem mudanças em serviços.
-
----
-
-## Entregáveis
-
-1. Central de Notificações funcional no header, com pelo menos 4 tipos de notificação derivadas do estado atual.
-2. Command Palette global com navegação, busca de pessoas e ações rápidas.
-3. Persistência local de leitura e histórico.
-4. Documentação curta no topo dos arquivos principais explicando a origem dos dados.
-
-Se preferir, posso implementar **apenas a Central de Notificações** primeiro (menor risco/tempo) e o Command Palette num segundo passo — é só me avisar.
+- Novos arquivos: `src/components/BancoHoras.tsx` (página), `src/components/BancoHorasMovimentacaoModal.tsx`, `src/components/BancoHorasDetalhesModal.tsx`, `src/utils/horas.ts` (parse/format `HH:MM`, soma/subtração em minutos).
+- Tipos novos em `src/types.ts`: `TipoHoraExtra = 'EX50' | 'EX100'`, `MovimentacaoBancoHoras` (id, employeeId, tipo, operacao, minutos, saldoApos, motivo, data, responsavel) e `SaldoBancoHoras`.
+- Estado gerido por um hook local `useBancoHoras` com dados em memória (seed vazio) + persistência leve em localStorage apenas para não perder o trabalho durante a validação; a camada de leitura/escrita fica isolada em um único módulo para que a troca por serviço Supabase seja um único ponto de alteração no futuro.
+- Saldos calculados a partir das movimentações (fonte da verdade), sempre em minutos internamente.
+- Campo "responsável" preenchido com o usuário logado do contexto de autenticação atual.
+- Reuso dos filtros globais existentes (empresa/coordenação/lotação) para a listagem, além da pesquisa própria da página.
+- Nenhum arquivo de backend, migração, serviço Supabase ou tipo gerado será tocado.
