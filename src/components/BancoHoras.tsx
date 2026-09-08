@@ -222,9 +222,17 @@ export function BancoHoras({ employees }: Props) {
             <table className="min-w-full text-left">
               <thead>
                 <tr className="border-b border-white/5">
-                  {['Colaborador', 'Matrícula', 'Lotação', 'EX50%', 'EX100%', 'Total', 'Ações'].map((h) => (
-                    <th key={h} className="typ-subtitle text-brand-muted px-4 py-3 whitespace-nowrap">
-                      {h}
+                  {[
+                    { label: 'Colaborador' },
+                    { label: 'Matrícula' },
+                    { label: 'Coordenação', className: 'w-[140px] truncate' },
+                    { label: 'EX50%' },
+                    { label: 'EX100%' },
+                    { label: 'Total' },
+                    { label: 'Ações' }
+                  ].map((h) => (
+                    <th key={h.label} className={`typ-subtitle text-brand-muted px-4 py-3 whitespace-nowrap ${h.className || ''}`}>
+                      {h.label}
                     </th>
                   ))}
                 </tr>
@@ -251,8 +259,8 @@ export function BancoHoras({ employees }: Props) {
                         </div>
                       </td>
                       <td className="px-4 py-3 typ-mono-meta text-brand-muted whitespace-nowrap">{emp.matricula}</td>
-                      <td className="px-4 py-3 typ-card-desc text-brand-muted max-w-[180px] truncate">
-                        {emp.lotacao || '—'}
+                      <td className="px-4 py-3 typ-card-desc text-brand-muted w-[140px] max-w-[140px] truncate">
+                        {emp.coordenacao || '—'}
                       </td>
                       <td className={`px-4 py-3 typ-mono-meta ${s.ex50 > 0 ? 'text-emerald-300' : 'text-brand-muted'}`}>
                         {formatMinutosToHoras(s.ex50)}
@@ -311,7 +319,7 @@ export function BancoHoras({ employees }: Props) {
                     <div className="min-w-0">
                       <p className="typ-card-title text-white truncate">{emp.nome}</p>
                       <p className="typ-card-desc text-brand-muted truncate">
-                        {emp.matricula} · {emp.lotacao || 'Sem lotação'}
+                        {emp.matricula} · {emp.coordenacao || 'Sem coordenação'}
                       </p>
                     </div>
                   </div>
