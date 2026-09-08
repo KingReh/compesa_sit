@@ -1,44 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { MovimentacaoBancoHoras, SaldoBancoHoras, TipoHoraExtra } from '../types';
-
-/**
- * Camada única de leitura/escrita das movimentações do Banco de Horas.
- *
- * ⚠️ ETAPA ATUAL: somente frontend. Os dados vivem em memória e são espelhados
- * em localStorage apenas para não perder o trabalho durante a validação da UI.
- * Quando o backend for autorizado, basta substituir as três funções abaixo
- * (loadAll / persistAll / createId) por chamadas ao serviço correspondente —
- * nenhum componente precisará ser alterado.
- */
+import { hourBankService } from '../services/hourBankService';
 
 const STORAGE_KEY = '@sit:bancoHoras:movimentacoes';
-
-function loadAll(): MovimentacaoBancoHoras[] {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? (parsed as MovimentacaoBancoHoras[]) : [];
-  } catch {
-    return [];
-  }
-}
-
-function persistAll(movimentacoes: MovimentacaoBancoHoras[]) {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(movimentacoes));
-  } catch {
-    /* noop */
-  }
-}
-
-function createId(): string {
-  try {
-    return crypto.randomUUID();
-  } catch {
-    return `mov_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
-  }
-}
 
 export const SALDO_ZERADO: SaldoBancoHoras = { ex50: 0, ex100: 0, total: 0 };
 
@@ -50,14 +14,50 @@ export interface NovaMovimentacao {
   motivo: string;
   data: string;
   responsavel: string;
+  responsavelId?: string | null;
 }
 
 export function useBancoHoras() {
-  const [movimentacoes, setMovimentacoes] = useState<MovimentacaoBancoHoras[]>(() => loadAll());
+  const [movimentacoes, setMovimentacoes] = useState<MovimentacaoBancoHoras[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const carregarDados = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      // 1. Migração leve de itens do localStorage (se existirem)
+      if (typeof window !== 'undefined') {
+        const raw = window.localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          try {
+            const localItems = JSON.parse(raw);
+            if (Array.isArray(localItems) && localItems.length > 0) {
+              console.info(`Migrando ${localItems.length} movimentações locais para o Supabase...`);
+              await hourBankService.bulkInsertEntries(localItems);
+            }
+            window.localStorage.removeItem(STORAGE_KEY);
+          } catch (migrationErr) {
+            console.warn('Aviso: Falha ao migrar dados locais antigos do banco de horas:', migrationErr);
+          }
+        }
+      }
+
+      // 2. Consulta a lista consolidada no Supabase
+      const dados = await hourBankService.listEntries();
+      setMovimentacoes(dados);
+    } catch (err: any) {
+      console.error('Erro ao carregar movimentações do Supabase:', err);
+      setError(err?.message || 'Falha ao carregar as movimentações do banco de horas.');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    persistAll(movimentacoes);
-  }, [movimentacoes]);
+    carregarDados();
+  }, [carregarDados]);
 
   /** Saldos por funcionário, derivados das movimentações (fonte da verdade). */
   const saldos = useMemo(() => {
@@ -93,37 +93,38 @@ export function useBancoHoras() {
   );
 
   const registrarMovimentacao = useCallback(
-    (nova: NovaMovimentacao) => {
-      setMovimentacoes((prev) => {
-        // Recalcula o saldo do funcionário para gravar o "saldo após".
-        const doFuncionario = prev.filter((m) => m.employeeId === nova.employeeId);
-        let ex50 = 0;
-        let ex100 = 0;
-        for (const m of doFuncionario) {
-          const d = m.operacao === 'adicionar' ? m.minutos : -m.minutos;
-          if (m.tipo === 'EX50') ex50 += d;
-          else ex100 += d;
-        }
-        const delta = nova.operacao === 'adicionar' ? nova.minutos : -nova.minutos;
-        if (nova.tipo === 'EX50') ex50 += delta;
-        else ex100 += delta;
+    async (nova: NovaMovimentacao): Promise<MovimentacaoBancoHoras> => {
+      // Recalcula o saldo do funcionário para gravar o "saldo após".
+      const doFuncionario = movimentacoes.filter((m) => m.employeeId === nova.employeeId);
+      let ex50 = 0;
+      let ex100 = 0;
+      for (const m of doFuncionario) {
+        const d = m.operacao === 'adicionar' ? m.minutos : -m.minutos;
+        if (m.tipo === 'EX50') ex50 += d;
+        else ex100 += d;
+      }
+      const delta = nova.operacao === 'adicionar' ? nova.minutos : -nova.minutos;
+      if (nova.tipo === 'EX50') ex50 += delta;
+      else ex100 += delta;
 
-        const registro: MovimentacaoBancoHoras = {
-          id: createId(),
-          employeeId: nova.employeeId,
-          tipo: nova.tipo,
-          operacao: nova.operacao,
-          minutos: nova.minutos,
-          saldoApos: nova.tipo === 'EX50' ? ex50 : ex100,
-          motivo: nova.motivo,
-          data: nova.data,
-          responsavel: nova.responsavel,
-          criadoEm: new Date().toISOString(),
-        };
-        return [...prev, registro];
+      const saldoApos = nova.tipo === 'EX50' ? ex50 : ex100;
+
+      const criado = await hourBankService.createEntry({
+        employeeId: nova.employeeId,
+        tipo: nova.tipo,
+        operacao: nova.operacao,
+        minutos: nova.minutos,
+        saldoApos,
+        motivo: nova.motivo,
+        data: nova.data,
+        responsavel: nova.responsavel,
+        responsavelId: nova.responsavelId,
       });
+
+      setMovimentacoes((prev) => [criado, ...prev]);
+      return criado;
     },
-    []
+    [movimentacoes]
   );
 
   const totais = useMemo(() => {
@@ -138,5 +139,14 @@ export function useBancoHoras() {
     return { ex50, ex100, comSaldo };
   }, [saldos]);
 
-  return { movimentacoes, getSaldo, getHistorico, registrarMovimentacao, totais };
+  return {
+    movimentacoes,
+    loading,
+    error,
+    getSaldo,
+    getHistorico,
+    registrarMovimentacao,
+    totais,
+    reload: carregarDados,
+  };
 }
