@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Search, X, Clock, Plus, Eye, User, ArrowUpDown, LayoutGrid, List, Users } from 'lucide-react';
+import { Search, X, Clock, Plus, Eye, User, ArrowUpDown, LayoutGrid, List, Users, Loader2, AlertTriangle, RefreshCw } from 'lucide-react';
 import { Employee, TipoHoraExtra } from '../types';
 import { useAuth } from '../context/AuthContext';
 import { useFilters } from '../context/FiltersContext';
@@ -34,7 +34,7 @@ function loadStoredViewMode(): ViewMode {
 export function BancoHoras({ employees }: Props) {
   const { user } = useAuth();
   const { applyFilters } = useFilters();
-  const { getSaldo, getHistorico, registrarMovimentacao, totais } = useBancoHoras();
+  const { getSaldo, getHistorico, registrarMovimentacao, totais, loading, error, reload } = useBancoHoras();
 
   const [busca, setBusca] = useState('');
   const [filtroSaldo, setFiltroSaldo] = useState<FiltroSaldo>('todos');
@@ -86,7 +86,7 @@ export function BancoHoras({ employees }: Props) {
     return sorted;
   }, [applyFilters, employees, busca, filtroSaldo, ordenacao, getSaldo]);
 
-  const handleConfirmMov = (payload: {
+  const handleConfirmMov = async (payload: {
     tipo: TipoHoraExtra;
     operacao: 'adicionar' | 'retirar';
     minutos: number;
@@ -94,9 +94,13 @@ export function BancoHoras({ employees }: Props) {
     data: string;
   }) => {
     if (!movEmployee) return;
-    registrarMovimentacao({
+    const isUuid =
+      user?.id &&
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(user.id);
+    await registrarMovimentacao({
       employeeId: movEmployee.id,
       responsavel: user?.nome || 'Usuário do sistema',
+      responsavelId: isUuid ? user.id : null,
       ...payload,
     });
   };
@@ -222,8 +226,34 @@ export function BancoHoras({ employees }: Props) {
         </div>
       </div>
 
+      {/* Mensagem de Erro (se houver) */}
+      {error && (
+        <div className="sit-panel p-4 mb-4 border border-rose-500/30 bg-rose-500/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-2 text-rose-300">
+            <AlertTriangle className="h-5 w-5 shrink-0" />
+            <p className="typ-card-desc text-rose-200">{error}</p>
+          </div>
+          <button
+            type="button"
+            onClick={() => reload()}
+            className="inline-flex items-center gap-2 rounded-lg px-3 py-1.5 text-xs font-semibold bg-rose-500/20 text-rose-200 hover:bg-rose-500/30 transition-colors shrink-0"
+          >
+            <RefreshCw className="h-3.5 w-3.5" />
+            Tentar novamente
+          </button>
+        </div>
+      )}
+
       {/* Listagem */}
-      {lista.length === 0 ? (
+      {loading ? (
+        <div className="sit-panel p-12 text-center">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto text-brand-accent mb-3" />
+          <p className="typ-card-title">Carregando banco de horas...</p>
+          <p className="typ-card-desc text-brand-muted mt-1">
+            Buscando movimentações e saldos no banco de dados.
+          </p>
+        </div>
+      ) : lista.length === 0 ? (
         <div className="sit-panel p-10 text-center">
           <Users className="h-8 w-8 mx-auto text-brand-muted/60 mb-3" />
           <p className="typ-card-title">Nenhum colaborador encontrado</p>
