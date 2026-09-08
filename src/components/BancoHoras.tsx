@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Search, X, Clock, Plus, Eye, User, ArrowUpDown, LayoutGrid, List, Users } from 'lucide-react';
 import { Employee, TipoHoraExtra } from '../types';
 import { useAuth } from '../context/AuthContext';
@@ -14,12 +14,21 @@ interface Props {
 
 type FiltroSaldo = 'todos' | 'ex50' | 'ex100' | 'sem';
 type Ordenacao = 'nome' | 'ex50' | 'ex100' | 'total';
+type ViewMode = 'tabela' | 'cards';
+
+const VIEW_MODE_KEY = '@sit:bancoHoras:viewMode';
 
 function normalize(v: string) {
   return v
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
     .toLowerCase();
+}
+
+function loadStoredViewMode(): ViewMode {
+  if (typeof window === 'undefined') return 'tabela';
+  const stored = window.localStorage.getItem(VIEW_MODE_KEY);
+  return stored === 'cards' ? 'cards' : 'tabela';
 }
 
 export function BancoHoras({ employees }: Props) {
@@ -30,7 +39,12 @@ export function BancoHoras({ employees }: Props) {
   const [busca, setBusca] = useState('');
   const [filtroSaldo, setFiltroSaldo] = useState<FiltroSaldo>('todos');
   const [ordenacao, setOrdenacao] = useState<Ordenacao>('nome');
-  const [viewMode, setViewMode] = useState<'tabela' | 'cards'>('tabela');
+  const [viewMode, setViewMode] = useState<ViewMode>(() => loadStoredViewMode());
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    window.localStorage.setItem(VIEW_MODE_KEY, viewMode);
+  }, [viewMode]);
 
   const [movEmployee, setMovEmployee] = useState<Employee | null>(null);
   const [tipoInicial, setTipoInicial] = useState<TipoHoraExtra>('EX50');
