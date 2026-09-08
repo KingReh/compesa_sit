@@ -107,6 +107,8 @@ export interface MovimentacaoBancoHoras {
   data: string;
   /** Nome do usuário responsável pela movimentação. */
   responsavel: string;
+  /** ID do perfil do usuário responsável pela movimentação (FK profiles.id). */
+  responsavelId?: string | null;
   /** Timestamp ISO de criação do registro. */
   criadoEm: string;
 }
