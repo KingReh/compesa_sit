@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Plus, Minus, Clock, AlertTriangle } from 'lucide-react';
+import { X, Plus, Minus, Clock, AlertTriangle, Loader2 } from 'lucide-react';
 import { Employee, SaldoBancoHoras, TipoHoraExtra } from '../types';
 import { formatMinutosToHoras, labelTipoHora, maskHoras, parseHorasToMinutos } from '../utils/horas';
 import { parseLocalDate } from '../utils';
@@ -17,7 +17,7 @@ interface Props {
     minutos: number;
     motivo: string;
     data: string;
-  }) => void;
+  }) => Promise<void> | void;
 }
 
 function hojeISO() {
@@ -40,6 +40,7 @@ export function BancoHorasMovimentacaoModal({
   const [data, setData] = useState(hojeISO());
   const [motivo, setMotivo] = useState('');
   const [erro, setErro] = useState<string | null>(null);
+  const [salvando, setSalvando] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -49,17 +50,18 @@ export function BancoHorasMovimentacaoModal({
       setData(hojeISO());
       setMotivo('');
       setErro(null);
+      setSalvando(false);
     }
   }, [isOpen, tipoInicial]);
 
   useEffect(() => {
     if (!isOpen) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape' && !salvando) onClose();
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [isOpen, onClose]);
+  }, [isOpen, onClose, salvando]);
 
   const minutos = useMemo(() => parseHorasToMinutos(quantidade) ?? 0, [quantidade]);
   const saldoAtual = tipo === 'EX50' ? saldo.ex50 : saldo.ex100;
@@ -78,8 +80,9 @@ export function BancoHorasMovimentacaoModal({
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (salvando) return;
     if (minutos <= 0) {
       setErro('Informe uma quantidade de horas válida (formato HH:MM).');
       return;
@@ -94,8 +97,18 @@ export function BancoHorasMovimentacaoModal({
       );
       return;
     }
-    onConfirm({ tipo, operacao, minutos, motivo: motivo.trim(), data });
-    onClose();
+
+    try {
+      setSalvando(true);
+      setErro(null);
+      await onConfirm({ tipo, operacao, minutos, motivo: motivo.trim(), data });
+      onClose();
+    } catch (err: any) {
+      console.error('Falha ao confirmar movimentação:', err);
+      setErro(err?.message || 'Falha ao salvar a movimentação no banco de dados. Tente novamente.');
+    } finally {
+      setSalvando(false);
+    }
   };
 
   const toggleBase =
@@ -104,7 +117,7 @@ export function BancoHorasMovimentacaoModal({
   return createPortal(
     <div
       onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
+        if (e.target === e.currentTarget && !salvando) onClose();
       }}
       className="fixed inset-0 z-50 flex items-end sm:items-center justify-center overflow-y-auto bg-black/60 backdrop-blur-sm sm:p-4 animate-fade-in"
       role="dialog"
@@ -122,8 +135,9 @@ export function BancoHorasMovimentacaoModal({
           </div>
           <button
             onClick={onClose}
+            disabled={salvando}
             aria-label="Fechar"
-            className="rounded-full p-1.5 text-brand-muted hover:bg-brand-panel-light hover:text-white transition-colors shrink-0"
+            className="rounded-full p-1.5 text-brand-muted hover:bg-brand-panel-light hover:text-white transition-colors shrink-0 disabled:opacity-50"
           >
             <X className="h-5 w-5" />
           </button>
@@ -260,16 +274,24 @@ export function BancoHorasMovimentacaoModal({
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 rounded-lg px-4 py-2.5 typ-card-title bg-brand-panel-light/30 border border-brand-border hover:bg-brand-panel-light transition-colors text-white"
+              disabled={salvando}
+              className="flex-1 rounded-lg px-4 py-2.5 typ-card-title bg-brand-panel-light/30 border border-brand-border hover:bg-brand-panel-light transition-colors text-white disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Cancelar
             </button>
             <button
               type="submit"
-              disabled={excedeSaldo}
+              disabled={excedeSaldo || salvando}
               className="sit-button-primary flex-1 inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-bold disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Confirmar movimentação
+              {salvando ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span>Gravando...</span>
+                </>
+              ) : (
+                'Confirmar movimentação'
+              )}
             </button>
           </div>
         </form>
