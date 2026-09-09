@@ -126,4 +126,22 @@ export const hourBankService = {
       throw error;
     }
   },
+
+  /** Saldo total (EX50 + EX100), em minutos, de um único colaborador. */
+  async getSaldoMinutos(employeeId: string): Promise<number> {
+    const { data, error } = await supabase
+      .from('hour_bank_entries')
+      .select('minutos, operacao')
+      .eq('employee_id', employeeId);
+
+    if (error) {
+      console.error('Erro ao calcular saldo do banco de horas:', error);
+      throw error;
+    }
+
+    return (data || []).reduce((acc: number, row: any) => {
+      const minutos = Number(row.minutos) || 0;
+      return acc + (row.operacao === 'adicionar' ? minutos : -minutos);
+    }, 0);
+  },
 };

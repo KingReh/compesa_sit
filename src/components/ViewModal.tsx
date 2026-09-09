@@ -405,6 +405,11 @@ export function ViewModal({ isOpen, onClose, employee, onAjustarPonto }: ViewMod
                   <Clock className="h-3.5 w-3.5 text-brand-accent" /> Escala de Trabalho
                 </span>
                 <p className="typ-card-title text-sm font-mono font-medium">{employee.escalaTrabalho || '-'}</p>
+                {saldoMinutos !== null && (
+                  <div className="mt-2">
+                    <FolgaBadge minutos={saldoMinutos} escalaTrabalho={employee.escalaTrabalho} />
+                  </div>
+                )}
               </div>
 
               {/* Data Admissão / Senioridade Box */}
