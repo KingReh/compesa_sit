@@ -25,7 +25,7 @@ const ESPECIALIDADES = [
 ];
 
 const ESCALAS = [
-  "HORÁRIO COMERCIAL", "12H x 36H", "24H x 72H", "12H x 24H e 12H x 48H", "12H x 24H"
+  "HORÁRIO COMERCIAL (Seg à Sex)", "HORÁRIO COMERCIAL (Seg à Sab)", "12H x 36H", "24H x 72H", "12H x 24H e 12H x 48H", "12H x 24H"
 ];
 
 const TAMANHOS_ROUPA = [
@@ -570,6 +570,9 @@ export function EmployeeModal({ isOpen, onClose, onSave, employeeToEdit, coorden
                         className="block w-full rounded-md sit-input py-1 px-2 text-xs"
                       >
                         <option value="" className="bg-[#0b4d8f]">Selecione...</option>
+                        {formData.escalaTrabalho && !ESCALAS.includes(formData.escalaTrabalho) && (
+                          <option value={formData.escalaTrabalho} className="bg-[#0b4d8f]">{formData.escalaTrabalho}</option>
+                        )}
                         {ESCALAS.map((opt) => (
                            <option key={opt} value={opt} className="bg-[#0b4d8f]">{opt}</option>
                         ))}
