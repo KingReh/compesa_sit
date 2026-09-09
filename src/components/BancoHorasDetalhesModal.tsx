@@ -4,6 +4,7 @@ import { X, Plus, Minus, User, History } from 'lucide-react';
 import { Employee, MovimentacaoBancoHoras, SaldoBancoHoras, TipoHoraExtra } from '../types';
 import { formatMinutosToHoras, labelTipoHora } from '../utils/horas';
 import { formatLocalDateBR } from '../utils';
+import { FolgaBadge } from './FolgaBadge';
 
 interface Props {
   isOpen: boolean;
@@ -115,6 +116,12 @@ export function BancoHorasDetalhesModal({
               <p className="typ-stat !text-xl font-mono text-white">{formatMinutosToHoras(saldo.total)}</p>
             </div>
           </div>
+
+          <div className="mt-3">
+            <FolgaBadge minutos={saldo.total} escalaTrabalho={employee.escalaTrabalho} />
+          </div>
+
+
 
           <button
             onClick={onMovimentar}
