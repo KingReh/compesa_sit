@@ -7,6 +7,7 @@ import { useBancoHoras } from '../hooks/useBancoHoras';
 import { formatMinutosToHoras } from '../utils/horas';
 import { BancoHorasMovimentacaoModal } from './BancoHorasMovimentacaoModal';
 import { BancoHorasDetalhesModal } from './BancoHorasDetalhesModal';
+import { FolgaBadge } from './FolgaBadge';
 
 interface Props {
   employees: Employee[];
@@ -299,7 +300,10 @@ export function BancoHoras({ employees }: Props) {
                               <User className="h-4 w-4 text-brand-muted" />
                             </div>
                           )}
-                          <span className="typ-card-title text-white truncate max-w-[220px]">{emp.nome}</span>
+                          <div className="min-w-0">
+                            <span className="typ-card-title text-white truncate max-w-[220px] block">{emp.nome}</span>
+                            <FolgaBadge minutos={s.total} escalaTrabalho={emp.escalaTrabalho} className="mt-1" />
+                          </div>
                         </div>
                       </td>
                       <td className="px-4 py-3 typ-mono-meta text-brand-muted whitespace-nowrap">{emp.matricula}</td>
@@ -365,6 +369,7 @@ export function BancoHoras({ employees }: Props) {
                       <p className="typ-card-desc text-brand-muted truncate">
                         {emp.matricula} · {emp.coordenacao || 'Sem coordenação'}
                       </p>
+                      <FolgaBadge minutos={s.total} escalaTrabalho={emp.escalaTrabalho} className="mt-1" />
                     </div>
                   </div>
 
