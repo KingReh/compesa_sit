@@ -248,6 +248,39 @@ export function BancoHorasDetalhesModal({
                   </div>
                 ))}
               </div>
+
+              {/* Paginação */}
+              {lista.length > POR_PAGINA && (
+                <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
+                  <p className="typ-card-desc text-brand-muted">
+                    {(paginaAtual - 1) * POR_PAGINA + 1}–
+                    {Math.min(paginaAtual * POR_PAGINA, lista.length)} de {lista.length} movimentações
+                  </p>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => setPagina((p) => Math.max(1, p - 1))}
+                      disabled={paginaAtual <= 1}
+                      aria-label="Página anterior"
+                      className="inline-flex items-center gap-1 rounded-lg px-3 py-1.5 typ-badge border bg-black/10 border-brand-border text-brand-muted hover:text-white transition-colors disabled:opacity-40 disabled:pointer-events-none"
+                    >
+                      <ChevronLeft className="h-3.5 w-3.5" /> Anterior
+                    </button>
+                    <span className="typ-mono-meta text-brand-muted px-2 whitespace-nowrap">
+                      {paginaAtual} / {totalPaginas}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setPagina((p) => Math.min(totalPaginas, p + 1))}
+                      disabled={paginaAtual >= totalPaginas}
+                      aria-label="Próxima página"
+                      className="inline-flex items-center gap-1 rounded-lg px-3 py-1.5 typ-badge border bg-black/10 border-brand-border text-brand-muted hover:text-white transition-colors disabled:opacity-40 disabled:pointer-events-none"
+                    >
+                      Próxima <ChevronRight className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                </div>
+              )}
             </>
           )}
         </div>
