@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Plus, Minus, User, History } from 'lucide-react';
+import { X, Plus, Minus, User, History, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Employee, MovimentacaoBancoHoras, SaldoBancoHoras, TipoHoraExtra } from '../types';
 import { formatMinutosToHoras, labelTipoHora } from '../utils/horas';
 import { formatLocalDateBR } from '../utils';
@@ -24,10 +24,18 @@ export function BancoHorasDetalhesModal({
   onMovimentar,
 }: Props) {
   const [filtroTipo, setFiltroTipo] = useState<'todos' | TipoHoraExtra>('todos');
+  const [pagina, setPagina] = useState(1);
 
   useEffect(() => {
-    if (isOpen) setFiltroTipo('todos');
+    if (isOpen) {
+      setFiltroTipo('todos');
+      setPagina(1);
+    }
   }, [isOpen]);
+
+  useEffect(() => {
+    setPagina(1);
+  }, [filtroTipo]);
 
   useEffect(() => {
     if (!isOpen) return;
