@@ -20,6 +20,9 @@ import {
 } from 'lucide-react';
 import { parseLocalDate, formatLocalDateBR } from '../utils';
 import { Employee } from '../types';
+import { FolgaBadge } from './FolgaBadge';
+import { calcularFolgas } from '../utils/horas';
+import { hourBankService } from '../services/hourBankService';
 
 interface ViewModalProps {
   isOpen: boolean;
@@ -33,6 +36,7 @@ type TabType = 'pessoais' | 'operacional' | 'suprimentos';
 export function ViewModal({ isOpen, onClose, employee, onAjustarPonto }: ViewModalProps) {
   const [activeTab, setActiveTab] = useState<TabType>('pessoais');
   const [copiedLabel, setCopiedLabel] = useState<string | null>(null);
+  const [saldoMinutos, setSaldoMinutos] = useState<number | null>(null);
 
   // Reset active tab to default when modal changes/opens
   useEffect(() => {
@@ -40,6 +44,27 @@ export function ViewModal({ isOpen, onClose, employee, onAjustarPonto }: ViewMod
       setActiveTab('pessoais');
       setCopiedLabel(null);
     }
+  }, [isOpen, employee]);
+
+  // Busca o saldo de horas extras apenas para escalas elegíveis a folga
+  useEffect(() => {
+    let cancelled = false;
+    setSaldoMinutos(null);
+    if (!isOpen || !employee?.id) return;
+    if (!calcularFolgas(0, employee.escalaTrabalho).elegivel) return;
+
+    hourBankService
+      .getSaldoMinutos(employee.id)
+      .then((minutos) => {
+        if (!cancelled) setSaldoMinutos(minutos);
+      })
+      .catch(() => {
+        if (!cancelled) setSaldoMinutos(null);
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, [isOpen, employee]);
 
   const handleCopyAll = () => {
