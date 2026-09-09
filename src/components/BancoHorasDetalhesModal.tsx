@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Plus, Minus, User, History } from 'lucide-react';
+import { X, Plus, Minus, User, History, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Employee, MovimentacaoBancoHoras, SaldoBancoHoras, TipoHoraExtra } from '../types';
 import { formatMinutosToHoras, labelTipoHora } from '../utils/horas';
 import { formatLocalDateBR } from '../utils';
@@ -24,10 +24,18 @@ export function BancoHorasDetalhesModal({
   onMovimentar,
 }: Props) {
   const [filtroTipo, setFiltroTipo] = useState<'todos' | TipoHoraExtra>('todos');
+  const [pagina, setPagina] = useState(1);
 
   useEffect(() => {
-    if (isOpen) setFiltroTipo('todos');
+    if (isOpen) {
+      setFiltroTipo('todos');
+      setPagina(1);
+    }
   }, [isOpen]);
+
+  useEffect(() => {
+    setPagina(1);
+  }, [filtroTipo]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -41,6 +49,14 @@ export function BancoHorasDetalhesModal({
   const lista = useMemo(
     () => (filtroTipo === 'todos' ? historico : historico.filter((m) => m.tipo === filtroTipo)),
     [historico, filtroTipo]
+  );
+
+  const POR_PAGINA = 8;
+  const totalPaginas = Math.max(1, Math.ceil(lista.length / POR_PAGINA));
+  const paginaAtual = Math.min(pagina, totalPaginas);
+  const itensPagina = useMemo(
+    () => lista.slice((paginaAtual - 1) * POR_PAGINA, paginaAtual * POR_PAGINA),
+    [lista, paginaAtual]
   );
 
   if (!isOpen || !employee) return null;
@@ -168,7 +184,7 @@ export function BancoHorasDetalhesModal({
                     </tr>
                   </thead>
                   <tbody>
-                    {lista.map((m) => (
+                    {itensPagina.map((m) => (
                       <tr key={m.id} className="border-b border-white/5 last:border-0 hover:bg-black/10">
                         <td className="px-3 py-2.5 typ-mono-meta text-white whitespace-nowrap">
                           {formatLocalDateBR(m.data)}
@@ -206,7 +222,7 @@ export function BancoHorasDetalhesModal({
 
               {/* Timeline (mobile) */}
               <div className="md:hidden flex flex-col gap-2">
-                {lista.map((m) => (
+                {itensPagina.map((m) => (
                   <div key={m.id} className="sit-panel-inner p-3">
                     <div className="flex items-center justify-between gap-2">
                       <span
@@ -232,6 +248,39 @@ export function BancoHorasDetalhesModal({
                   </div>
                 ))}
               </div>
+
+              {/* Paginação */}
+              {lista.length > POR_PAGINA && (
+                <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
+                  <p className="typ-card-desc text-brand-muted">
+                    {(paginaAtual - 1) * POR_PAGINA + 1}–
+                    {Math.min(paginaAtual * POR_PAGINA, lista.length)} de {lista.length} movimentações
+                  </p>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => setPagina((p) => Math.max(1, p - 1))}
+                      disabled={paginaAtual <= 1}
+                      aria-label="Página anterior"
+                      className="inline-flex items-center gap-1 rounded-lg px-3 py-1.5 typ-badge border bg-black/10 border-brand-border text-brand-muted hover:text-white transition-colors disabled:opacity-40 disabled:pointer-events-none"
+                    >
+                      <ChevronLeft className="h-3.5 w-3.5" /> Anterior
+                    </button>
+                    <span className="typ-mono-meta text-brand-muted px-2 whitespace-nowrap">
+                      {paginaAtual} / {totalPaginas}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setPagina((p) => Math.min(totalPaginas, p + 1))}
+                      disabled={paginaAtual >= totalPaginas}
+                      aria-label="Próxima página"
+                      className="inline-flex items-center gap-1 rounded-lg px-3 py-1.5 typ-badge border bg-black/10 border-brand-border text-brand-muted hover:text-white transition-colors disabled:opacity-40 disabled:pointer-events-none"
+                    >
+                      Próxima <ChevronRight className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                </div>
+              )}
             </>
           )}
         </div>
