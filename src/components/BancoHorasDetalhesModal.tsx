@@ -184,7 +184,7 @@ export function BancoHorasDetalhesModal({
                     </tr>
                   </thead>
                   <tbody>
-                    {lista.map((m) => (
+                    {itensPagina.map((m) => (
                       <tr key={m.id} className="border-b border-white/5 last:border-0 hover:bg-black/10">
                         <td className="px-3 py-2.5 typ-mono-meta text-white whitespace-nowrap">
                           {formatLocalDateBR(m.data)}
@@ -222,7 +222,7 @@ export function BancoHorasDetalhesModal({
 
               {/* Timeline (mobile) */}
               <div className="md:hidden flex flex-col gap-2">
-                {lista.map((m) => (
+                {itensPagina.map((m) => (
                   <div key={m.id} className="sit-panel-inner p-3">
                     <div className="flex items-center justify-between gap-2">
                       <span
