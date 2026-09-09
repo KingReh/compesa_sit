@@ -136,11 +136,24 @@ export function BancoHoras({ employees }: Props) {
     <div className="animate-fade-in">
       {/* Cabeçalho */}
       <div className="sit-panel p-4 sm:p-6 mb-4 sm:mb-6">
-        <p className="typ-subtitle mb-1">Controle de Horas Extras</p>
-        <h2 className="typ-hero mt-1">Banco de Horas</h2>
-        <p className="typ-card-desc mt-1">
-          Acompanhe os saldos EX50% e EX100% acumulados, registre movimentações e consulte o histórico de cada colaborador.
-        </p>
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+          <div className="min-w-0">
+            <p className="typ-subtitle mb-1">Controle de Horas Extras</p>
+            <h2 className="typ-hero mt-1">Banco de Horas</h2>
+            <p className="typ-card-desc mt-1">
+              Acompanhe os saldos EX50% e EX100% acumulados, registre movimentações e consulte o histórico de cada colaborador.
+            </p>
+          </div>
+          <a
+            href="https://bancohoras-liard.vercel.app/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-xs font-bold bg-brand-accent/15 border border-brand-accent/40 text-white hover:bg-brand-accent/25 transition-colors shrink-0"
+          >
+            <Clock className="h-4 w-4" aria-hidden="true" />
+            Visualizar Banco de Horas
+          </a>
+        </div>
       </div>
 
       {/* KPIs */}
