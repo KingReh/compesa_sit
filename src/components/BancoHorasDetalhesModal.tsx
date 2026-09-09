@@ -51,6 +51,14 @@ export function BancoHorasDetalhesModal({
     [historico, filtroTipo]
   );
 
+  const POR_PAGINA = 8;
+  const totalPaginas = Math.max(1, Math.ceil(lista.length / POR_PAGINA));
+  const paginaAtual = Math.min(pagina, totalPaginas);
+  const itensPagina = useMemo(
+    () => lista.slice((paginaAtual - 1) * POR_PAGINA, paginaAtual * POR_PAGINA),
+    [lista, paginaAtual]
+  );
+
   if (!isOpen || !employee) return null;
 
   const chip = (value: 'todos' | TipoHoraExtra, label: string) => (
