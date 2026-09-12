@@ -1,4 +1,5 @@
 import React from 'react';
+import { createPortal } from 'react-dom';
 import { Calendar, Clock, FileText, LayoutDashboard, Settings } from 'lucide-react';
 
 export type ApplicationView = 'painel' | 'configuracao' | 'relatorios' | 'ferias' | 'banco-horas';
@@ -21,7 +22,9 @@ const destinations: Array<{
 ];
 
 export function MobileBottomNav({ currentView, onNavigate }: MobileBottomNavProps) {
-  return (
+  if (typeof document === 'undefined') return null;
+
+  return createPortal(
     <nav
       className="mobile-bottom-nav fixed inset-x-0 bottom-0 z-[9000] lg:hidden"
       aria-label="Navegação principal"
@@ -52,6 +55,7 @@ export function MobileBottomNav({ currentView, onNavigate }: MobileBottomNavProp
           );
         })}
       </div>
-    </nav>
+    </nav>,
+    document.body,
   );
 }
