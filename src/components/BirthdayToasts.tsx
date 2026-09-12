@@ -281,7 +281,7 @@ export const BirthdayToasts: React.FC<BirthdayToastsProps> = ({ employees }) => 
 
   return createPortal(
     <div
-      className="fixed z-[10000] flex flex-col gap-2 sm:gap-3 pointer-events-none"
+      className="mobile-floating-bottom fixed z-[10000] flex flex-col gap-2 sm:gap-3 pointer-events-none"
       style={{
         left: 'max(0.5rem, env(safe-area-inset-left))',
         right: 'max(0.5rem, env(safe-area-inset-right))',

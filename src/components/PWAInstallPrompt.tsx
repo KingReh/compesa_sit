@@ -160,7 +160,7 @@ export function PWAInstallPrompt() {
     <AnimatePresence>
       <div
         id="pwa-install-container"
-        className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[9999] w-[92%] max-w-md pointer-events-none"
+        className="mobile-floating-bottom fixed bottom-6 left-1/2 -translate-x-1/2 z-[9999] w-[92%] max-w-md pointer-events-none"
         style={{ position: 'fixed' }}
       >
         <motion.div

@@ -23,6 +23,7 @@ import { CorporateFABMenu } from './components/CorporateFABMenu';
 import { AuthScreen } from './components/AuthScreen';
 import { WelcomeModal, isWelcomeSeen } from './components/WelcomeModal';
 import { NotificationCenter } from './components/NotificationCenter';
+import { MobileBottomNav, type ApplicationView } from './components/MobileBottomNav';
 import { useFilters } from './context/FiltersContext';
 import { empresasService } from './services/empresasService';
 import { coordenacoesService } from './services/coordenacoesService';
@@ -46,8 +47,13 @@ export default function App() {
   const [unidades, setUnidades] = useState<Unidade[]>([]);
   const [empresas, setEmpresas] = useState<Empresa[]>([]);
   const [vacationPlans, setVacationPlans] = useState<VacationPlan[]>([]);
-  const [currentView, setCurrentView] = useState<'painel' | 'configuracao' | 'relatorios' | 'ferias' | 'banco-horas'>('painel');
+  const [currentView, setCurrentView] = useState<ApplicationView>('painel');
   const [installToast, setInstallToast] = useState(false);
+
+  const handleNavigate = (view: ApplicationView) => {
+    setCurrentView(view);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   // Fonte única da verdade: aplica os filtros globais em toda a aplicação.
   // Central de Notificações, Mapa de Lotações e Painel Executivo compartilham
@@ -364,7 +370,7 @@ export default function App() {
                   setEmployeeToView(emp);
                   setIsViewModalOpen(true);
                 }}
-                onNavigate={(view) => setCurrentView(view)}
+                onNavigate={(view) => handleNavigate(view)}
               />
 
               <div className="hidden sm:flex flex-col text-right">
@@ -445,41 +451,41 @@ export default function App() {
               </p>
             </div>
 
-            <nav className="sit-panel overflow-hidden">
+            <nav className="sit-panel hidden overflow-hidden lg:block">
               <div className="p-4 border-b border-white/5">
                 <span className="typ-subtitle text-brand-muted tracking-wider text-[10px]">MENU DE APLICAÇÕES</span>
               </div>
               <div className="p-2 flex flex-col gap-1">
                 <button
-                  onClick={() => setCurrentView('painel')}
+                  onClick={() => handleNavigate('painel')}
                   className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors text-left ${currentView === 'painel' ? 'bg-black/20 text-white font-medium shadow-inner' : 'text-brand-muted hover:text-white hover:bg-black/10'}`}
                 >
                   <LayoutDashboard className="w-5 h-5 shrink-0" />
                   <span className="text-sm">Painel Executivo</span>
                 </button>
                 <button
-                  onClick={() => setCurrentView('ferias')}
+                  onClick={() => handleNavigate('ferias')}
                   className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors text-left ${currentView === 'ferias' ? 'bg-black/20 text-white font-medium shadow-inner' : 'text-brand-muted hover:text-white hover:bg-black/10'}`}
                 >
                   <Calendar className="w-5 h-5 shrink-0" />
                   <span className="text-sm">Planejamento de Férias</span>
                 </button>
                 <button
-                  onClick={() => setCurrentView('banco-horas')}
+                  onClick={() => handleNavigate('banco-horas')}
                   className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors text-left ${currentView === 'banco-horas' ? 'bg-black/20 text-white font-medium shadow-inner' : 'text-brand-muted hover:text-white hover:bg-black/10'}`}
                 >
                   <Clock className="w-5 h-5 shrink-0" />
                   <span className="text-sm">Banco de Horas</span>
                 </button>
                 <button
-                  onClick={() => setCurrentView('relatorios')}
+                  onClick={() => handleNavigate('relatorios')}
                   className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors text-left ${currentView === 'relatorios' ? 'bg-black/20 text-white font-medium shadow-inner' : 'text-brand-muted hover:text-white hover:bg-black/10'}`}
                 >
                   <FileText className="w-5 h-5 shrink-0" />
                   <span className="text-sm">Relatórios</span>
                 </button>
                 <button
-                  onClick={() => setCurrentView('configuracao')}
+                  onClick={() => handleNavigate('configuracao')}
                   className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors text-left ${currentView === 'configuracao' ? 'bg-black/20 text-white font-medium shadow-inner' : 'text-brand-muted hover:text-white hover:bg-black/10'}`}
                 >
                   <Settings className="w-5 h-5 shrink-0" />
@@ -527,7 +533,7 @@ export default function App() {
       </main>
 
       {/* Footer */}
-      <footer className="py-6 mt-auto border-t border-white/10 bg-black/10 select-none">
+      <footer className="mobile-bottom-clearance py-6 mt-auto border-t border-white/10 bg-black/10 select-none">
         <div className="mx-auto max-w-[1400px] px-3 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3">
           <p className="text-xs text-brand-muted/90">
             Desenvolvido por: <span className="text-white font-semibold">Renato Henrique</span> — Administrativo CMA SUL/GPM
@@ -589,11 +595,12 @@ export default function App() {
       <PWAInstallPrompt />
       <BirthdayToasts employees={employees} />
       <WelcomeModal isOpen={isWelcomeOpen} onClose={() => setIsWelcomeOpen(false)} />
-      <CorporateFABMenu empresas={empresas} onNavigateToConfig={() => setCurrentView('configuracao')} />
+      <CorporateFABMenu empresas={empresas} onNavigateToConfig={() => handleNavigate('configuracao')} />
+      <MobileBottomNav currentView={currentView} onNavigate={handleNavigate} />
 
       {/* Toast: app already installed */}
       {installToast && createPortal(
-        <div className="fixed bottom-6 right-6 z-[10000] animate-fade-in">
+        <div className="mobile-floating-bottom fixed bottom-6 right-6 z-[10000] animate-fade-in">
           <div className="sit-panel p-4 flex items-center gap-3 shadow-2xl border border-green-500/30 bg-green-950/90 backdrop-blur-xl text-white rounded-xl">
             <CheckCircle2 className="w-5 h-5 text-green-400 shrink-0" />
             <div>
