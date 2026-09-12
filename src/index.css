@@ -228,6 +228,21 @@ body {
   display: none !important;
 }
 
+/* Key-free OSM tiles transformed locally for the map's dark theme. */
+.map-tiles-dark {
+  filter: brightness(0.58) contrast(1.18) saturate(0.45) hue-rotate(175deg);
+}
+
+.leaflet-control-attribution {
+  background: rgba(11, 18, 32, 0.78) !important;
+  color: rgba(255, 255, 255, 0.72) !important;
+  font-size: 9px !important;
+}
+
+.leaflet-control-attribution a {
+  color: var(--color-brand-accent) !important;
+}
+
 .styled-scrollbars-light::-webkit-scrollbar {
   width: 4px;
 }

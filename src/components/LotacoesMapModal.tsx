@@ -56,12 +56,12 @@ interface LotacoesMapModalProps {
 }
 
 const MAP_STYLES = [
-  { id: 'dark', name: 'Modo Escuro', url: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png' },
-  { id: 'osm', name: 'OpenStreetMap', url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png' },
-  { id: 'light', name: 'Modo Claro', url: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png' },
-  { id: 'satellite', name: 'Satélite (Esri)', url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}' },
-  { id: 'hybrid', name: 'Híbrido (Google)', url: 'https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}' },
-  { id: 'terrain', name: 'Terreno (Google)', url: 'https://mt1.google.com/vt/lyrs=p&x={x}&y={y}&z={z}' },
+  { id: 'dark', name: 'Modo Escuro', url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>' },
+  { id: 'osm', name: 'OpenStreetMap', url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>' },
+  { id: 'light', name: 'Modo Claro', url: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>' },
+  { id: 'satellite', name: 'Satélite (Esri)', url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', attribution: 'Tiles &copy; Esri' },
+  { id: 'hybrid', name: 'Híbrido (Google)', url: 'https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', attribution: '&copy; Google' },
+  { id: 'terrain', name: 'Terreno (Google)', url: 'https://mt1.google.com/vt/lyrs=p&x={x}&y={y}&z={z}', attribution: '&copy; Google' },
 ];
 
 // Helper to calculate distance in km (Haversine)
@@ -1218,10 +1218,12 @@ export function LotacoesMapModal({
               zoom={9}
               zoomControl={false}
               className="w-full h-full z-0 outline-none"
-              attributionControl={false}
+              attributionControl
             >
               <TileLayer 
                 url={MAP_STYLES.find(s => s.id === mapStyle)?.url || MAP_STYLES[0].url} 
+                attribution={MAP_STYLES.find(s => s.id === mapStyle)?.attribution || MAP_STYLES[0].attribution}
+                className={mapStyle === 'dark' ? 'map-tiles-dark' : undefined}
                 key={mapStyle}
               />
               <MapController 
