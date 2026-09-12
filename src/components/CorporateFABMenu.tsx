@@ -177,7 +177,7 @@ export function CorporateFABMenu({ empresas, onNavigateToConfig }: CorporateFABM
   if (!mounted) return null;
 
   return createPortal(
-    <div className="fixed bottom-6 right-6 z-[9999] flex flex-col items-end" ref={menuRef} id="corporate-fab-menu">
+    <div className="mobile-floating-bottom fixed bottom-6 right-6 z-[9999] flex flex-col items-end" ref={menuRef} id="corporate-fab-menu">
       
       {/* Backdrop for closing when clicking outside and smooth dimming */}
       <AnimatePresence>

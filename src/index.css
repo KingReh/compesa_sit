@@ -401,3 +401,25 @@ html, body, #root {
 .leaflet-container.ruler-active .leaflet-interactive {
   cursor: crosshair !important;
 }
+
+/* Mobile application navigation and collision-safe floating elements */
+.mobile-bottom-nav {
+  padding-right: env(safe-area-inset-right, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  padding-left: env(safe-area-inset-left, 0px);
+  background: color-mix(in srgb, var(--color-brand-bg) 94%, transparent);
+  border-top: 1px solid color-mix(in srgb, var(--color-brand-border) 70%, transparent);
+  box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.22);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+@media (max-width: 1023px) {
+  .mobile-bottom-clearance {
+    padding-bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  .mobile-floating-bottom {
+    bottom: calc(4.75rem + env(safe-area-inset-bottom, 0px)) !important;
+  }
+}
