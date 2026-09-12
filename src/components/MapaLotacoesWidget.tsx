@@ -179,11 +179,13 @@ export function MapaLotacoesWidget({
            zoom={10} 
            scrollWheelZoom={false} 
            className="h-full w-full z-0"
-           attributionControl={false}
+            attributionControl
          >
-           {/* Dark matter base map from Carto */}
+            {/* OpenStreetMap base with a local dark treatment; no API key required. */}
            <TileLayer
-             url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+              className="map-tiles-dark"
            />
            {/* Fit boundaries of all markers dynamically */}
            <MapController coordsList={mapData.map(d => d.coords)} />
