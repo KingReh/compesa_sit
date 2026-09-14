@@ -228,9 +228,9 @@ body {
   display: none !important;
 }
 
-/* Key-free OSM tiles transformed locally for the map's dark theme. */
+/* Key-free Esri street tiles transformed locally for a balanced dark theme. */
 .map-tiles-dark {
-  filter: brightness(0.58) contrast(1.18) saturate(0.45) hue-rotate(175deg);
+  filter: invert(0.9) hue-rotate(178deg) brightness(0.72) contrast(1.12) saturate(0.72);
 }
 
 .leaflet-control-attribution {
