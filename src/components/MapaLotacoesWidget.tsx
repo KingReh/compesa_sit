@@ -181,11 +181,10 @@ export function MapaLotacoesWidget({
            className="h-full w-full z-0"
             attributionControl
          >
-            {/* Esri street base with a local dark treatment; no API key required. */}
+            {/* OpenStreetMap is the default key-free street base. */}
            <TileLayer
-              url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}"
-              attribution='Tiles &copy; Esri'
-              className="map-tiles-dark"
+               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
            />
            {/* Fit boundaries of all markers dynamically */}
            <MapController coordsList={mapData.map(d => d.coords)} />

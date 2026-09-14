@@ -228,11 +228,6 @@ body {
   display: none !important;
 }
 
-/* Key-free Esri street tiles transformed locally for a balanced dark theme. */
-.map-tiles-dark {
-  filter: invert(0.9) hue-rotate(178deg) brightness(0.72) contrast(1.12) saturate(0.72);
-}
-
 .leaflet-control-attribution {
   background: rgba(11, 18, 32, 0.78) !important;
   color: rgba(255, 255, 255, 0.72) !important;
