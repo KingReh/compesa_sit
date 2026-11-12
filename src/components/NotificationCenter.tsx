@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { Employee, VacationPlan } from '../types';
 import { parseLocalDate, formatEmployeeName } from '../utils';
+import { PushNotificationSettings } from './PushNotificationSettings';
 
 const READ_STORAGE_KEY = '@sit:notifications:read';
 const SILENCED_UNTIL_KEY = '@sit:notifications:silencedUntil';
@@ -661,6 +662,9 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
                   </button>
                 </div>
               </div>
+
+              {/* Push no dispositivo (OneSignal) */}
+              <PushNotificationSettings />
 
               {/* Filter chips */}
               <div className="flex items-center gap-1.5 px-2 py-1.5 sm:p-3 border-b border-white/10 overflow-x-auto no-scrollbar">

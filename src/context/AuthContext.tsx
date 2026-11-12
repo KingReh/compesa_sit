@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useRef } from 'r
 import { Session } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 import { UserProfile } from '../types';
+import { syncPushUser, logoutPush } from '../lib/onesignal';
 
 export interface Profile {
   id: string;
@@ -90,6 +91,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signOut = async () => {
     setIsLoading(true);
     loadedUidRef.current = null;
+    // Desassocia este dispositivo do usuário na OneSignal antes de sair,
+    // para que ele não continue recebendo avisos da conta.
+    await logoutPush();
     try {
       await supabase.auth.signOut();
     } catch (err) {
@@ -100,6 +104,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setIsLoading(false);
     }
   };
+
+  // Liga o dispositivo ao usuário logado na OneSignal (external_id = profiles.id).
+  // Só baixa o SDK se este navegador já tinha ativado as notificações antes.
+  useEffect(() => {
+    if (user?.id) syncPushUser(user.id);
+  }, [user?.id]);
 
   useEffect(() => {
     // onAuthStateChange já emite INITIAL_SESSION com a sessão salva, então não

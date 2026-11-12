@@ -25,3 +25,6 @@ npm-debug.log*
 
 # Debug
 src/audit_logs.json
+
+# OneSignal (estado local do plugin de instalação)
+.onesignal/
