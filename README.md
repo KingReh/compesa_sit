@@ -57,7 +57,6 @@ O sistema estrutura-se em módulos de alta granularidade e usabilidade direciona
 * **Cadastro de Usuários:** Fluxo de registro com validação de força de senha e perfis pré-definidos.
 * **Recuperação de Senha:** Fluxo de redefinição com senha temporária e troca obrigatória no primeiro acesso.
 * **Perfis de Acesso:** `Admin`, `Gestor de Contrato`, `Coordenador de Área` e `Auditor de Conformidade`.
-* **Bypass no Preview:** Em ambientes de preview do Lovable (`localhost`, `*.lovable.app`, `*.lovable.dev`), o login é automaticamente bypassado para facilitar ajustes visuais.
 
 ### 👥 Gestão de Funcionários
 * **Cadastro Corporativo Unificado:** Inclusão de dados completos dos profissionais (dados pessoais, admissão, contatos, endereço e foto corporativa).
@@ -112,7 +111,7 @@ O sistema estrutura-se em módulos de alta granularidade e usabilidade direciona
 
 ## 3. Arquitetura do Sistema
 
-O sistema foi arquitetado adotando o padrão **Single Page Application (SPA)** unificado com backend serverless via **Lovable Cloud / Supabase** e um servidor Express para endpoints auxiliares.
+O sistema foi arquitetado adotando o padrão **Single Page Application (SPA)** unificado com backend serverless via **Supabase** e um servidor Express para endpoints auxiliares.
 
 * **Camada de Visão (Frontend SPA):** React 19 alimentado por TypeScript 5 sob uma estrutura de componentes autocontidos altamente performáticos.
 * **Estilização e Design System:** Tailwind CSS v4 com tema customizado em `index.css`, utilizando tokens de cor corporativos (`brand-bg`, `brand-panel`, `brand-accent`, etc.).
@@ -163,7 +162,6 @@ graph TD
 
 ```
 SIT-RAIZ/
-├── .lovable/                   # Configurações internas da plataforma Lovable
 ├── api/                        # Endpoints serverless auxiliares
 │   └── validate-cpf.ts         # Validação de CPF via Google Sheets
 ├── docs/                       # Documentações técnicas em PDF
@@ -269,7 +267,7 @@ Consulte toda a documentação técnica para compreender os requisitos, arquitet
 Seguem especificações normativas de infraestrutura técnica recomendadas pela equipe de segurança cibernética corporativa para a implantação eficiente e escalável da plataforma:
 
 * **Sistemas Operacionais Suportados:** Distribuições baseadas em Linux (RHEL 9+, Ubuntu LTS 22.04+), Windows Server 2022 ou macOS Monterey+.
-* **Banco de Dados:** PostgreSQL v15+ via Supabase/Lovable Cloud. As tabelas principais são `employees`, `empresas`, `coordenacoes`, `unidades`, `contratos`, `vacation_plans` e `profiles`.
+* **Banco de Dados:** PostgreSQL v15+ via Supabase. As tabelas principais são `employees`, `empresas`, `coordenacoes`, `unidades`, `contratos`, `vacation_plans` e `profiles`.
 * **Memória Crítica de Execução (RAM):**
   * Servidores ou máquinas locais rodando em Sandbox: Mínimo 4 GB RAM. Recomendado 8 GB RAM.
 * **Processador Recomendado:** Processador 64 bits Intel Xeon, Intel Core i5 ou AMD equivalente dual-core com clock equivalente ou superior a 2.0 GHz.
@@ -296,12 +294,12 @@ npm install
 ```
 
 ### ⚙️ 3. Configuração de Variáveis de Ambiente
-O projeto utiliza variáveis de ambiente injetadas pela plataforma Lovable/Supabase. Em ambiente local, crie um arquivo `.env` na raiz com:
+O projeto utiliza variáveis de ambiente do Supabase. Crie um arquivo `.env` na raiz com:
 ```bash
 VITE_SUPABASE_URL=<sua-url-do-supabase>
 VITE_SUPABASE_PUBLISHABLE_KEY=<sua-chave-anon>
 ```
-*(Nota: Em produção na Lovable, essas variáveis são configuradas automaticamente na plataforma).*
+*(Nota: Em produção, configure essas variáveis no painel da plataforma de hospedagem.)*
 
 ### 🚀 4. Execução Local para Desenvolvimento
 Inicialize o servidor embarcado Vite/Express para ver as atualizações e sincronizações de interfaces de forma automática no ambiente seguro de testes:

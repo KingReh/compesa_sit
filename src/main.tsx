@@ -52,19 +52,12 @@ createRoot(document.getElementById('root')!).render(
   </StrictMode>,
 );
 
-// Register PWA Service Worker — never inside Lovable preview/iframe/dev,
+// Register PWA Service Worker — never inside iframe/dev,
 // and unregister any stale SW + clear caches in those contexts.
 if ('serviceWorker' in navigator) {
-  const host = window.location.hostname;
   const inIframe = window.self !== window.top;
-  const isLovablePreview =
-    host.startsWith('id-preview--') ||
-    host.startsWith('preview--') ||
-    host.endsWith('.lovableproject.com') ||
-    host.endsWith('.lovable.app') ||
-    host.endsWith('.lovable.dev');
   const killSwitch = new URLSearchParams(window.location.search).get('sw') === 'off';
-  const shouldRegister = import.meta.env.PROD && !inIframe && !isLovablePreview && !killSwitch;
+  const shouldRegister = import.meta.env.PROD && !inIframe && !killSwitch;
 
   if (shouldRegister) {
     window.addEventListener('load', () => {
