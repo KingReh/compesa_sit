@@ -168,10 +168,32 @@
 /* Base style resets and customizations */
 body {
   font-family: var(--font-sans);
-  background: radial-gradient(circle at 50% -20%, var(--color-brand-panel) 0%, var(--color-brand-bg) 100%);
+  /* Mesmo fundo da tela de abertura: transição contínua splash → sistema. */
+  background-color: #034289;
+  background-image:
+    radial-gradient(480px 480px at 50% -64px, rgba(56, 189, 248, 0.22), transparent 70%),
+    radial-gradient(400px 400px at calc(100% + 40px) calc(100% + 40px), rgba(39, 121, 212, 0.32), transparent 70%),
+    radial-gradient(120% 80% at 50% 0%, #165AAB 0%, #034289 45%, #011B3D 100%);
   background-attachment: fixed;
   color: #ffffff;
   min-height: 100vh;
+}
+
+/* Grade técnica fixa com fade nas bordas (os brilhos ficam no body).
+   Usa gradientes (sem filter: blur) para não pesar na rolagem. */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+  background-size: 40px 40px;
+  background-position: center top;
+  -webkit-mask-image: radial-gradient(ellipse at 50% 40%, #000 30%, rgba(0, 0, 0, 0.35) 75%, transparent 100%);
+  mask-image: radial-gradient(ellipse at 50% 40%, #000 30%, rgba(0, 0, 0, 0.35) 75%, transparent 100%);
 }
 
 /* Custom scrollbar */
@@ -422,4 +444,157 @@ html, body, #root {
 /* Modais que marcam o body ocultam o FAB global para não sobrepor conteúdo */
 body.sit-modal-open #corporate-fab-menu {
   display: none;
+}
+
+/* --- TELA DE ABERTURA (LoadingScreen) --- */
+.sit-splash {
+  background:
+    radial-gradient(120% 80% at 50% 0%, #165AAB 0%, #034289 45%, #011B3D 100%);
+  transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.6s;
+}
+.sit-splash--leave {
+  opacity: 0;
+  visibility: hidden;
+}
+.sit-splash--leave .sit-splash__content {
+  transform: scale(1.04);
+  filter: blur(4px);
+}
+.sit-splash__content {
+  animation: slideUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), filter 0.6s;
+}
+
+.sit-splash__glow {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(80px);
+  pointer-events: none;
+}
+.sit-splash__glow--a {
+  width: 480px; height: 480px;
+  top: -160px; left: 50%;
+  margin-left: -240px;
+  background: rgba(56, 189, 248, 0.28);
+  animation: splashFloat 8s ease-in-out infinite;
+}
+.sit-splash__glow--b {
+  width: 400px; height: 400px;
+  bottom: -200px; right: -120px;
+  background: rgba(39, 121, 212, 0.35);
+  animation: splashFloat 10s ease-in-out infinite reverse;
+}
+.sit-splash__grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px);
+  background-size: 40px 40px;
+  background-position: center top;
+  mask-image: radial-gradient(ellipse at center, #000 20%, transparent 70%);
+  -webkit-mask-image: radial-gradient(ellipse at center, #000 20%, transparent 70%);
+  pointer-events: none;
+}
+
+.sit-splash__ripple {
+  position: absolute;
+  inset: 32px;
+  border-radius: 9999px;
+  border: 1px solid rgba(56, 189, 248, 0.5);
+  animation: splashRipple 2.4s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+}
+.sit-splash__ripple--2 { animation-delay: 0.8s; }
+.sit-splash__ripple--3 { animation-delay: 1.6s; }
+
+.sit-splash__orbit { animation: splashSpin 1.6s linear infinite; }
+
+.sit-splash__badge {
+  animation: splashPulse 2.4s ease-in-out infinite;
+}
+.sit-splash__water {
+  color: rgba(56, 189, 248, 0.38);
+  background: linear-gradient(180deg, rgba(56, 189, 248, 0.38) 0%, rgba(30, 102, 188, 0.45) 100%);
+  transition: height 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.sit-splash__wave {
+  position: absolute;
+  left: 0;
+  bottom: 100%;
+  width: 200%;
+  height: 8px;
+  animation: splashWave 2s linear infinite;
+}
+.sit-splash__wave--back {
+  opacity: 0.6;
+  animation-duration: 3.2s;
+  animation-direction: reverse;
+}
+
+.sit-splash__brand {
+  background: linear-gradient(90deg, #ffffff 0%, #93c5fd 40%, #ffffff 60%, #ffffff 100%);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: splashShine 3s ease-in-out infinite;
+}
+
+.sit-splash__bar {
+  background: linear-gradient(90deg, #2779D4, #38bdf8, #ffffff);
+  box-shadow: 0 0 16px rgba(56, 189, 248, 0.7);
+  transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.sit-splash__step { animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) both; }
+.sit-splash__dots::after {
+  content: '';
+  display: inline-block;
+  width: 1.5em;
+  text-align: left;
+  animation: splashDots 1.2s steps(4, end) infinite;
+}
+
+@keyframes splashSpin {
+  to { transform: rotate(360deg); }
+}
+@keyframes splashRipple {
+  0% { transform: scale(0.8); opacity: 0.9; }
+  100% { transform: scale(1.6); opacity: 0; }
+}
+@keyframes splashPulse {
+  0%, 100% { transform: translateY(0); box-shadow: 0 24px 48px -16px rgba(0,0,0,0.45), 0 0 0 0 rgba(56,189,248,0.35); }
+  50% { transform: translateY(-4px); box-shadow: 0 32px 56px -16px rgba(0,0,0,0.5), 0 0 0 8px rgba(56,189,248,0); }
+}
+@keyframes splashWave {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+@keyframes splashShine {
+  0% { background-position: 100% 0; }
+  100% { background-position: -100% 0; }
+}
+@keyframes splashFloat {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(24px, 16px); }
+}
+@keyframes splashDots {
+  0% { content: ''; }
+  25% { content: '.'; }
+  50% { content: '..'; }
+  75% { content: '...'; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sit-splash__glow,
+  .sit-splash__ripple,
+  .sit-splash__orbit,
+  .sit-splash__badge,
+  .sit-splash__wave,
+  .sit-splash__brand,
+  .sit-splash__dots::after,
+  .sit-splash__content {
+    animation: none !important;
+  }
+  .sit-splash__ripple { display: none; }
 }

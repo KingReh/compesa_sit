@@ -10,6 +10,7 @@ import { PWAInstallPrompt } from './components/PWAInstallPrompt';
 import { isWelcomeSeen } from './components/WelcomeModal';
 import { NotificationCenter } from './components/NotificationCenter';
 import { MobileBottomNav, type ApplicationView } from './components/MobileBottomNav';
+import { LoadingScreen } from './components/LoadingScreen';
 
 // Divisão de código: cada tela/modal pesado vira um arquivo JS separado,
 // baixado só quando necessário. Antes, tudo (Leaflet, jsPDF, SheetJS, telas
@@ -200,13 +201,13 @@ export default function App() {
 
   // Exibe modal de boas-vindas no primeiro acesso do usuário autenticado.
   useEffect(() => {
-    if (isLoading || !user) return;
+    if (isLoading || isDbLoading || !user) return;
     if (!isWelcomeSeen()) {
-      // Pequeno atraso para não competir com o carregamento inicial da interface.
-      const timer = setTimeout(() => setIsWelcomeOpen(true), 400);
+      // Atraso para abrir só depois que a tela de abertura terminar de sair.
+      const timer = setTimeout(() => setIsWelcomeOpen(true), 1200);
       return () => clearTimeout(timer);
     }
-  }, [user, isLoading]);
+  }, [user, isLoading, isDbLoading]);
 
   const handleSave = async (employee: Omit<Employee, 'id'> & { id?: string }) => {
     try {
@@ -395,19 +396,30 @@ export default function App() {
     }
   };
 
+  // A tela de abertura ocupa sempre a mesma posição na árvore (1º filho do
+  // fragmento) para não reiniciar a animação ao passar da validação de sessão
+  // para o carregamento dos dados.
+  const showSplash = isLoading || (!!user && isDbLoading);
+  const splash = <LoadingScreen visible={showSplash} />;
+
   if (isLoading) {
-    return <FullScreenSpinner />;
+    return <>{splash}</>;
   }
 
   if (!user) {
     return (
-      <Suspense fallback={<FullScreenSpinner />}>
-        <AuthScreen />
-      </Suspense>
+      <>
+        {splash}
+        <Suspense fallback={<FullScreenSpinner />}>
+          <AuthScreen />
+        </Suspense>
+      </>
     );
   }
 
   return (
+    <>
+    {splash}
     <div className="min-h-screen flex flex-col font-sans animate-fade-in">
 
       {/* Header NavBar */}
@@ -685,5 +697,6 @@ export default function App() {
       )}
 
     </div>
+    </>
   );
 }
