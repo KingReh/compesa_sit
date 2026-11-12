@@ -76,13 +76,12 @@ if ('serviceWorker' in navigator) {
         .then((reg) => {
           console.log('[SW] Registrado. Escopo:', reg.scope);
 
-          // Poll for service worker updates every 30 minutes
-          const updateInterval = setInterval(() => {
+          // Poll for service worker updates every 30 minutes.
+          // (O intervalo morre junto com a página; não usar 'unload' — é bloqueado
+          // pela Permissions Policy e impede o back/forward cache.)
+          setInterval(() => {
             reg.update().catch((err) => console.warn('[SW] Falha ao checar atualizações:', err));
           }, 30 * 60 * 1000);
-
-          // Cleanup interval if page is unloaded (though it is main.tsx/SPA shell)
-          window.addEventListener('unload', () => clearInterval(updateInterval));
         })
         .catch((err) => console.warn('[SW] Falha ao registrar:', err));
     });
