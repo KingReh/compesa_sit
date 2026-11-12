@@ -1054,24 +1054,24 @@ export function VacationPlanning({ employees, coordenacoes, empresas }: Vacation
           <table className="w-full divide-y divide-white/10 table-fixed">
             <thead className="bg-[#0b3365]">
               <tr>
-                <SortHeader field="nome" label="Nome" className="w-[28%] min-w-[180px]" />
-                <SortHeader field="matricula" label="Mat" className="w-[8%] min-w-[40px]" />
-                <SortHeader field="especialidade" label="Especialidade" className="w-[10%] min-w-[85px]" />
-                <SortHeader field="coordenacao" label="Coord." className="w-[11%] min-w-[85px]" />
+                <SortHeader field="nome" label="Nome" />
+                <SortHeader field="matricula" label="Mat" className="hidden xl:table-cell w-[8%]" />
+                <SortHeader field="especialidade" label="Especialidade" className="hidden md:table-cell w-[14%] xl:w-[10%]" />
+                <SortHeader field="coordenacao" label="Coord." className="hidden xl:table-cell w-[11%]" />
                 
                 {/* Fixed Inputs columns */}
-                <SortHeader field="month" label="Mês" className="w-[11%] min-w-[90px]" />
+                <SortHeader field="month" label="Mês" className="w-[84px] sm:w-[96px] xl:w-[11%]" />
                 
-                <th className="px-1 py-2 text-center text-[10px] font-bold text-white uppercase tracking-wider select-none w-[7%] min-w-[50px] leading-tight" title="Gozar os 30 dias de férias">
-                  Gozar 30d
+                <th className="px-1 py-2 text-center text-[10px] font-bold text-white uppercase tracking-wider select-none w-[38px] sm:w-[54px] xl:w-[7%] leading-tight" title="Gozar os 30 dias de férias">
+                  <span className="sm:hidden">30d</span><span className="hidden sm:inline">Gozar 30d</span>
                 </th>
-                <th className="px-1 py-2 text-center text-[10px] font-bold text-white uppercase tracking-wider select-none w-[7%] min-w-[55px] leading-tight" title="Trabalhar os primeiros 10 dias">
-                  Trab 1ºs 10d
+                <th className="px-1 py-2 text-center text-[10px] font-bold text-white uppercase tracking-wider select-none w-[38px] sm:w-[58px] xl:w-[7%] leading-tight" title="Trabalhar os primeiros 10 dias">
+                  <span className="sm:hidden">1º 10d</span><span className="hidden sm:inline">Trab 1ºs 10d</span>
                 </th>
-                <th className="px-1 py-2 text-center text-[10px] font-bold text-white uppercase tracking-wider select-none w-[7%] min-w-[55px] leading-tight" title="Trabalhar os últimos 10 dias">
-                  Trab Últ 10d
+                <th className="px-1 py-2 text-center text-[10px] font-bold text-white uppercase tracking-wider select-none w-[38px] sm:w-[58px] xl:w-[7%] leading-tight" title="Trabalhar os últimos 10 dias">
+                  <span className="sm:hidden">Últ 10d</span><span className="hidden sm:inline">Trab Últ 10d</span>
                 </th>
-                <th className="px-1.5 py-2 text-left text-[10px] font-bold text-white uppercase tracking-wider select-none w-[14%] min-w-[100px]">
+                <th className="hidden md:table-cell px-1.5 py-2 text-left text-[10px] font-bold text-white uppercase tracking-wider select-none w-[18%] xl:w-[14%]">
                   Observação
                 </th>
               </tr>
@@ -1108,36 +1108,50 @@ export function VacationPlanning({ employees, coordenacoes, empresas }: Vacation
                   return (
                     <tr key={emp.id} className={bgClass}>
                       {/* Nome Completo */}
-                      <td className="px-1.5 py-1.5 text-[11px] font-bold text-white truncate max-w-[180px]" title={emp.nome}>
+                      <td className="px-1.5 py-1.5 text-[11px] font-bold text-white overflow-hidden" title={emp.nome}>
                         <div className="flex flex-col min-w-0">
                           <span className="truncate">{emp.nome}</span>
+                          <span className="xl:hidden truncate text-[9.5px] font-medium text-brand-muted mt-0.5">
+                            <span className="font-mono">{emp.matricula}</span>
+                            {emp.especialidade && <span className="md:hidden"> · {emp.especialidade}</span>}
+                            {emp.coordenacao && <span> · {emp.coordenacao}</span>}
+                          </span>
                           {isDirty && (
                             <span className="text-[8px] font-black tracking-widest text-[#6ee7b7] mt-0.5 animate-pulse uppercase leading-none">[Alterado]</span>
                           )}
+                          <input
+                            type="text"
+                            value={plan.observacao}
+                            placeholder="Observação..."
+                            title={plan.observacao}
+                            aria-label={`Observação de ${emp.nome}`}
+                            onChange={(e) => handleCellChange(emp.id, 'observacao', e.target.value)}
+                            className="md:hidden sit-input mt-1 w-full py-1 px-1.5 rounded text-[11px] placeholder:text-brand-muted/40 font-medium"
+                          />
                         </div>
                       </td>
 
                       {/* Matrícula */}
-                      <td className="px-1.5 py-1.5 text-[10.5px] font-mono text-brand-muted font-semibold truncate max-w-[40px]" title={emp.matricula}>
+                      <td className="hidden xl:table-cell px-1.5 py-1.5 text-[10.5px] font-mono text-brand-muted font-semibold truncate" title={emp.matricula}>
                         {emp.matricula}
                       </td>
 
                       {/* Especialidade */}
-                      <td className="px-1.5 py-1.5 text-[10.5px] text-white/90 truncate max-w-[85px]" title={emp.especialidade}>
+                      <td className="hidden md:table-cell px-1.5 py-1.5 text-[10.5px] text-white/90 truncate" title={emp.especialidade}>
                         {emp.especialidade}
                       </td>
 
                       {/* Coordenação */}
-                      <td className="px-1.5 py-1.5 text-[10.5px] text-brand-muted truncate max-w-[85px]" title={emp.coordenacao}>
+                      <td className="hidden xl:table-cell px-1.5 py-1.5 text-[10.5px] text-brand-muted truncate" title={emp.coordenacao}>
                         {emp.coordenacao}
                       </td>
 
                       {/* Mês de Férias (Select) */}
-                      <td className="px-1 py-1 w-[11%] min-w-[90px]">
+                      <td className="px-1 py-1">
                         <select
                           value={plan.month}
                           onChange={(e) => handleCellChange(emp.id, 'month', e.target.value)}
-                          className={`sit-input py-0.5 px-1.5 rounded text-[10.5px] font-semibold cursor-pointer w-full text-white ${
+                          className={`sit-input py-1 sm:py-0.5 px-1 sm:px-1.5 rounded text-[10.5px] font-semibold cursor-pointer w-full text-white ${
                             plan.month ? 'bg-[#0d3466]' : 'bg-black/35 text-white/40 border-white/5'
                           }`}
                         >
@@ -1149,39 +1163,39 @@ export function VacationPlanning({ employees, coordenacoes, empresas }: Vacation
                       </td>
 
                       {/* Gozar os 30 dias de férias (Checkbox) */}
-                      <td className="px-1 py-1 text-center w-[7%] min-w-[50px]">
+                      <td className="px-1 py-1 text-center">
                         <input
                           type="checkbox"
                           checked={plan.gozar30Dias}
                           onChange={(e) => handleCellChange(emp.id, 'gozar30Dias', e.target.checked)}
-                          className="accent-brand-accent rounded w-3.5 h-3.5 cursor-pointer mx-auto block"
+                          className="accent-brand-accent rounded w-4 h-4 sm:w-3.5 sm:h-3.5 cursor-pointer mx-auto block"
                         />
                       </td>
 
                       {/* Trabalhar os primeiros 10 dias (Checkbox) */}
-                      <td className="px-1 py-1 text-center w-[7%] min-w-[55px]">
+                      <td className="px-1 py-1 text-center">
                         <input
                           type="checkbox"
                           checked={plan.trabalharPrimeiros10Dias}
                           disabled={plan.gozar30Dias}
                           onChange={(e) => handleCellChange(emp.id, 'trabalharPrimeiros10Dias', e.target.checked)}
-                          className="accent-brand-accent rounded w-3.5 h-3.5 cursor-pointer mx-auto block disabled:opacity-30 disabled:cursor-not-allowed"
+                          className="accent-brand-accent rounded w-4 h-4 sm:w-3.5 sm:h-3.5 cursor-pointer mx-auto block disabled:opacity-30 disabled:cursor-not-allowed"
                         />
                       </td>
 
                       {/* Trabalhar os últimos 10 dias (Checkbox) */}
-                      <td className="px-1 py-1 text-center w-[7%] min-w-[55px]">
+                      <td className="px-1 py-1 text-center">
                         <input
                           type="checkbox"
                           checked={plan.trabalharUltimos10Dias}
                           disabled={plan.gozar30Dias}
                           onChange={(e) => handleCellChange(emp.id, 'trabalharUltimos10Dias', e.target.checked)}
-                          className="accent-brand-accent rounded w-3.5 h-3.5 cursor-pointer mx-auto block disabled:opacity-30 disabled:cursor-not-allowed"
+                          className="accent-brand-accent rounded w-4 h-4 sm:w-3.5 sm:h-3.5 cursor-pointer mx-auto block disabled:opacity-30 disabled:cursor-not-allowed"
                         />
                       </td>
 
                       {/* Observação */}
-                      <td className="px-1 py-1 w-[14%] min-w-[100px]">
+                      <td className="hidden md:table-cell px-1 py-1">
                         <input
                           type="text"
                           value={plan.observacao}

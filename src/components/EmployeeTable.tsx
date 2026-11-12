@@ -313,15 +313,15 @@ export function EmployeeTable({ employees, unidades, contratos, searchQuery, onE
     <>
       <div className="sit-panel overflow-hidden flex flex-col">
       {/* Table/Card Header Controller */}
-      <div className="flex items-center justify-between px-4 py-3.5 border-b border-brand-border/40 bg-black/10">
-        <span className="text-xs font-bold uppercase tracking-wider text-brand-accent">
+      <div className="flex items-center justify-between gap-2 px-3 sm:px-4 py-2.5 sm:py-3.5 border-b border-brand-border/40 bg-black/10">
+        <span className="min-w-0 truncate text-[11px] sm:text-xs font-bold uppercase tracking-wider text-brand-accent">
           Cofre de Registros ({filteredAndSortedEmployees.length})
         </span>
-        <div className="flex items-center gap-2">
+        <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
           {/* Dynamic Filter Toggle Button */}
           <button
             onClick={() => setShowFilters(!showFilters)}
-            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-bold transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer shadow-sm ${
+            className={`inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 min-h-8 rounded-lg border text-xs font-bold transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer shadow-sm ${
               showFilters || selectedLotacao || selectedCoordenacao || selectedEmpresa || selectedContrato
                 ? 'bg-brand-accent/20 border-brand-accent text-[#6ee7b7]'
                 : 'bg-black/25 border-white/10 text-brand-muted hover:text-white hover:bg-black/40'
@@ -364,7 +364,7 @@ export function EmployeeTable({ employees, unidades, contratos, searchQuery, onE
 
       {/* Collapsible Dynamic Filter Selection Drawer */}
       {showFilters && (
-        <div className="bg-black/20 border-b border-brand-border/30 p-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 animate-slide-up">
+        <div className="bg-black/20 border-b border-brand-border/30 p-3 sm:p-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5 animate-slide-up">
           {/* Lotação */}
           <div className="flex flex-col gap-1.5">
             <label className="text-[10px] font-bold text-brand-muted tracking-wide uppercase flex items-center gap-1.5 select-none">
@@ -469,15 +469,15 @@ export function EmployeeTable({ employees, unidades, contratos, searchQuery, onE
 
       {/* Active Filter Badges */}
       {(selectedLotacao || selectedCoordenacao || selectedEmpresa || selectedContrato) && (
-        <div className="flex flex-wrap items-center gap-2 px-4 py-3 bg-[#0d3466]/40 border-b border-brand-border/20">
+        <div className="flex flex-wrap items-center gap-2 px-3 sm:px-4 py-2.5 sm:py-3 bg-[#0d3466]/40 border-b border-brand-border/20">
           <span className="text-[10px] font-bold uppercase tracking-wider text-brand-muted mr-1.5 flex items-center gap-1 leading-none select-none">
             <span className="flex h-1.5 w-1.5 rounded-full bg-[#10b981]"></span>
             Filtros Ativos:
           </span>
           
           {selectedLotacao && (
-            <span className="inline-flex items-center gap-1.5 rounded-md bg-brand-accent/15 border border-brand-accent/30 px-2 py-0.5 text-xs text-brand-accent font-medium">
-              <span>Lotação: {selectedLotacao}</span>
+            <span className="inline-flex max-w-full items-center gap-1.5 rounded-md bg-brand-accent/15 border border-brand-accent/30 px-2 py-0.5 text-xs text-brand-accent font-medium">
+              <span className="truncate">Lotação: {selectedLotacao}</span>
               <button 
                 onClick={() => setSelectedLotacao('')}
                 className="hover:bg-brand-accent/20 rounded-full p-0.5 transition-colors cursor-pointer"
@@ -489,8 +489,8 @@ export function EmployeeTable({ employees, unidades, contratos, searchQuery, onE
           )}
 
           {selectedCoordenacao && (
-            <span className="inline-flex items-center gap-1.5 rounded-md bg-brand-accent/15 border border-brand-accent/30 px-2 py-0.5 text-xs text-brand-accent font-medium">
-              <span>Coordenação: {selectedCoordenacao}</span>
+            <span className="inline-flex max-w-full items-center gap-1.5 rounded-md bg-brand-accent/15 border border-brand-accent/30 px-2 py-0.5 text-xs text-brand-accent font-medium">
+              <span className="truncate">Coordenação: {selectedCoordenacao}</span>
               <button 
                 onClick={() => setSelectedCoordenacao('')}
                 className="hover:bg-brand-accent/20 rounded-full p-0.5 transition-colors cursor-pointer"
@@ -502,8 +502,8 @@ export function EmployeeTable({ employees, unidades, contratos, searchQuery, onE
           )}
 
           {selectedEmpresa && (
-            <span className="inline-flex items-center gap-1.5 rounded-md bg-brand-accent/15 border border-brand-accent/30 px-2 py-0.5 text-xs text-brand-accent font-medium">
-              <span>Empresa: {selectedEmpresa}</span>
+            <span className="inline-flex max-w-full items-center gap-1.5 rounded-md bg-brand-accent/15 border border-brand-accent/30 px-2 py-0.5 text-xs text-brand-accent font-medium">
+              <span className="truncate">Empresa: {selectedEmpresa}</span>
               <button 
                 onClick={() => setSelectedEmpresa('')}
                 className="hover:bg-brand-accent/20 rounded-full p-0.5 transition-colors cursor-pointer"
@@ -515,8 +515,8 @@ export function EmployeeTable({ employees, unidades, contratos, searchQuery, onE
           )}
 
           {selectedContrato && (
-            <span className="inline-flex items-center gap-1.5 rounded-md bg-brand-accent/15 border border-brand-accent/30 px-2 py-0.5 text-xs text-brand-accent font-medium">
-              <span>Contrato: {selectedContrato}</span>
+            <span className="inline-flex max-w-full items-center gap-1.5 rounded-md bg-brand-accent/15 border border-brand-accent/30 px-2 py-0.5 text-xs text-brand-accent font-medium">
+              <span className="truncate">Contrato: {selectedContrato}</span>
               <button 
                 onClick={() => setSelectedContrato('')}
                 className="hover:bg-brand-accent/20 rounded-full p-0.5 transition-colors cursor-pointer"
@@ -542,18 +542,18 @@ export function EmployeeTable({ employees, unidades, contratos, searchQuery, onE
       )}
 
       {viewMode === 'table' ? (
-        <div className="overflow-x-auto rounded-md border border-brand-border/30 m-4 styled-scrollbars-light">
-          <table className="w-[850px] lg:w-full table-fixed divide-y divide-brand-border">
+        <div className="overflow-x-auto rounded-md border border-brand-border/30 m-2 sm:m-4 styled-scrollbars-light">
+          <table className="w-full table-fixed divide-y divide-brand-border">
             <thead className="bg-black/20 border-b border-brand-border/40">
               <tr>
                 <th className="w-10 px-2 py-2 text-center text-[10px] font-bold uppercase tracking-wider text-brand-muted">Foto</th>
-                <SortHeader field="nome" label="Nome" align="center" className="w-[230px]" />
-                <SortHeader field="matricula" label="Matrícula" align="center" className="w-[85px] sm:w-[90px]" />
-                <SortHeader field="cpf" label="CPF" align="center" className="w-[95px] sm:w-[105px]" />
-                <th className="w-[95px] sm:w-[105px] px-2 py-2 text-center text-[10px] font-bold uppercase tracking-wider text-brand-muted">Contato</th>
-                <SortHeader field="especialidade" label="Especialidade" align="center" className="w-[14%] sm:w-[15%]" />
-                <SortHeader field="coordenacao" label="Coordenação" align="center" className="w-[12%] sm:w-[14%]" />
-                <th className="w-[80px] sm:w-[85px] px-2 py-2 text-right text-[10px] font-bold uppercase tracking-wider text-brand-muted">Ações</th>
+                <SortHeader field="nome" label="Nome" align="center" />
+                <SortHeader field="matricula" label="Matrícula" align="center" className="hidden sm:table-cell w-[90px]" />
+                <SortHeader field="cpf" label="CPF" align="center" className="hidden lg:table-cell w-[105px]" />
+                <th className="hidden sm:table-cell w-[105px] px-2 py-2 text-center text-[10px] font-bold uppercase tracking-wider text-brand-muted">Contato</th>
+                <SortHeader field="especialidade" label="Especialidade" align="center" className="hidden md:table-cell w-[18%] lg:w-[15%]" />
+                <SortHeader field="coordenacao" label="Coordenação" align="center" className="hidden lg:table-cell w-[14%]" />
+                <th className="w-[96px] sm:w-[85px] px-2 py-2 text-right text-[10px] font-bold uppercase tracking-wider text-brand-muted">Ações</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-brand-border bg-transparent">
@@ -588,19 +588,23 @@ export function EmployeeTable({ employees, unidades, contratos, searchQuery, onE
                       </div>
                     </td>
                     <td 
-                      className="px-2 py-1.5 cursor-pointer group/copy transition-colors hover:bg-white/[0.02] align-middle overflow-hidden w-[250px]"
+                      className="px-2 py-1.5 cursor-pointer group/copy transition-colors hover:bg-white/[0.02] align-middle overflow-hidden"
                       onClick={() => handleCopy(employee.nome, 'nome')}
                       title={`Clique para copiar: ${employee.nome}`}
                     >
-                      <div className="text-[10.5px] sm:text-[11px] font-semibold text-white/95 truncate group-hover/copy:text-brand-accent transition-colors flex items-center gap-1.5 min-w-0">
+                      <div className="text-[11.5px] sm:text-[11px] font-semibold text-white/95 truncate group-hover/copy:text-brand-accent transition-colors flex items-center gap-1.5 min-w-0">
                         <span className="truncate">{employee.nome}</span>
                         {employee.autorizadoDirigir && (
                           <Car className="h-3 w-3 text-emerald-400 shrink-0" aria-label="Motorista Autorizado" />
                         )}
                       </div>
+                      <div className="md:hidden mt-0.5 text-[9.5px] text-brand-muted/90 truncate">
+                        <span className="sm:hidden font-mono font-bold text-brand-accent">{employee.matricula}</span>
+                        {employee.especialidade && <span><span className="sm:hidden"> · </span>{employee.especialidade}</span>}
+                      </div>
                     </td>
                     <td 
-                      className="px-2 py-1.5 cursor-pointer group/copy hover:bg-white/[0.02] transition-colors text-center align-middle overflow-hidden"
+                      className="hidden sm:table-cell px-2 py-1.5 cursor-pointer group/copy hover:bg-white/[0.02] transition-colors text-center align-middle overflow-hidden"
                       onClick={() => handleCopy(employee.matricula, 'matricula')}
                       title="Clique para copiar Matrícula"
                     >
@@ -611,14 +615,14 @@ export function EmployeeTable({ employees, unidades, contratos, searchQuery, onE
                       </div>
                     </td>
                     <td 
-                      className="px-2 py-1.5 text-[9px] sm:text-[10px] font-mono text-brand-muted/90 cursor-pointer group/copy hover:bg-white/[0.02] transition-colors text-center align-middle overflow-hidden"
+                      className="hidden lg:table-cell px-2 py-1.5 text-[10px] font-mono text-brand-muted/90 cursor-pointer group/copy hover:bg-white/[0.02] transition-colors text-center align-middle overflow-hidden"
                       onClick={() => handleCopy(employee.cpf, 'cpf')}
                       title="Clique para copiar CPF"
                     >
                       <div className="truncate group-hover/copy:text-white transition-colors">{employee.cpf}</div>
                     </td>
                     <td 
-                      className={`px-2 py-1.5 text-center text-[9px] sm:text-[10px] text-brand-muted/90 font-mono align-middle overflow-hidden ${
+                      className={`hidden sm:table-cell px-2 py-1.5 text-center text-[10px] text-brand-muted/90 font-mono align-middle overflow-hidden ${
                         employee.telefone && employee.telefone.trim() !== '-' && employee.telefone.trim() !== ''
                           ? 'cursor-pointer hover:text-brand-accent hover:underline transition-colors'
                           : ''
@@ -632,10 +636,10 @@ export function EmployeeTable({ employees, unidades, contratos, searchQuery, onE
                     >
                       <div className="truncate">{employee.telefone || '-'}</div>
                     </td>
-                    <td className="px-2 py-1.5 align-middle overflow-hidden" title={employee.especialidade}>
+                    <td className="hidden md:table-cell px-2 py-1.5 align-middle overflow-hidden" title={employee.especialidade}>
                       <div className="text-[9.5px] sm:text-[10px] font-medium text-white/90 truncate">{employee.especialidade}</div>
                     </td>
-                    <td className="px-2 py-1.5 align-middle overflow-hidden" title={employee.coordenacao}>
+                    <td className="hidden lg:table-cell px-2 py-1.5 align-middle overflow-hidden" title={employee.coordenacao}>
                        <div className="text-[9.5px] sm:text-[10px] text-brand-muted/90 truncate">{employee.coordenacao}</div>
                     </td>
                     <td className="px-2 py-1.5 align-middle overflow-hidden">
@@ -643,23 +647,23 @@ export function EmployeeTable({ employees, unidades, contratos, searchQuery, onE
                         <button
                            onClick={() => onView(employee)}
                            title="Visualizar"
-                           className="text-brand-muted hover:text-white p-1 rounded hover:bg-brand-panel-light transition-colors"
+                           className="text-brand-muted hover:text-white p-1.5 sm:p-1 rounded hover:bg-brand-panel-light transition-colors"
                         >
-                           <Eye className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
+                           <Eye className="h-3.5 w-3.5" />
                         </button>
                         <button
                           onClick={() => onEdit(employee)}
                           title="Editar"
-                          className="text-brand-muted hover:text-white p-1 rounded hover:bg-brand-panel-light transition-colors"
+                          className="text-brand-muted hover:text-white p-1.5 sm:p-1 rounded hover:bg-brand-panel-light transition-colors"
                         >
-                          <Edit2 className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
+                          <Edit2 className="h-3.5 w-3.5" />
                         </button>
                         <button
                           onClick={() => onDelete(employee.id)}
                           title="Excluir"
-                          className="text-brand-muted hover:text-red-400 p-1 rounded hover:bg-red-500/10 transition-colors"
+                          className="text-brand-muted hover:text-red-400 p-1.5 sm:p-1 rounded hover:bg-red-500/10 transition-colors"
                         >
-                          <Trash2 className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
+                          <Trash2 className="h-3.5 w-3.5" />
                         </button>
                       </div>
                     </td>
@@ -670,7 +674,7 @@ export function EmployeeTable({ employees, unidades, contratos, searchQuery, onE
           </table>
         </div>
       ) : (
-        <div className="p-5">
+        <div className="p-2.5 sm:p-5">
           {paginatedEmployees.length === 0 ? (
             <div className="py-12 text-center text-brand-muted">
               <UserRound className="h-10 w-10 mb-3 mx-auto opacity-40 text-brand-accent" />
@@ -678,7 +682,7 @@ export function EmployeeTable({ employees, unidades, contratos, searchQuery, onE
               <p className="text-xs text-brand-muted mt-1">Tente ajustar seus termos de pesquisa.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-4">
               {paginatedEmployees.map((employee) => (
                 <div
                   key={employee.id}
@@ -844,7 +848,7 @@ export function EmployeeTable({ employees, unidades, contratos, searchQuery, onE
 
       {/* Pagination Container */}
       {totalPages > 1 && (
-        <div className="flex items-center justify-between border-t border-brand-border bg-black/10 px-6 py-4">
+        <div className="flex items-center justify-between border-t border-brand-border bg-black/10 px-3 sm:px-6 py-3 sm:py-4">
           <div className="flex flex-1 justify-between sm:hidden">
             <button
               onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}

@@ -418,3 +418,8 @@ html, body, #root {
     bottom: calc(4.75rem + env(safe-area-inset-bottom, 0px)) !important;
   }
 }
+
+/* Modais que marcam o body ocultam o FAB global para não sobrepor conteúdo */
+body.sit-modal-open #corporate-fab-menu {
+  display: none;
+}

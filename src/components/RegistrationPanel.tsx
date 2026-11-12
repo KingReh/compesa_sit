@@ -667,7 +667,7 @@ export function RegistrationPanel({
 
       {activeTab === 'coordenacoes' && (
         <div className="sit-panel p-6 animate-slide-up">
-          <div className="flex justify-between items-center mb-6 border-b border-white/10 pb-4">
+          <div className="flex flex-wrap justify-between items-center gap-3 mb-4 sm:mb-6 border-b border-white/10 pb-3 sm:pb-4">
             <div>
               <h2 className="typ-card-title text-white">Gerenciar Coordenações</h2>
               <p className="typ-card-desc mt-1">Crie, edite ou exclua coordenações para listagem nos cadastros.</p>
@@ -727,12 +727,12 @@ export function RegistrationPanel({
           )}
 
           <div className="overflow-x-auto rounded-xl border border-white/10 bg-black/20 shadow-lg">
-            <table className="w-full text-left text-sm text-brand-muted min-w-[600px]">
+            <table className="w-full text-left text-sm text-brand-muted">
               <thead className="bg-black/40 text-[11px] uppercase tracking-wider font-semibold text-brand-accent border-b border-white/10">
                 <tr>
-                  <th className="px-6 py-4.5">Nome da Coordenação</th>
-                  <th className="px-6 py-4.5">Coordenador</th>
-                  <th className="px-6 py-4.5 text-right w-28">Ações</th>
+                  <th className="px-3 sm:px-6 py-3 sm:py-4.5">Nome da Coordenação</th>
+                  <th className="hidden sm:table-cell px-3 sm:px-6 py-3 sm:py-4.5">Coordenador</th>
+                  <th className="px-3 sm:px-6 py-3 sm:py-4.5 text-right w-[92px] sm:w-28">Ações</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5">
@@ -748,13 +748,16 @@ export function RegistrationPanel({
                 )}
                 {coordenacoes.map((coord) => (
                   <tr key={coord.id} className="hover:bg-white/[0.03] transition-colors">
-                    <td className="px-6 py-4 font-medium text-white">
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-2 h-2 rounded-full bg-brand-accent/70" />
-                        <span>{coord.nome}</span>
+                    <td className="px-3 sm:px-6 py-2.5 sm:py-4 font-medium text-white">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className="w-2 h-2 shrink-0 rounded-full bg-brand-accent/70" />
+                        <div className="min-w-0">
+                          <span className="block break-words">{coord.nome}</span>
+                          <span className="sm:hidden block truncate text-[11px] font-normal text-brand-muted mt-0.5">{coord.coordenador || 'Coordenador não informado'}</span>
+                        </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-white/90">
+                    <td className="hidden sm:table-cell px-3 sm:px-6 py-2.5 sm:py-4 text-white/90">
                       {coord.coordenador ? (
                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-white/5 text-white/80 border border-white/5">
                           {coord.coordenador}
@@ -763,7 +766,7 @@ export function RegistrationPanel({
                         <span className="text-white/40 italic text-xs">Não informado</span>
                       )}
                     </td>
-                    <td className="px-6 py-4 text-right">
+                    <td className="px-3 sm:px-6 py-2.5 sm:py-4 text-right">
                       <div className="flex items-center justify-end gap-1.5">
                         <button
                           onClick={() => { setCurrentCoord({ id: coord.id, nome: coord.nome, coordenador: coord.coordenador || '' }); setIsEditingCoord(true); }}
@@ -791,7 +794,7 @@ export function RegistrationPanel({
 
       {activeTab === 'contratos' && (
         <div className="sit-panel p-6 animate-slide-up">
-          <div className="flex justify-between items-center mb-6 border-b border-white/10 pb-4">
+          <div className="flex flex-wrap justify-between items-center gap-3 mb-4 sm:mb-6 border-b border-white/10 pb-3 sm:pb-4">
             <div>
               <h2 className="typ-card-title text-white">Gerenciar Contratos</h2>
               <p className="typ-card-desc mt-1">Crie, edite ou exclua contratos para listagem nos cadastros.</p>
@@ -863,13 +866,13 @@ export function RegistrationPanel({
           )}
 
           <div className="overflow-x-auto rounded-xl border border-white/10 bg-black/20 shadow-lg">
-            <table className="w-full text-left text-sm text-brand-muted min-w-[700px]">
+            <table className="w-full text-left text-sm text-brand-muted">
               <thead className="bg-black/40 text-[11px] uppercase tracking-wider font-semibold text-brand-accent border-b border-white/10">
                 <tr>
-                  <th className="px-6 py-4.5">Nº Contrato</th>
-                  <th className="px-6 py-4.5">Empresa</th>
-                  <th className="px-6 py-4.5">Descrição</th>
-                  <th className="px-6 py-4.5 text-right w-28">Ações</th>
+                  <th className="px-3 sm:px-6 py-3 sm:py-4.5">Nº Contrato</th>
+                  <th className="hidden sm:table-cell px-3 sm:px-6 py-3 sm:py-4.5">Empresa</th>
+                  <th className="hidden md:table-cell px-3 sm:px-6 py-3 sm:py-4.5">Descrição</th>
+                  <th className="px-3 sm:px-6 py-3 sm:py-4.5 text-right w-[92px] sm:w-28">Ações</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5">
@@ -885,18 +888,20 @@ export function RegistrationPanel({
                 )}
                 {contratos.map((ct) => (
                   <tr key={ct.id} className="hover:bg-white/[0.03] transition-colors">
-                    <td className="px-6 py-4 font-medium text-white">
+                    <td className="px-3 sm:px-6 py-2.5 sm:py-4 font-medium text-white">
                       <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded bg-[#0b4d8f]/30 text-white border border-[#0b4d8f]/50 font-mono text-[11px]">
                         {ct.numero}
                       </span>
+                      <span className="sm:hidden block truncate text-xs font-medium text-white/90 mt-1">{ct.empresa}</span>
+                      {ct.descricao && <span className="md:hidden block line-clamp-1 text-[11px] font-normal text-white/60 mt-0.5">{ct.descricao}</span>}
                     </td>
-                    <td className="px-6 py-4 text-white/90">
+                    <td className="hidden sm:table-cell px-3 sm:px-6 py-2.5 sm:py-4 text-white/90">
                       <div className="line-clamp-1 font-medium">{ct.empresa}</div>
                     </td>
-                    <td className="px-6 py-4 text-white/70">
+                    <td className="hidden md:table-cell px-3 sm:px-6 py-2.5 sm:py-4 text-white/70">
                       <div className="line-clamp-1 text-xs">{ct.descricao}</div>
                     </td>
-                    <td className="px-6 py-4 text-right">
+                    <td className="px-3 sm:px-6 py-2.5 sm:py-4 text-right">
                       <div className="flex items-center justify-end gap-1.5">
                         <button
                           onClick={() => { setCurrentContrato(ct); setIsEditingContrato(true); }}
@@ -924,7 +929,7 @@ export function RegistrationPanel({
 
       {activeTab === 'unidades' && (
         <div className="sit-panel p-6 animate-slide-up">
-          <div className="flex justify-between items-center mb-6 border-b border-white/10 pb-4">
+          <div className="flex flex-wrap justify-between items-center gap-3 mb-4 sm:mb-6 border-b border-white/10 pb-3 sm:pb-4">
             <div>
               <h2 className="typ-card-title text-white">Gerenciar Unidades</h2>
               <p className="typ-card-desc mt-1">Crie, edite ou exclua unidades e instalações (Lotações) disponíveis nos cadastros.</p>
@@ -1006,13 +1011,13 @@ export function RegistrationPanel({
           )}
 
           <div className="overflow-x-auto rounded-xl border border-white/10 bg-black/20 shadow-lg styled-scrollbars">
-            <table className="w-full text-left text-sm text-brand-muted min-w-[800px]">
+            <table className="w-full text-left text-sm text-brand-muted">
               <thead className="bg-black/40 text-[11px] uppercase tracking-wider font-semibold text-brand-accent border-b border-white/10">
                 <tr>
-                  <th className="px-6 py-4.5">Unidade</th>
-                  <th className="px-6 py-4.5">Coordenadas</th>
-                  <th className="px-6 py-4.5 text-center w-72">Mapa</th>
-                  <th className="px-6 py-4.5 text-right w-28">Ações</th>
+                  <th className="px-3 sm:px-6 py-3 sm:py-4.5">Unidade</th>
+                  <th className="hidden md:table-cell px-3 sm:px-6 py-3 sm:py-4.5">Coordenadas</th>
+                  <th className="hidden lg:table-cell px-6 py-4.5 text-center w-72">Mapa</th>
+                  <th className="px-3 sm:px-6 py-3 sm:py-4.5 text-right w-[128px] lg:w-28">Ações</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5">
@@ -1028,19 +1033,22 @@ export function RegistrationPanel({
                 )}
                 {paginatedUnidades.map((unidade) => (
                   <tr key={unidade.id} className="hover:bg-white/[0.03] transition-colors relative group">
-                    <td className="px-6 py-3 font-medium text-white align-middle">
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-2 h-2 rounded-full bg-brand-accent/70" />
-                        <span>{unidade.nome}</span>
+                    <td className="px-3 sm:px-6 py-2.5 sm:py-3 font-medium text-white align-middle">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className="w-2 h-2 shrink-0 rounded-full bg-brand-accent/70" />
+                        <div className="min-w-0">
+                          <span className="block break-words">{unidade.nome}</span>
+                          <span className="md:hidden block truncate font-mono text-[10px] font-normal text-brand-muted mt-0.5">{unidade.latitude} · {unidade.longitude}</span>
+                        </div>
                       </div>
                     </td>
-                    <td className="px-6 py-3 text-white/90 align-middle">
+                    <td className="hidden md:table-cell px-3 sm:px-6 py-2.5 sm:py-3 text-white/90 align-middle">
                       <div className="flex flex-col gap-1">
                         <span className="text-xs bg-white/5 px-2 py-0.5 rounded border border-white/5 w-fit font-mono">Lat: {unidade.latitude}</span>
                         <span className="text-xs bg-white/5 px-2 py-0.5 rounded border border-white/5 w-fit font-mono">Lng: {unidade.longitude}</span>
                       </div>
                     </td>
-                    <td className="px-6 py-4 align-middle text-center overflow-hidden">
+                    <td className="hidden lg:table-cell px-6 py-4 align-middle text-center overflow-hidden">
                       <div 
                         className="w-full h-28 rounded-lg overflow-hidden border border-white/10 bg-black/50 relative shadow-inner cursor-pointer group-hover:border-brand-accent/50 transition-colors"
                         onClick={() => setViewingMapUnidade(unidade)}
@@ -1066,8 +1074,16 @@ export function RegistrationPanel({
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-3 text-right align-middle">
+                    <td className="px-3 sm:px-6 py-2.5 sm:py-3 text-right align-middle">
                       <div className="flex items-center justify-end gap-1.5">
+                        <button
+                          onClick={() => setViewingMapUnidade(unidade)}
+                          className="lg:hidden p-2 text-white/60 hover:text-brand-accent hover:bg-brand-accent/10 transition-colors rounded-lg border border-transparent hover:border-brand-accent/20"
+                          title="Ver mapa"
+                          aria-label={`Ver mapa de ${unidade.nome}`}
+                        >
+                          <MapPin className="w-4 h-4" />
+                        </button>
                         <button
                           onClick={() => { setCurrentUnidade(unidade); setIsEditingUnidade(true); }}
                           className="p-2 text-white/60 hover:text-brand-accent hover:bg-brand-accent/10 transition-colors rounded-lg border border-transparent hover:border-brand-accent/20"
@@ -1092,7 +1108,7 @@ export function RegistrationPanel({
 
           {/* Pagination Container for Unidades */}
           {totalUnidadesPages > 1 && (
-            <div className="flex items-center justify-between border-t border-brand-border bg-black/10 px-6 py-4 mt-2 rounded-xl">
+            <div className="flex items-center justify-between border-t border-brand-border bg-black/10 px-3 sm:px-6 py-3 sm:py-4 mt-2 rounded-xl">
               <div className="flex flex-1 justify-between sm:hidden">
                 <button
                   onClick={() => setUnidadesCurrentPage((p) => Math.max(1, p - 1))}
@@ -1144,7 +1160,7 @@ export function RegistrationPanel({
 
       {activeTab === 'empresas' && (
         <div className="sit-panel p-6 animate-slide-up">
-          <div className="flex justify-between items-center mb-6 border-b border-white/10 pb-4">
+          <div className="flex flex-wrap justify-between items-center gap-3 mb-4 sm:mb-6 border-b border-white/10 pb-3 sm:pb-4">
             <div>
               <h2 className="typ-card-title text-white">Gerenciar Empresas</h2>
               <p className="typ-card-desc mt-1">Crie, edite ou exclua empresas cadastradas no sistema.</p>
@@ -1655,7 +1671,7 @@ export function RegistrationPanel({
 
           {/* Pagination Container for Empresas */}
           {totalEmpresasPages > 1 && (
-            <div className="flex items-center justify-between border-t border-brand-border bg-black/10 px-6 py-4 mt-2 rounded-xl">
+            <div className="flex items-center justify-between border-t border-brand-border bg-black/10 px-3 sm:px-6 py-3 sm:py-4 mt-2 rounded-xl">
               <div className="flex flex-1 justify-between sm:hidden">
                 <button
                   onClick={() => setEmpresasCurrentPage((p) => Math.max(1, p - 1))}

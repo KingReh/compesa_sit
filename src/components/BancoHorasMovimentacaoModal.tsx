@@ -63,6 +63,19 @@ export function BancoHorasMovimentacaoModal({
     return () => window.removeEventListener('keydown', onKey);
   }, [isOpen, onClose, salvando]);
 
+  // Impede que a página role por trás da folha no mobile.
+  useEffect(() => {
+    if (!isOpen) return;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    // Oculta elementos flutuantes globais (ex.: FAB) que ficariam sobre o modal.
+    document.body.classList.add('sit-modal-open');
+    return () => {
+      document.body.style.overflow = previous;
+      document.body.classList.remove('sit-modal-open');
+    };
+  }, [isOpen]);
+
   const minutos = useMemo(() => parseHorasToMinutos(quantidade) ?? 0, [quantidade]);
   const saldoAtual = tipo === 'EX50' ? saldo.ex50 : saldo.ex100;
   const saldoPrevisto = operacao === 'adicionar' ? saldoAtual + minutos : saldoAtual - minutos;
@@ -112,185 +125,204 @@ export function BancoHorasMovimentacaoModal({
   };
 
   const toggleBase =
-    'flex-1 inline-flex items-center justify-center gap-2 rounded-lg px-3 py-2.5 typ-card-title transition-all border';
+    'flex-1 min-w-0 inline-flex items-center justify-center gap-2 rounded-lg px-3 py-2.5 min-h-11 sm:min-h-0 typ-card-title transition-all border';
+  // 16px no mobile evita o zoom automático do iOS ao focar o campo.
+  const inputBase = 'sit-input block w-full rounded-lg px-3 py-2.5 min-h-11 sm:min-h-0 text-sm max-sm:text-base!';
 
   return createPortal(
     <div
       onClick={(e) => {
         if (e.target === e.currentTarget && !salvando) onClose();
       }}
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center overflow-y-auto bg-black/60 backdrop-blur-sm sm:p-4 animate-fade-in"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-3 sm:p-4 animate-fade-in"
       role="dialog"
       aria-modal="true"
       aria-label="Movimentar banco de horas"
     >
-      <div className="sit-panel relative w-full sm:max-w-lg max-h-[92vh] overflow-y-auto rounded-b-none sm:rounded-2xl">
-        <div className="sticky top-0 z-10 flex items-start justify-between gap-3 p-4 sm:p-5 border-b border-white/5 bg-brand-panel/95 backdrop-blur">
+      <div className="sit-panel relative w-full sm:max-w-lg max-h-[calc(100dvh-1.5rem)] sm:max-h-[90vh] flex flex-col overflow-hidden rounded-2xl">
+        <div className="shrink-0 flex items-start justify-between gap-3 px-4 py-3 sm:p-5 border-b border-white/5 bg-brand-panel/95 backdrop-blur">
           <div className="min-w-0">
             <p className="typ-subtitle text-brand-muted">Banco de Horas</p>
-            <h3 className="typ-section-title truncate">{employee.nome}</h3>
+            <h3 className="typ-section-title truncate" title={employee.nome}>{employee.nome}</h3>
             <p className="typ-card-desc text-brand-muted truncate">
-              Matrícula {employee.matricula}
+              Matrícula <span className="font-mono">{employee.matricula}</span>
             </p>
           </div>
           <button
+            type="button"
             onClick={onClose}
             disabled={salvando}
             aria-label="Fechar"
-            className="rounded-full p-1.5 text-brand-muted hover:bg-brand-panel-light hover:text-white transition-colors shrink-0 disabled:opacity-50"
+            className="-mr-1 -mt-0.5 rounded-full p-2 sm:p-1.5 text-brand-muted hover:bg-brand-panel-light hover:text-white transition-colors shrink-0 disabled:opacity-50"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-4 sm:p-5 flex flex-col gap-4">
-          <div>
-            <label className="typ-form-label mb-1.5 block">Tipo da hora</label>
-            <div className="flex gap-2">
-              {(['EX50', 'EX100'] as TipoHoraExtra[]).map((t) => (
+        <form onSubmit={handleSubmit} className="flex flex-1 min-h-0 flex-col">
+          <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain p-4 sm:p-5 flex flex-col gap-3.5 sm:gap-4">
+            <div>
+              <label className="typ-form-label mb-1.5 block">Tipo da hora</label>
+              <div className="flex gap-2">
+                {(['EX50', 'EX100'] as TipoHoraExtra[]).map((t) => {
+                  const saldoTipo = t === 'EX50' ? saldo.ex50 : saldo.ex100;
+                  return (
+                    <button
+                      key={t}
+                      type="button"
+                      onClick={() => setTipo(t)}
+                      aria-pressed={tipo === t}
+                      className={`${toggleBase} ${
+                        tipo === t
+                          ? 'bg-brand-accent/15 border-brand-accent text-white'
+                          : 'bg-black/10 border-brand-border text-brand-muted hover:text-white'
+                      }`}
+                    >
+                      <Clock className="h-4 w-4 shrink-0" />
+                      <span>{t === 'EX50' ? 'EX50%' : 'EX100%'}</span>
+                      <span className="font-mono text-[11px] font-semibold opacity-70 truncate">
+                        {formatMinutosToHoras(saldoTipo)}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div>
+              <label className="typ-form-label mb-1.5 block">Movimentação</label>
+              <div className="flex gap-2">
                 <button
-                  key={t}
                   type="button"
-                  onClick={() => setTipo(t)}
+                  onClick={() => setOperacao('adicionar')}
+                  aria-pressed={operacao === 'adicionar'}
                   className={`${toggleBase} ${
-                    tipo === t
-                      ? 'bg-brand-accent/15 border-brand-accent text-white'
+                    operacao === 'adicionar'
+                      ? 'bg-emerald-500/15 border-emerald-500/60 text-emerald-300'
                       : 'bg-black/10 border-brand-border text-brand-muted hover:text-white'
                   }`}
                 >
-                  <Clock className="h-4 w-4" />
-                  {t === 'EX50' ? 'EX50%' : 'EX100%'}
+                  <Plus className="h-4 w-4 shrink-0" /> Adicionar
                 </button>
-              ))}
+                <button
+                  type="button"
+                  onClick={() => setOperacao('retirar')}
+                  aria-pressed={operacao === 'retirar'}
+                  className={`${toggleBase} ${
+                    operacao === 'retirar'
+                      ? 'bg-rose-500/15 border-rose-500/60 text-rose-300'
+                      : 'bg-black/10 border-brand-border text-brand-muted hover:text-white'
+                  }`}
+                >
+                  <Minus className="h-4 w-4 shrink-0" /> Retirar
+                </button>
+              </div>
             </div>
-            <p className="typ-card-desc text-brand-muted mt-1.5">
-              Saldo atual: <span className="text-white font-semibold">{formatMinutosToHoras(saldoAtual)}</span>
-            </p>
-          </div>
 
-          <div>
-            <label className="typ-form-label mb-1.5 block">Movimentação</label>
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={() => setOperacao('adicionar')}
-                className={`${toggleBase} ${
-                  operacao === 'adicionar'
-                    ? 'bg-emerald-500/15 border-emerald-500/60 text-emerald-300'
-                    : 'bg-black/10 border-brand-border text-brand-muted hover:text-white'
-                }`}
-              >
-                <Plus className="h-4 w-4" /> Adicionar
-              </button>
-              <button
-                type="button"
-                onClick={() => setOperacao('retirar')}
-                className={`${toggleBase} ${
-                  operacao === 'retirar'
-                    ? 'bg-rose-500/15 border-rose-500/60 text-rose-300'
-                    : 'bg-black/10 border-brand-border text-brand-muted hover:text-white'
-                }`}
-              >
-                <Minus className="h-4 w-4" /> Retirar
-              </button>
+            <div className="grid grid-cols-[minmax(0,5fr)_minmax(0,7fr)] sm:grid-cols-2 gap-2.5 sm:gap-3">
+              <div className="min-w-0">
+                <label className="typ-form-label mb-1.5 block truncate" htmlFor="bh-qtd">
+                  Quantidade <span className="text-brand-muted font-normal">(HH:MM)</span>
+                </label>
+                <input
+                  id="bh-qtd"
+                  inputMode="numeric"
+                  autoComplete="off"
+                  placeholder="00:00"
+                  value={quantidade}
+                  onChange={(e) => {
+                    setQuantidade(maskHoras(e.target.value));
+                    setErro(null);
+                  }}
+                  className={`${inputBase} font-mono`}
+                />
+              </div>
+              <div className="min-w-0">
+                <label className="typ-form-label mb-1.5 block truncate" htmlFor="bh-data">
+                  <span className="sm:hidden">Data</span>
+                  <span className="hidden sm:inline">Data da movimentação</span>
+                </label>
+                <input
+                  id="bh-data"
+                  type="date"
+                  value={data}
+                  onPaste={handleDatePaste}
+                  onChange={(e) => setData(e.target.value)}
+                  className={`${inputBase} min-w-0 appearance-none`}
+                />
+              </div>
             </div>
-          </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="typ-form-label mb-1.5 block" htmlFor="bh-qtd">
-                Quantidade (HH:MM)
+              <label className="typ-form-label mb-1.5 block" htmlFor="bh-motivo">
+                Motivo / descrição
               </label>
-              <input
-                id="bh-qtd"
-                inputMode="numeric"
-                placeholder="00:00"
-                value={quantidade}
+              <textarea
+                id="bh-motivo"
+                rows={3}
+                value={motivo}
                 onChange={(e) => {
-                  setQuantidade(maskHoras(e.target.value));
+                  setMotivo(e.target.value);
                   setErro(null);
                 }}
-                className="sit-input block w-full rounded-lg px-3 py-2.5 text-sm"
+                placeholder="Ex.: Plantão extra no dia 12/09, cobertura de escala..."
+                className="sit-input block w-full rounded-lg px-3 py-2.5 text-sm max-sm:text-base! resize-y"
               />
             </div>
-            <div>
-              <label className="typ-form-label mb-1.5 block" htmlFor="bh-data">
-                Data da movimentação
-              </label>
-              <input
-                id="bh-data"
-                type="date"
-                value={data}
-                onPaste={handleDatePaste}
-                onChange={(e) => setData(e.target.value)}
-                className="sit-input block w-full rounded-lg px-3 py-2.5 text-sm"
-              />
+
+            {/* Prévia do saldo: atual → após a movimentação */}
+            <div className="sit-panel-inner px-3 py-2.5 sm:p-3 flex items-center justify-between gap-3">
+              <div className="min-w-0">
+                <p className="typ-subtitle text-brand-muted truncate">Saldo após a movimentação</p>
+                <p className="typ-card-desc text-brand-muted truncate">
+                  {labelTipoHora(tipo)} · atual{' '}
+                  <span className="font-mono text-white/90">{formatMinutosToHoras(saldoAtual)}</span>
+                </p>
+              </div>
+              <span
+                className={`typ-stat !text-xl sm:!text-2xl font-mono shrink-0 ${
+                  excedeSaldo ? 'text-rose-400' : saldoPrevisto > 0 ? 'text-emerald-300' : 'text-white'
+                }`}
+              >
+                {formatMinutosToHoras(saldoPrevisto)}
+              </span>
             </div>
+
+            {(erro || excedeSaldo) && (
+              <div role="alert" className="flex items-start gap-2 rounded-lg border border-rose-500/30 bg-rose-500/10 p-3">
+                <AlertTriangle className="h-4 w-4 text-rose-400 shrink-0 mt-0.5" />
+                <p className="typ-card-desc text-rose-300">
+                  {erro ||
+                    `Saldo insuficiente: o colaborador possui ${formatMinutosToHoras(saldoAtual)} de ${labelTipoHora(tipo)}.`}
+                </p>
+              </div>
+            )}
           </div>
 
-          <div>
-            <label className="typ-form-label mb-1.5 block" htmlFor="bh-motivo">
-              Motivo / descrição
-            </label>
-            <textarea
-              id="bh-motivo"
-              rows={3}
-              value={motivo}
-              onChange={(e) => {
-                setMotivo(e.target.value);
-                setErro(null);
-              }}
-              placeholder="Ex.: Plantão extra no dia 12/09, cobertura de escala..."
-              className="sit-input block w-full rounded-lg px-3 py-2.5 text-sm resize-y"
-            />
-          </div>
-
-          {/* Prévia do saldo */}
-          <div className="sit-panel-inner p-3 flex items-center justify-between gap-3">
-            <div className="min-w-0">
-              <p className="typ-subtitle text-brand-muted">Saldo após a movimentação</p>
-              <p className="typ-card-desc text-brand-muted truncate">{labelTipoHora(tipo)}</p>
-            </div>
-            <span
-              className={`typ-stat !text-2xl font-mono ${
-                excedeSaldo ? 'text-rose-400' : saldoPrevisto > 0 ? 'text-emerald-300' : 'text-white'
-              }`}
-            >
-              {formatMinutosToHoras(saldoPrevisto)}
-            </span>
-          </div>
-
-          {(erro || excedeSaldo) && (
-            <div className="flex items-start gap-2 rounded-lg border border-rose-500/30 bg-rose-500/10 p-3">
-              <AlertTriangle className="h-4 w-4 text-rose-400 shrink-0 mt-0.5" />
-              <p className="typ-card-desc text-rose-300">
-                {erro ||
-                  `Saldo insuficiente: o colaborador possui ${formatMinutosToHoras(saldoAtual)} de ${labelTipoHora(tipo)}.`}
-              </p>
-            </div>
-          )}
-
-          <div className="flex flex-col sm:flex-row gap-2 pt-1">
+          {/* Ações sempre visíveis, acima do teclado e da área segura */}
+          <div className="shrink-0 flex gap-2 px-4 py-3 sm:p-5 sm:pt-4 border-t border-white/5 bg-brand-panel/95 backdrop-blur">
             <button
               type="button"
               onClick={onClose}
               disabled={salvando}
-              className="flex-1 rounded-lg px-4 py-2.5 typ-card-title bg-brand-panel-light/30 border border-brand-border hover:bg-brand-panel-light transition-colors text-white disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 min-h-11 sm:min-h-0 rounded-lg px-4 py-2.5 typ-card-title bg-brand-panel-light/30 border border-brand-border hover:bg-brand-panel-light transition-colors text-white disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={excedeSaldo || salvando}
-              className="sit-button-primary flex-1 inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-bold disabled:opacity-50 disabled:cursor-not-allowed"
+              className="sit-button-primary flex-[1.6] sm:flex-1 min-w-0 min-h-11 sm:min-h-0 inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-bold disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {salvando ? (
                 <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <Loader2 className="h-4 w-4 animate-spin shrink-0" />
                   <span>Gravando...</span>
                 </>
               ) : (
-                'Confirmar movimentação'
+                <span className="truncate">
+                  Confirmar<span className="hidden min-[380px]:inline"> movimentação</span>
+                </span>
               )}
             </button>
           </div>

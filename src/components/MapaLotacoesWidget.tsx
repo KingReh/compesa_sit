@@ -112,38 +112,38 @@ export function MapaLotacoesWidget({
   if (unidades.length === 0) return null;
 
   return (
-    <div className="sit-panel overflow-hidden flex flex-col mt-6 shadow-xl animate-fade-in group">
+    <div className="sit-panel overflow-hidden flex flex-col lg:mt-6 shadow-xl animate-fade-in group">
       {/* Header */}
       <div 
-        className="p-4 border-b border-white/5 bg-black/20 flex items-center justify-between cursor-pointer lg:cursor-default"
+        className="p-3 sm:p-4 border-b border-white/5 bg-black/20 flex items-center justify-between gap-2 cursor-pointer lg:cursor-default"
         onClick={() => setIsMobileExpanded(!isMobileExpanded)}
       >
-        <div className="flex items-center gap-3">
-          <div className="p-2 rounded-lg bg-brand-accent/10 border border-brand-accent/20 text-brand-accent shadow-inner">
+        <div className="flex min-w-0 items-center gap-2.5 sm:gap-3">
+          <div className="shrink-0 p-2 rounded-lg bg-brand-accent/10 border border-brand-accent/20 text-brand-accent shadow-inner">
             <MapPin className="w-4 h-4" />
           </div>
-          <div>
-            <h3 className="typ-card-title text-white tracking-wide">Mapa de Lotações</h3>
+          <div className="min-w-0">
+            <h3 className="typ-card-title text-white tracking-wide truncate">Mapa de Lotações</h3>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
           {invalidUnits.length > 0 && (
             <div 
               className="flex items-center gap-1 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20 text-amber-300 cursor-help"
               title={`Existem ${invalidUnits.length} unidades com coordenadas inválidas ou não cadastradas (omitidas do mapa). Verifique os logs de diagnóstico no console.`}
             >
               <AlertTriangle className="w-3.5 h-3.5" />
-              <span className="text-[9px] font-bold uppercase tracking-wider font-mono">{invalidUnits.length} OMITIDA(S)</span>
+              <span className="text-[9px] font-bold uppercase tracking-wider font-mono">{invalidUnits.length}<span className="hidden sm:inline lg:hidden xl:inline"> OMITIDA(S)</span></span>
             </div>
           )}
           <button
             onClick={(e) => { e.stopPropagation(); setIsMapModalOpen(true); }}
-            className="group/btn flex items-center gap-1.5 bg-brand-accent/10 hover:bg-brand-accent/20 focus-visible:bg-brand-accent/20 px-2.5 py-1 rounded-md border border-brand-accent/30 hover:border-brand-accent/60 focus-visible:border-brand-accent/60 text-brand-accent transition-all active:scale-95 shadow-sm hover:shadow-md hover:shadow-brand-accent/10 outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2 focus-visible:ring-offset-brand-bg"
+            className="group/btn flex items-center gap-1.5 bg-brand-accent/10 hover:bg-brand-accent/20 focus-visible:bg-brand-accent/20 px-2.5 py-1.5 sm:py-1 rounded-md border border-brand-accent/30 hover:border-brand-accent/60 focus-visible:border-brand-accent/60 text-brand-accent transition-all active:scale-95 shadow-sm hover:shadow-md hover:shadow-brand-accent/10 outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2 focus-visible:ring-offset-brand-bg"
             title="Abrir painel geográfico completo"
             aria-label="Exibir mapa geográfico de lotações"
           >
             <MapIcon className="w-3.5 h-3.5 group-hover/btn:scale-110 transition-transform" />
-            <span className="text-[10px] font-bold uppercase tracking-widest">Exibir Mapa</span>
+            <span className="text-[10px] font-bold uppercase tracking-widest"><span className="hidden min-[380px]:inline">Exibir </span>Mapa</span>
           </button>
           {/* Mobile indicator */}
           <div className="lg:hidden text-white/50">

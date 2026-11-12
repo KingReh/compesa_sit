@@ -350,19 +350,19 @@ export default function App() {
       {/* Header NavBar */}
       <header className="pt-8 pb-4">
         <div className="mx-auto max-w-[1400px] px-3 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-brand-bg shadow-lg shadow-black/10">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex min-w-0 items-center gap-2.5 sm:gap-3">
+              <div className="flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl bg-white text-brand-bg shadow-lg shadow-black/10">
                 <Building2 className="h-6 w-6" />
               </div>
-              <div className="flex flex-col">
+              <div className="flex min-w-0 flex-col">
                 <h1 className="typ-brand leading-none">SIT</h1>
-                <p className="typ-brand-sub leading-none mt-1 text-brand-accent">SISTEMA INTEGRADO DE TERCEIRIZADOS</p>
+                <p className="typ-brand-sub leading-none mt-1 text-brand-accent truncate">SISTEMA INTEGRADO DE TERCEIRIZADOS</p>
               </div>
             </div>
 
             {/* Profile and Logout option in Header */}
-            <div className="flex items-center gap-2 sm:gap-4">
+            <div className="flex shrink-0 items-center gap-2 sm:gap-4">
               <NotificationCenter
                 employees={filteredEmployees}
                 vacationPlans={vacationPlans}
@@ -381,7 +381,7 @@ export default function App() {
               </div>
               <button
                 onClick={handleLogout}
-                className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-semibold border border-rose-500/20 bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 hover:text-white transition-colors cursor-pointer select-none active:scale-[0.98]"
+                className="inline-flex min-h-9 min-w-9 items-center justify-center gap-2 rounded-lg px-2.5 sm:px-3 py-2 text-xs font-semibold border border-rose-500/20 bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 hover:text-white transition-colors cursor-pointer select-none active:scale-[0.98]"
                 title="Sair do Sistema"
                 id="header-logout-btn"
               >
@@ -398,10 +398,10 @@ export default function App() {
         <div className="mx-auto max-w-[1400px] px-3 sm:px-6 lg:px-8 flex flex-col lg:flex-row gap-3 sm:gap-6 animate-slide-up">
 
           {/* Sidebar */}
-          <aside className="w-full lg:w-72 flex-shrink-0 space-y-3 sm:space-y-6">
+          <aside className="order-2 lg:order-none w-full lg:w-72 flex-shrink-0 space-y-3 sm:space-y-6">
 
             {/* Logged User Info */}
-            <div className="sit-panel p-5 relative overflow-hidden animate-fade-in" id="sidebar-user-card">
+            <div className="sit-panel p-5 relative overflow-hidden animate-fade-in hidden lg:block" id="sidebar-user-card">
               <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
                 <UserCheck className="w-20 h-20 text-white" />
               </div>
@@ -440,7 +440,7 @@ export default function App() {
               </button>
             </div>
 
-            <div className="sit-panel p-5">
+            <div className="sit-panel p-5 hidden lg:block">
               <div className="flex items-center gap-2 mb-2">
                 <div className="w-2 h-2 rounded-full bg-green-400"></div>
                 <span className="typ-subtitle text-brand-muted tracking-wider text-[10px]">COORDENAÇÕES CONECTADAS</span>
@@ -526,19 +526,19 @@ export default function App() {
           </aside>
 
           {/* Main Content Area */}
-          <div className="flex-1 min-w-0">
+          <div className="order-1 lg:order-none flex-1 min-w-0">
             {renderContent()}
           </div>
         </div>
       </main>
 
       {/* Footer */}
-      <footer className="mobile-bottom-clearance py-6 mt-auto border-t border-white/10 bg-black/10 select-none">
-        <div className="mx-auto max-w-[1400px] px-3 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <p className="text-xs text-brand-muted/90">
+      <footer className="mobile-bottom-clearance pt-4 sm:py-6 mt-auto border-t border-white/10 bg-black/10 select-none">
+        <div className="mx-auto max-w-[1400px] px-3 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-1.5 sm:gap-3 text-center sm:text-left">
+          <p className="text-[11px] sm:text-xs text-brand-muted/90">
             Desenvolvido por: <span className="text-white font-semibold">Renato Henrique</span> — Administrativo CMA SUL/GPM
           </p>
-          <p className="text-xs text-brand-muted/70">
+          <p className="text-[11px] sm:text-xs text-brand-muted/70">
             © 2026 Gerenciamento de Terceirizados
           </p>
         </div>
@@ -600,7 +600,7 @@ export default function App() {
 
       {/* Toast: app already installed */}
       {installToast && createPortal(
-        <div className="mobile-floating-bottom fixed bottom-6 right-6 z-[10000] animate-fade-in">
+        <div className="mobile-floating-bottom fixed bottom-6 left-3 right-3 sm:left-auto sm:right-6 z-[10000] animate-fade-in">
           <div className="sit-panel p-4 flex items-center gap-3 shadow-2xl border border-green-500/30 bg-green-950/90 backdrop-blur-xl text-white rounded-xl">
             <CheckCircle2 className="w-5 h-5 text-green-400 shrink-0" />
             <div>

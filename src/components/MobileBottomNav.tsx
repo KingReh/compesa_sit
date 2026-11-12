@@ -26,7 +26,7 @@ export function MobileBottomNav({ currentView, onNavigate }: MobileBottomNavProp
 
   return createPortal(
     <nav
-      className="mobile-bottom-nav fixed inset-x-0 bottom-0 z-[9000] lg:hidden"
+      className="mobile-bottom-nav fixed inset-x-0 bottom-0 z-40 lg:hidden"
       aria-label="Navegação principal"
     >
       <div className="mx-auto grid max-w-lg grid-cols-5 px-1.5 pt-1.5">
