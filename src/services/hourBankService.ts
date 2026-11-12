@@ -127,6 +127,25 @@ export const hourBankService = {
     }
   },
 
+  /** Saldo atual por tipo (EX50/EX100), em minutos, lido direto do banco. */
+  async getSaldoPorTipo(employeeId: string): Promise<{ EX50: number; EX100: number }> {
+    const { data, error } = await supabase
+      .from('hour_bank_entries')
+      .select('minutos, operacao, tipo')
+      .eq('employee_id', employeeId);
+
+    if (error) throw error;
+
+    const saldo = { EX50: 0, EX100: 0 };
+    for (const row of data || []) {
+      const minutos = Number((row as any).minutos) || 0;
+      const tipo = (row as any).tipo as TipoHoraExtra;
+      if (tipo !== 'EX50' && tipo !== 'EX100') continue;
+      saldo[tipo] += (row as any).operacao === 'adicionar' ? minutos : -minutos;
+    }
+    return saldo;
+  },
+
   /** Saldo total (EX50 + EX100), em minutos, de um único colaborador. */
   async getSaldoMinutos(employeeId: string): Promise<number> {
     const { data, error } = await supabase

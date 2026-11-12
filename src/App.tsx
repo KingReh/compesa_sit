@@ -169,7 +169,15 @@ export default function App() {
       setEmployeeToEdit(null);
     } catch (err) {
       console.error('Erro ao salvar funcionário:', err);
-      alert('Ocorreu um erro ao salvar o funcionário no banco de dados.');
+      const e = err as { code?: string; message?: string };
+      if (e?.code === '23505') {
+        const campo = /cpf/i.test(e.message || '') ? 'CPF' : /matricula/i.test(e.message || '') ? 'matrícula' : 'registro';
+        alert(`Já existe um funcionário cadastrado com este ${campo}.`);
+      } else if (e?.code === '42501') {
+        alert('Seu perfil não tem permissão para alterar funcionários.');
+      } else {
+        alert('Ocorreu um erro ao salvar o funcionário no banco de dados.');
+      }
     }
   };
 
@@ -188,6 +196,8 @@ export default function App() {
       try {
         await employeesService.deleteEmployee(employeeToDelete);
         setEmployees((prev) => prev.filter((e) => e.id !== employeeToDelete));
+        // O banco remove em cascata os planos de férias do funcionário; espelha no estado.
+        setVacationPlans((prev) => prev.filter((p) => p.employeeId !== employeeToDelete));
       } catch (err) {
         console.error('Erro ao excluir funcionário:', err);
         alert('Ocorreu um erro ao excluir o funcionário do banco de dados.');
@@ -269,9 +279,8 @@ export default function App() {
           </div>
 
           <Dashboard
-            employees={employees}
+            employees={filteredEmployees}
             unidades={unidades}
-            contratos={contratos}
             onDriversClick={() => setIsDriversModalOpen(true)}
           />
 
@@ -315,6 +324,7 @@ export default function App() {
           contratos={contratos}
           unidades={unidades}
           empresas={empresas}
+          vacationPlans={vacationPlans}
         />
       );
     }
@@ -324,6 +334,10 @@ export default function App() {
           employees={employees}
           coordenacoes={coordenacoes}
           empresas={empresas}
+          vacationPlans={vacationPlans}
+          onVacationPlansSaved={(year, saved) =>
+            setVacationPlans((prev) => [...prev.filter((p) => p.year !== year), ...saved])
+          }
         />
       );
     }
@@ -588,7 +602,7 @@ export default function App() {
       <DriversModal
         isOpen={isDriversModalOpen}
         onClose={() => setIsDriversModalOpen(false)}
-        employees={employees}
+        employees={filteredEmployees}
         onView={handleViewDriver}
       />
 

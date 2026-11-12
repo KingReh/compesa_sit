@@ -94,20 +94,13 @@ export function useBancoHoras() {
 
   const registrarMovimentacao = useCallback(
     async (nova: NovaMovimentacao): Promise<MovimentacaoBancoHoras> => {
-      // Recalcula o saldo do funcionário para gravar o "saldo após".
-      const doFuncionario = movimentacoes.filter((m) => m.employeeId === nova.employeeId);
-      let ex50 = 0;
-      let ex100 = 0;
-      for (const m of doFuncionario) {
-        const d = m.operacao === 'adicionar' ? m.minutos : -m.minutos;
-        if (m.tipo === 'EX50') ex50 += d;
-        else ex100 += d;
+      // Saldo lido do banco (não da lista em memória), para que o "saldo após"
+      // e a validação de retirada considerem lançamentos feitos por outros usuários.
+      const atual = await hourBankService.getSaldoPorTipo(nova.employeeId);
+      if (nova.operacao === 'retirar' && nova.minutos > atual[nova.tipo]) {
+        throw new Error('Saldo insuficiente para esta retirada. O saldo foi atualizado por outro lançamento; recarregue e tente novamente.');
       }
-      const delta = nova.operacao === 'adicionar' ? nova.minutos : -nova.minutos;
-      if (nova.tipo === 'EX50') ex50 += delta;
-      else ex100 += delta;
-
-      const saldoApos = nova.tipo === 'EX50' ? ex50 : ex100;
+      const saldoApos = atual[nova.tipo] + (nova.operacao === 'adicionar' ? nova.minutos : -nova.minutos);
 
       const criado = await hourBankService.createEntry({
         employeeId: nova.employeeId,
@@ -124,7 +117,7 @@ export function useBancoHoras() {
       setMovimentacoes((prev) => [criado, ...prev]);
       return criado;
     },
-    [movimentacoes]
+    []
   );
 
   const totais = useMemo(() => {

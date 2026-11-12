@@ -144,7 +144,7 @@ const buildNotifications = (
   const currentMonth = today.getMonth();
 
   // 1. Birthdays today and this week
-  const upcomingBirthdays: { employee: Employee; type: 'today' | 'this-week'; age: number }[] = [];
+  const upcomingBirthdays: { employee: Employee; type: 'today' | 'this-week'; age: number; next: Date }[] = [];
   const weekEnd = new Date(today);
   weekEnd.setDate(today.getDate() + 7);
 
@@ -154,21 +154,21 @@ const buildNotifications = (
     const m = dt.getMonth();
     const d = dt.getDate();
     const y = dt.getFullYear();
-    const thisYearBirthday = new Date(currentYear, m, d);
+    // Próximo aniversário: se já passou neste ano, considera o ano seguinte
+    // (cobre a última semana de dezembro → início de janeiro).
+    let nextBirthday = new Date(currentYear, m, d);
+    if (nextBirthday < today) nextBirthday = new Date(currentYear + 1, m, d);
 
     if (m === today.getMonth() && d === today.getDate()) {
-      upcomingBirthdays.push({ employee: emp, type: 'today', age: currentYear - y });
-    } else if (thisYearBirthday > today && thisYearBirthday <= weekEnd) {
-      upcomingBirthdays.push({ employee: emp, type: 'this-week', age: currentYear - y });
+      upcomingBirthdays.push({ employee: emp, type: 'today', age: currentYear - y, next: today });
+    } else if (nextBirthday > today && nextBirthday <= weekEnd) {
+      upcomingBirthdays.push({ employee: emp, type: 'this-week', age: nextBirthday.getFullYear() - y, next: nextBirthday });
     }
   }
 
   for (const b of upcomingBirthdays) {
     const isToday = b.type === 'today';
-    const birthDt = parseLocalDate(b.employee.dataNascimento);
-    const nextBirthday = birthDt
-      ? new Date(currentYear, birthDt.getMonth(), birthDt.getDate())
-      : today;
+    const nextBirthday = b.next;
     items.push({
       id: `birthday:${b.employee.id}:${isToday ? 'today' : 'week'}`,
       type: 'birthday',
@@ -187,22 +187,26 @@ const buildNotifications = (
   }
 
   // 2. Vacations in current/next month and coverage impact
-  const plansByCoord = new Map<string, VacationPlan[]>();
+  // Agrupado por coordenação + mês: somar dois meses distintos inflava o percentual.
+  const plansByCoordMonth = new Map<string, { coord: string; month: string; plans: VacationPlan[] }>();
   const employeesById = new Map(employees.map((e) => [e.id, e]));
 
   for (const plan of vacationPlans) {
-    if (plan.year !== currentYear) continue;
+    // Janela: mês atual e o seguinte (em dezembro, o seguinte é janeiro do próximo ano).
     const monthIdx = monthNameToIndex(plan.month);
-    if (monthIdx < 0 || monthIdx < currentMonth || monthIdx > currentMonth + 1) continue;
+    if (monthIdx < 0) continue;
+    const offset = (plan.year - currentYear) * 12 + (monthIdx - currentMonth);
+    if (offset < 0 || offset > 1) continue;
 
     const emp = employeesById.get(plan.employeeId);
     if (!emp) continue;
     const coord = emp.coordenacao || 'Sem coordenação';
-    const list = plansByCoord.get(coord) || [];
-    list.push(plan);
-    plansByCoord.set(coord, list);
+    const groupKey = `${coord}|${plan.year}|${plan.month}`;
+    const group = plansByCoordMonth.get(groupKey) || { coord, month: plan.month, plans: [] };
+    group.plans.push(plan);
+    plansByCoordMonth.set(groupKey, group);
 
-    const planDate = new Date(currentYear, monthIdx, 1);
+    const planDate = new Date(plan.year, monthIdx, 1);
     items.push({
       id: `vacation:${plan.employeeId}:${plan.year}:${plan.month}`,
       type: 'vacation',
@@ -212,20 +216,19 @@ const buildNotifications = (
       actionLabel: 'Abrir férias',
       action: () => onNavigate('ferias'),
       icon: Calendar,
-      priority: monthIdx === currentMonth ? 'high' : 'normal',
+      priority: offset === 0 ? 'high' : 'normal',
     });
   }
 
   // 3. Coverage impact
   const COVERAGE_THRESHOLD = 0.25; // 25%
-  for (const [coord, plans] of plansByCoord.entries()) {
-    const coordEmployees = employees.filter((e) => e.coordenacao === coord && (e.empresa || e.lotacao));
+  for (const { coord, month, plans } of plansByCoordMonth.values()) {
+    const coordEmployees = employees.filter((e) => (e.coordenacao || 'Sem coordenação') === coord);
     const total = coordEmployees.length || 1;
     const ratio = plans.length / total;
     if (ratio >= COVERAGE_THRESHOLD) {
-      const month = plans[0]?.month || 'mês atual';
       items.push({
-        id: `coverage:${coord}:${currentYear}:${month}`,
+        id: `coverage:${coord}:${plans[0].year}:${month}`,
         type: 'coverage',
         title: `⚠️ Impacto de cobertura: ${coord}`,
         description: `${plans.length} de ${total} colaboradores (${Math.round(ratio * 100)}%) da coordenação têm férias previstas para ${month}. Reveja o planejamento.`,

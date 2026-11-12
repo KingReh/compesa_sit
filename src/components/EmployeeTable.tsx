@@ -31,6 +31,7 @@ export function EmployeeTable({ employees, unidades, contratos, searchQuery, onE
     setSelectedCoordenacao,
     setSelectedEmpresa,
     setSelectedContrato,
+    applyFilters,
   } = useFilters();
 
   const [sortField, setSortField] = useState<SortField>(() => {
@@ -228,40 +229,8 @@ export function EmployeeTable({ employees, unidades, contratos, searchQuery, onE
   };
 
   const filteredAndSortedEmployees = useMemo(() => {
-    let result = employees;
-
-    // Filter text search
-    if (searchQuery) {
-      const q = searchQuery.toLowerCase();
-      result = result.filter(
-        (e) =>
-          e.nome.toLowerCase().includes(q) ||
-          e.matricula.toLowerCase().includes(q) ||
-          e.cpf.includes(q) ||
-          e.especialidade.toLowerCase().includes(q) ||
-          e.coordenacao.toLowerCase().includes(q)
-      );
-    }
-
-    // Filter dynamic lotacao
-    if (selectedLotacao) {
-      result = result.filter((e) => (e.lotacao || '').trim() === selectedLotacao);
-    }
-
-    // Filter dynamic coordenacao
-    if (selectedCoordenacao) {
-      result = result.filter((e) => (e.coordenacao || '').trim() === selectedCoordenacao);
-    }
-
-    // Filter dynamic empresa
-    if (selectedEmpresa) {
-      result = result.filter((e) => (e.empresa || '').trim() === selectedEmpresa);
-    }
-
-    // Filter dynamic contrato
-    if (selectedContrato) {
-      result = result.filter((e) => (e.contrato || '').trim() === selectedContrato);
-    }
+    // Filtro central (FiltersContext) — mesma regra do Painel, Mapa e Notificações.
+    let result = applyFilters(employees);
 
     // Sort
     if (sortField) {
@@ -275,7 +244,7 @@ export function EmployeeTable({ employees, unidades, contratos, searchQuery, onE
     }
 
     return result;
-  }, [employees, searchQuery, selectedLotacao, selectedCoordenacao, selectedEmpresa, selectedContrato, sortField, sortOrder]);
+  }, [employees, applyFilters, sortField, sortOrder]);
 
   // Pagination
   const totalPages = Math.ceil(filteredAndSortedEmployees.length / itemsPerPage);

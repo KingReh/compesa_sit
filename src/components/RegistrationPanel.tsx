@@ -11,6 +11,7 @@ import { empresasService } from '../services/empresasService';
 import { coordenacoesService } from '../services/coordenacoesService';
 import { unidadesService } from '../services/unidadesService';
 import { contratosService } from '../services/contratosService';
+import { employeesService } from '../services/employeesService';
 
 interface RegistrationPanelProps {
   coordenacoes: Coordenacao[];
@@ -237,12 +238,19 @@ export function RegistrationPanel({
     if (!coordToDelete) return;
 
     const employeesInCoord = employees.filter(e => e.coordenacao === coordToDelete.nome);
-    const title = 'Excluir Coordenação';
-    let message = 'Tem certeza que deseja excluir esta coordenação?';
-
     if (employeesInCoord.length > 0) {
-      message = `Atenção: Existem ${employeesInCoord.length} funcionário(s) vinculado(s) à coordenação "${coordToDelete.nome}". Você realmente deseja excluir esta coordenação? O vínculo atual ficará sem pasta até ser atualizado no cadastro do funcionário.`;
+      // O banco impede a exclusão (FK ON DELETE RESTRICT); avisamos antes em vez de falhar.
+      setDeleteConfirmState({
+        isOpen: true,
+        title: 'Exclusão Bloqueada',
+        message: `Existem ${employeesInCoord.length} funcionário(s) vinculado(s) à coordenação "${coordToDelete.nome}". Transfira-os para outro(a) coordenação no cadastro do funcionário antes de excluir.`,
+        onConfirm: null,
+        isAlertOnly: true
+      });
+      return;
     }
+    const title = 'Excluir Coordenação';
+    const message = 'Tem certeza que deseja excluir esta coordenação?';
 
     setDeleteConfirmState({
       isOpen: true,
@@ -275,12 +283,30 @@ export function RegistrationPanel({
       return;
     }
 
+    // Sem empresa correspondente o contrato seria salvo sem vínculo (empresa_id nulo).
+    const empresaVinculada = empresas.find(emp => emp.razaoSocial.toUpperCase().trim() === newEmpresaContrato);
+    if (!empresaVinculada) {
+      alert(`A empresa "${newEmpresaContrato}" não está cadastrada. Selecione uma empresa existente (cadastre-a antes na aba Empresas, se necessário).`);
+      return;
+    }
+
     const updatedContrato = {
       ...currentContrato,
       numero: newNumeroContrato,
-      empresa: newEmpresaContrato,
+      empresa: empresaVinculada.razaoSocial,
       descricao: newDescricaoContrato
     };
+
+    // Avisa antes de transferir funcionários para outra empresa.
+    const contratoAnterior = currentContrato.id ? contratos.find(c => c.id === currentContrato.id) : undefined;
+    if (contratoAnterior && contratoAnterior.empresa !== empresaVinculada.razaoSocial) {
+      const vinculados = employees.filter(emp => emp.contrato === contratoAnterior.numero).length;
+      if (vinculados > 0 && !window.confirm(
+        `${vinculados} funcionário(s) vinculado(s) ao contrato "${contratoAnterior.numero}" passarão da empresa "${contratoAnterior.empresa}" para "${empresaVinculada.razaoSocial}". Deseja continuar?`
+      )) {
+        return;
+      }
+    }
 
     try {
       if (currentContrato.id) {
@@ -293,6 +319,20 @@ export function RegistrationPanel({
           setEmployees(prev => prev.map(emp => 
             emp.contrato === oldContrato.numero ? { ...emp, contrato: newNumeroContrato } : emp
           ));
+        }
+
+        // Troca de empresa: os funcionários do contrato passam para a nova empresa,
+        // mantendo a regra "o contrato do funcionário pertence à empresa dele".
+        if (oldContrato && oldContrato.empresa !== result.empresa) {
+          try {
+            await employeesService.reassignEmpresaByContrato(result.id, empresaVinculada.id);
+            setEmployees(prev => prev.map(emp =>
+              emp.contrato === result.numero ? { ...emp, empresa: result.empresa } : emp
+            ));
+          } catch (err) {
+            console.error('Erro ao atualizar a empresa dos funcionários do contrato:', err);
+            alert(`O contrato foi salvo, mas não foi possível transferir os funcionários vinculados para "${result.empresa}". Tente salvar o contrato novamente.`);
+          }
         }
       } else {
         const result = await contratosService.createContrato(updatedContrato);
@@ -311,12 +351,19 @@ export function RegistrationPanel({
     if (!contratoToDelete) return;
 
     const employeesInContrato = employees.filter(e => e.contrato === contratoToDelete.numero);
-    const title = 'Excluir Contrato';
-    let message = 'Tem certeza que deseja excluir este contrato?';
-
     if (employeesInContrato.length > 0) {
-      message = `Atenção: Existem ${employeesInContrato.length} funcionário(s) vinculado(s) ao contrato "${contratoToDelete.numero}". Você realmente deseja excluir este contrato? O vínculo atual ficará sem pasta até ser atualizado no cadastro do funcionário.`;
+      // O banco impede a exclusão (FK ON DELETE RESTRICT); avisamos antes em vez de falhar.
+      setDeleteConfirmState({
+        isOpen: true,
+        title: 'Exclusão Bloqueada',
+        message: `Existem ${employeesInContrato.length} funcionário(s) vinculado(s) ao contrato "${contratoToDelete.numero}". Transfira-os para outro(a) contrato no cadastro do funcionário antes de excluir.`,
+        onConfirm: null,
+        isAlertOnly: true
+      });
+      return;
     }
+    const title = 'Excluir Contrato';
+    const message = 'Tem certeza que deseja excluir este contrato?';
 
     setDeleteConfirmState({
       isOpen: true,
@@ -376,12 +423,19 @@ export function RegistrationPanel({
     if (!unidadeToDelete) return;
 
     const employeesInUnidade = employees.filter(e => e.lotacao === unidadeToDelete.nome);
-    const title = 'Excluir Unidade';
-    let message = 'Tem certeza que deseja excluir esta unidade?';
-    
     if (employeesInUnidade.length > 0) {
-      message = `Atenção: Existem ${employeesInUnidade.length} funcionário(s) vinculado(s) à unidade "${unidadeToDelete.nome}". Você realmente deseja excluir esta unidade? O vínculo atual ficará órfão até ser atualizado no cadastro do funcionário.`;
+      // O banco impede a exclusão (FK ON DELETE RESTRICT); avisamos antes em vez de falhar.
+      setDeleteConfirmState({
+        isOpen: true,
+        title: 'Exclusão Bloqueada',
+        message: `Existem ${employeesInUnidade.length} funcionário(s) vinculado(s) à unidade "${unidadeToDelete.nome}". Transfira-os para outro(a) unidade no cadastro do funcionário antes de excluir.`,
+        onConfirm: null,
+        isAlertOnly: true
+      });
+      return;
     }
+    const title = 'Excluir Unidade';
+    const message = 'Tem certeza que deseja excluir esta unidade?';
 
     setDeleteConfirmState({
       isOpen: true,
@@ -458,6 +512,10 @@ export function RegistrationPanel({
           setEmployees(prev => prev.map(emp => 
             emp.empresa === oldEmpresa.razaoSocial ? { ...emp, empresa: cleanRazaoSocial } : emp
           ));
+          // Contratos exibem a razão social da empresa vinculada.
+          setContratos(prev => prev.map(c =>
+            c.empresa === oldEmpresa.razaoSocial ? { ...c, empresa: cleanRazaoSocial } : c
+          ));
         }
       } else {
         const result = await empresasService.createEmpresa(savedEmpresa);
@@ -489,6 +547,18 @@ export function RegistrationPanel({
         isOpen: true,
         title: 'Exclusão Bloqueada',
         message: `Atenção: Existem ${employeesInEmpresa.length} funcionário(s) associado(s) à empresa "${empresaToDelete.razaoSocial}". A exclusão está bloqueada para preservar a integridade dos dados.`,
+        onConfirm: null,
+        isAlertOnly: true
+      });
+      return;
+    }
+
+    const contratosDaEmpresa = contratos.filter(c => c.empresa === empresaToDelete.razaoSocial);
+    if (contratosDaEmpresa.length > 0) {
+      setDeleteConfirmState({
+        isOpen: true,
+        title: 'Exclusão Bloqueada',
+        message: `Existem ${contratosDaEmpresa.length} contrato(s) vinculado(s) à empresa "${empresaToDelete.razaoSocial}" (${contratosDaEmpresa.map(c => c.numero).join(', ')}). Exclua ou transfira os contratos antes de excluir a empresa.`,
         onConfirm: null,
         isAlertOnly: true
       });
@@ -832,11 +902,15 @@ export function RegistrationPanel({
                   <input
                     type="text"
                     required
+                    list="contrato-empresas-list"
                     value={currentContrato.empresa}
                     onChange={(e) => setCurrentContrato({ ...currentContrato, empresa: e.target.value.toUpperCase() })}
                     className="block w-full rounded-lg sit-input py-2.5 px-3 sm:text-sm sm:leading-6 placeholder:text-brand-muted uppercase"
                     placeholder="Ex: SERVITIUM"
                   />
+                  <datalist id="contrato-empresas-list">
+                    {empresas.map(emp => <option key={emp.id} value={emp.razaoSocial} />)}
+                  </datalist>
                 </div>
                 <div>
                   <label className="block typ-form-label mb-1">Descrição *</label>

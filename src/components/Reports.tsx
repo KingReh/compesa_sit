@@ -30,7 +30,6 @@ import {
   ChevronDown
 } from 'lucide-react';
 import { Employee, Coordenacao, Contrato, Unidade, Empresa, VacationPlan } from '../types';
-import { vacationPlansService } from '../services/vacationPlansService';
 import { exportReportToPDF, exportReportToXLSX, exportReportToODS } from '../utils/exportReports';
 import { parseLocalDate } from '../utils';
 // @ts-ignore
@@ -42,6 +41,8 @@ interface ReportsProps {
   contratos: Contrato[];
   unidades: Unidade[];
   empresas: Empresa[];
+  /** Planos de férias (fonte única mantida pelo App). */
+  vacationPlans: VacationPlan[];
 }
 
 const meses = [
@@ -49,7 +50,7 @@ const meses = [
   'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
 ];
 
-export function Reports({ employees, coordenacoes, contratos, unidades, empresas }: ReportsProps) {
+export function Reports({ employees, coordenacoes, contratos, unidades, empresas, vacationPlans }: ReportsProps) {
   const [selectedYear, setSelectedYear] = useState<number>(() => {
     try {
       const saved = localStorage.getItem('@sit:reports:selectedYear');
@@ -107,7 +108,6 @@ export function Reports({ employees, coordenacoes, contratos, unidades, empresas
       return 'all';
     }
   });
-  const [vacationPlans, setVacationPlans] = useState<VacationPlan[]>([]);
   const [exportMenuOpen, setExportMenuOpen] = useState<boolean>(false);
 
   // Close export menu on outside click
@@ -179,19 +179,6 @@ export function Reports({ employees, coordenacoes, contratos, unidades, empresas
     document.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mouseup', handleMouseUp);
   };
-
-  // Load vacation plans from database
-  useEffect(() => {
-    async function loadPlans() {
-      try {
-        const plans = await vacationPlansService.getVacationPlans();
-        setVacationPlans(plans);
-      } catch (e) {
-        console.error('Error loading vacation plans for reports', e);
-      }
-    }
-    loadPlans();
-  }, []);
 
   // Simulate skeleton screen loading on tab/filter changes for enterprise feel
   useEffect(() => {

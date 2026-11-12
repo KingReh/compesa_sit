@@ -185,6 +185,22 @@ export const employeesService = {
     };
   },
 
+  /**
+   * Alinha a empresa dos funcionários de um contrato à empresa do contrato.
+   * Usado quando um contrato troca de empresa: o funcionário segue o contrato.
+   */
+  async reassignEmpresaByContrato(contratoId: string, empresaId: string): Promise<number> {
+    const { data, error } = await supabase
+      .from('employees')
+      .update({ empresa_id: empresaId })
+      .eq('contrato_id', contratoId)
+      .neq('empresa_id', empresaId)
+      .select('id');
+
+    if (error) throw error;
+    return (data || []).length;
+  },
+
   async deleteEmployee(id: string): Promise<void> {
     const { error } = await supabase
       .from('employees')

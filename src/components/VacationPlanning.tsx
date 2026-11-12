@@ -37,12 +37,16 @@ interface VacationPlanningProps {
   employees: Employee[];
   coordenacoes: Coordenacao[];
   empresas: Empresa[];
+  /** Planos de férias (fonte única mantida pelo App). */
+  vacationPlans: VacationPlan[];
+  /** Propaga ao App os planos de um ano após salvar. */
+  onVacationPlansSaved: (year: number, plans: VacationPlan[]) => void;
 }
 
 type SortField = 'nome' | 'matricula' | 'cpf' | 'especialidade' | 'empresa' | 'coordenacao' | 'month' | null;
 type SortOrder = 'asc' | 'desc';
 
-export function VacationPlanning({ employees, coordenacoes, empresas }: VacationPlanningProps) {
+export function VacationPlanning({ employees, coordenacoes, empresas, vacationPlans: savedPlans, onVacationPlansSaved }: VacationPlanningProps) {
   // 1. Selector of Year
   const [selectedYear, setSelectedYear] = useState<number>(() => {
     try {
@@ -103,15 +107,11 @@ export function VacationPlanning({ employees, coordenacoes, empresas }: Vacation
     setDetailSearchQuery('');
   }, [selectedDetailMonth]);
 
-  // 2. State for Vacation Plans
-  // We'll store all saved plans as a state, loaded from local storage
-  const [savedPlans, setSavedPlans] = useState<VacationPlan[]>([]);
-  
+  // 2. Planos salvos vêm do App (fonte única compartilhada com Notificações,
+  // Mapa e Relatórios).
   // This holds current workspace edits: key is `employeeId_year`
   const [editedPlans, setEditedPlans] = useState<Record<string, VacationPlan>>({});
   
-  // To keep track of whether we finished loading from localStorage to avoid overwriting initial state
-  const [isLoaded, setIsLoaded] = useState(false);
   const [showSuccessToast, setShowSuccessToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
 
@@ -226,25 +226,8 @@ export function VacationPlanning({ employees, coordenacoes, empresas }: Vacation
     "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
   ];
 
-  // Load from database on mount
-  useEffect(() => {
-    async function loadPlans() {
-      try {
-        const plans = await vacationPlansService.getVacationPlans();
-        setSavedPlans(plans);
-      } catch (e) {
-        console.error('Erro ao buscar planos de férias:', e);
-      } finally {
-        setIsLoaded(true);
-      }
-    }
-    loadPlans();
-  }, []);
-
   // When savedPlans or selectedYear changes, build the editedPlans map for edits
   useEffect(() => {
-    if (!isLoaded) return;
-    
     const initialEdits: Record<string, VacationPlan> = {};
     // Populate with saved plans for this year
     savedPlans.forEach(plan => {
@@ -268,7 +251,7 @@ export function VacationPlanning({ employees, coordenacoes, empresas }: Vacation
     });
 
     setEditedPlans(initialEdits);
-  }, [savedPlans, selectedYear, employees, isLoaded]);
+  }, [savedPlans, selectedYear, employees]);
 
   // Click outside to close dropdowns
   useEffect(() => {
@@ -352,15 +335,22 @@ export function VacationPlanning({ employees, coordenacoes, empresas }: Vacation
       return plan.month !== '' || plan.gozar30Dias || plan.trabalharPrimeiros10Dias || plan.trabalharUltimos10Dias || plan.observacao !== '';
     });
 
+    // A própria tela classifica estes casos como "Conflitos ou Inconsistências";
+    // persisti-los geraria planos sem mês ou sem modalidade nos relatórios.
+    const conflitos = employees.filter(emp => getPlanStatus(emp.id).hasConflict);
+    if (conflitos.length > 0) {
+      const nomes = conflitos.slice(0, 5).map(emp => `• ${emp.nome}: ${getPlanStatus(emp.id).conflictMessage}`).join('\n');
+      const resto = conflitos.length > 5 ? `\n… e mais ${conflitos.length - 5}.` : '';
+      alert(`Não foi possível salvar: ${conflitos.length} planejamento(s) com inconsistência.\n\n${nomes}${resto}\n\nCorrija os itens destacados e salve novamente.`);
+      return;
+    }
+
     try {
       // Save to Supabase
       const savedResult = await vacationPlansService.saveVacationPlans(nonDefaultPlans, selectedYear);
       
-      // Update local state by removing old plans for this year and adding new saved ones
-      setSavedPlans(prev => {
-        const otherYears = prev.filter(p => p.year !== selectedYear);
-        return [...otherYears, ...savedResult];
-      });
+      // Propaga ao App: Notificações, Mapa e Relatórios passam a ver o novo estado.
+      onVacationPlansSaved(selectedYear, savedResult);
 
       setToastMessage(`Planejamento de férias do ano de ${selectedYear} salvo com sucesso!`);
       setShowSuccessToast(true);

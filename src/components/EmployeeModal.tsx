@@ -54,6 +54,32 @@ const initialForm = {
   autorizadoDirigir: false,
 };
 
+const FOTO_MAX_LADO = 400;
+const FOTO_QUALIDADE = 0.82;
+
+function compressImageToDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      const escala = Math.min(1, FOTO_MAX_LADO / Math.max(img.width, img.height));
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.round(img.width * escala);
+      canvas.height = Math.round(img.height * escala);
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return reject(new Error('Canvas indisponível'));
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      resolve(canvas.toDataURL('image/jpeg', FOTO_QUALIDADE));
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error('Imagem inválida'));
+    };
+    img.src = url;
+  });
+}
+
 export function EmployeeModal({ isOpen, onClose, onSave, employeeToEdit, coordenacoes, contratos, unidades, empresas }: EmployeeModalProps) {
   const [formData, setFormData] = useState<Omit<Employee, 'id'>>({ ...initialForm });
   const [errors, setErrors] = useState<Partial<Record<keyof Employee, string>>>({});
@@ -153,14 +179,17 @@ export function EmployeeModal({ isOpen, onClose, onSave, employeeToEdit, coorden
     }
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setFormData((prev) => ({ ...prev, foto: reader.result as string }));
-      };
-      reader.readAsDataURL(file);
+    if (!file) return;
+    try {
+      // A foto é gravada como data URL no banco e baixada junto com a lista de
+      // funcionários; reduzir para ~400px evita fotos de 1 MB na carga inicial.
+      const compressed = await compressImageToDataUrl(file);
+      setFormData((prev) => ({ ...prev, foto: compressed }));
+    } catch (err) {
+      console.error('Falha ao processar a foto:', err);
+      alert('Não foi possível processar a imagem selecionada.');
     }
   };
 
@@ -174,6 +203,19 @@ export function EmployeeModal({ isOpen, onClose, onSave, employeeToEdit, coorden
     if (!formData.lotacao.trim()) newErrors.lotacao = 'Lotação é obrigatória';
     if (!formData.coordenacao.trim()) newErrors.coordenacao = 'Coordenação é obrigatória';
     if (!formData.contrato.trim()) newErrors.contrato = 'Contrato é obrigatório';
+
+    // Datas são NOT NULL no banco; sem esta validação o envio falhava com erro genérico.
+    const hoje = new Date().toISOString().slice(0, 10);
+    if (!formData.dataNascimento) newErrors.dataNascimento = 'Data de nascimento é obrigatória';
+    else if (formData.dataNascimento > hoje) newErrors.dataNascimento = 'Data no futuro';
+    if (!formData.dataAdmissao) newErrors.dataAdmissao = 'Data de admissão é obrigatória';
+    else if (formData.dataNascimento && formData.dataAdmissao < formData.dataNascimento) newErrors.dataAdmissao = 'Admissão anterior ao nascimento';
+
+    // O contrato precisa pertencer à empresa selecionada.
+    const contratoSel = contratos.find((c) => c.numero === formData.contrato);
+    if (contratoSel && formData.empresa && contratoSel.empresa && contratoSel.empresa !== formData.empresa) {
+      newErrors.contrato = `Contrato pertence a ${contratoSel.empresa}`;
+    }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -298,15 +340,16 @@ export function EmployeeModal({ isOpen, onClose, onSave, employeeToEdit, coorden
                     </div>
 
                     <div className="sm:col-span-2">
-                      <label className="block text-[10px] font-bold tracking-wider text-brand-muted uppercase mb-0.5">Data de Nascimento</label>
+                      <label className="block text-[10px] font-bold tracking-wider text-brand-muted uppercase mb-0.5">Data de Nascimento *</label>
                       <input
                         type="date"
                         name="dataNascimento"
                         value={formData.dataNascimento}
                         onChange={handleChange}
                         onPaste={handleDatePaste}
-                        className="block w-full rounded-md sit-input py-1.5 px-2 text-xs !color-scheme-dark"
+                        className={`block w-full rounded-md sit-input py-1.5 px-2 text-xs !color-scheme-dark ${errors.dataNascimento ? "ring-1 ring-red-400" : ""}`}
                       />
+                      {errors.dataNascimento && <p className="mt-0.5 text-[10px] text-red-400 font-semibold">{errors.dataNascimento}</p>}
                     </div>
 
                     <div className="sm:col-span-2">
@@ -551,15 +594,16 @@ export function EmployeeModal({ isOpen, onClose, onSave, employeeToEdit, coorden
                   </h4>
                   <div className="space-y-2">
                     <div>
-                      <label className="block text-[10px] font-bold tracking-wider text-brand-muted uppercase mb-0.5">Data de Admissão</label>
+                      <label className="block text-[10px] font-bold tracking-wider text-brand-muted uppercase mb-0.5">Data de Admissão *</label>
                       <input
                         type="date"
                         name="dataAdmissao"
                         value={formData.dataAdmissao}
                         onChange={handleChange}
                         onPaste={handleDatePaste}
-                        className="block w-full rounded-md sit-input py-1 px-2 text-xs !color-scheme-dark"
+                        className={`block w-full rounded-md sit-input py-1 px-2 text-xs !color-scheme-dark ${errors.dataAdmissao ? "ring-1 ring-red-400" : ""}`}
                       />
+                      {errors.dataAdmissao && <p className="mt-0.5 text-[10px] text-red-400 font-semibold">{errors.dataAdmissao}</p>}
                     </div>
                     <div>
                       <label className="block text-[10px] font-bold tracking-wider text-brand-muted uppercase mb-0.5">Escala de Trabalho</label>

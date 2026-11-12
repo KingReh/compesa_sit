@@ -1,22 +1,24 @@
 import { Users, FileText, Briefcase, LucideIcon } from 'lucide-react';
 import blueCarIcon from '../assets/images/blue_car_blueprint_1781386584651.jpg';
-import { Employee, Unidade, Contrato } from '../types';
+import { Employee, Unidade } from '../types';
 
 interface DashboardProps {
   employees: Employee[];
   unidades: Unidade[];
-  contratos: Contrato[];
   onDriversClick?: () => void;
 }
 
 export function Dashboard({
   employees,
   unidades,
-  contratos,
   onDriversClick,
 }: DashboardProps) {
   const totalEmployees = employees.length;
-  const totalContracts = contratos.length;
+  // Contrato ativo = contrato com ao menos um funcionário vinculado no recorte
+  // atual (respeita os filtros globais, como os demais indicadores do Painel).
+  const totalContracts = new Set(
+    employees.map((e) => (e.contrato || '').trim()).filter(Boolean)
+  ).size;
 
   const specialtiesSet = new Set(
     employees.map((e) => e.especialidade).filter(Boolean)
