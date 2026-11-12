@@ -1,6 +1,12 @@
 export interface Employee {
   id: string;
   foto: string;
+  /**
+   * true enquanto a foto ainda não foi baixada (a lista é carregada sem fotos
+   * para acelerar a inicialização). Nesse estado `foto` vem vazio e NÃO deve
+   * ser interpretado como "sem foto" nem gravado no banco.
+   */
+  fotoPendente?: boolean;
   nome: string;
   matricula: string;
   cpf: string;

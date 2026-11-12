@@ -250,6 +250,8 @@ const buildNotifications = (
 
   for (const emp of employees) {
     for (const field of incompleteFields) {
+      // Foto ainda carregando em segundo plano: não é cadastro incompleto.
+      if (field.key === 'foto' && emp.fotoPendente) continue;
       const value = (emp as any)[field.key];
       if (!value || (typeof value === 'string' && !value.trim())) {
         items.push({
@@ -272,7 +274,7 @@ const buildNotifications = (
     if (emp.autorizadoDirigir) {
       const missing: string[] = [];
       if (!emp.telefone?.trim()) missing.push('telefone');
-      if (!emp.foto?.trim()) missing.push('foto');
+      if (!emp.fotoPendente && !emp.foto?.trim()) missing.push('foto');
       if (missing.length > 0) {
         items.push({
           id: `driver:${emp.id}`,

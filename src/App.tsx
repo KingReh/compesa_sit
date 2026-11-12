@@ -1,29 +1,58 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { createPortal } from 'react-dom';
-import { Search, Plus, Building2, LayoutDashboard, UserPlus, FileText, Settings, Users, Calendar, Clock, LogOut, UserCheck, Download, CheckCircle2, Bell, X } from 'lucide-react';
-import { Employee, Coordenacao, Contrato, Unidade, Empresa, AuthSession, VacationPlan } from './types';
-import { formatEmployeeName } from './utils';
+import { Search, Plus, Building2, LayoutDashboard, FileText, Settings, Calendar, Clock, LogOut, UserCheck, Download, CheckCircle2, X } from 'lucide-react';
+import { Employee, Coordenacao, Contrato, Unidade, Empresa, VacationPlan } from './types';
 import { useAuth } from './context/AuthContext';
 import { Dashboard } from './components/Dashboard';
 import { EmployeeTable } from './components/EmployeeTable';
-import { EmployeeModal } from './components/EmployeeModal';
 import { ConfirmModal } from './components/ConfirmModal';
-import { ViewModal } from './components/ViewModal';
-import { DriversModal } from './components/DriversModal';
-import { AjustarPontoModal } from './components/AjustarPontoModal';
-import { RegistrationPanel } from './components/RegistrationPanel';
-import { WhatsAppConfirmModal } from './components/WhatsAppConfirmModal';
-import { MapaLotacoesWidget } from './components/MapaLotacoesWidget';
-import { VacationPlanning } from './components/VacationPlanning';
-import { BancoHoras } from './components/BancoHoras';
-import { Reports } from './components/Reports';
 import { PWAInstallPrompt } from './components/PWAInstallPrompt';
-import { BirthdayToasts } from './components/BirthdayToasts';
-import { CorporateFABMenu } from './components/CorporateFABMenu';
-import { AuthScreen } from './components/AuthScreen';
-import { WelcomeModal, isWelcomeSeen } from './components/WelcomeModal';
+import { isWelcomeSeen } from './components/WelcomeModal';
 import { NotificationCenter } from './components/NotificationCenter';
 import { MobileBottomNav, type ApplicationView } from './components/MobileBottomNav';
+
+// Divisão de código: cada tela/modal pesado vira um arquivo JS separado,
+// baixado só quando necessário. Antes, tudo (Leaflet, jsPDF, SheetJS, telas
+// de relatórios etc.) vinha num único bundle de ~2 MB que precisava ser
+// baixado e interpretado antes até da tela de login aparecer.
+const named = <T extends Record<string, any>, K extends keyof T>(loader: () => Promise<T>, key: K) =>
+  lazy(() => loader().then((m) => ({ default: m[key] })));
+
+const AuthScreen = named(() => import('./components/AuthScreen'), 'AuthScreen');
+const RegistrationPanel = named(() => import('./components/RegistrationPanel'), 'RegistrationPanel');
+const VacationPlanning = named(() => import('./components/VacationPlanning'), 'VacationPlanning');
+const BancoHoras = named(() => import('./components/BancoHoras'), 'BancoHoras');
+const Reports = named(() => import('./components/Reports'), 'Reports');
+const MapaLotacoesWidget = named(() => import('./components/MapaLotacoesWidget'), 'MapaLotacoesWidget');
+const EmployeeModal = named(() => import('./components/EmployeeModal'), 'EmployeeModal');
+const ViewModal = named(() => import('./components/ViewModal'), 'ViewModal');
+const DriversModal = named(() => import('./components/DriversModal'), 'DriversModal');
+const AjustarPontoModal = named(() => import('./components/AjustarPontoModal'), 'AjustarPontoModal');
+const WhatsAppConfirmModal = named(() => import('./components/WhatsAppConfirmModal'), 'WhatsAppConfirmModal');
+const WelcomeModal = named(() => import('./components/WelcomeModal'), 'WelcomeModal');
+const BirthdayToasts = named(() => import('./components/BirthdayToasts'), 'BirthdayToasts');
+const CorporateFABMenu = named(() => import('./components/CorporateFABMenu'), 'CorporateFABMenu');
+
+const FullScreenSpinner = () => (
+  <div className="min-h-screen flex items-center justify-center bg-radial from-brand-panel via-brand-bg to-[#011B3D]">
+    <svg className="animate-spin h-10 w-10 text-brand-accent" fill="none" viewBox="0 0 24 24">
+      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+    </svg>
+  </div>
+);
+
+/** Esqueleto exibido na área de conteúdo enquanto os dados chegam. */
+const ContentSkeleton = () => (
+  <div className="space-y-4 sm:space-y-6 animate-pulse" aria-busy="true" aria-label="Carregando dados">
+    <div className="sit-panel h-28 sm:h-32" />
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+      {[0, 1, 2, 3].map((i) => <div key={i} className="sit-panel h-24" />)}
+    </div>
+    <div className="sit-panel h-80" />
+  </div>
+);
+
 import { useFilters } from './context/FiltersContext';
 import { empresasService } from './services/empresasService';
 import { coordenacoesService } from './services/coordenacoesService';
@@ -34,7 +63,7 @@ import { vacationPlansService } from './services/vacationPlansService';
 
 
 export default function App() {
-  const { user, isLoading, signOut } = useAuth();
+  const { user, session, isLoading, signOut } = useAuth();
   const { searchQuery, setSearchQuery, applyFilters } = useFilters();
 
   const handleLogout = () => {
@@ -108,15 +137,18 @@ export default function App() {
   const [employeeToDelete, setEmployeeToDelete] = useState<string | null>(null);
   const [employeeForWhatsApp, setEmployeeForWhatsApp] = useState<Employee | null>(null);
   const [employeeForAjustarPonto, setEmployeeForAjustarPonto] = useState<Employee | null>(null);
-  const [isLoaded, setIsLoaded] = useState(false);
   const [isDbLoading, setIsDbLoading] = useState(true);
 
-  // Load data from Supabase
+  // Carrega os dados assim que existe sessão — em paralelo com a busca do
+  // perfil no AuthContext, em vez de esperar o perfil terminar (cascata).
+  const sessionUserId = session?.user?.id ?? null;
   useEffect(() => {
-    if (!user) {
+    if (!sessionUserId) {
       setIsDbLoading(false);
       return;
     }
+
+    let cancelled = false;
 
     async function loadDbData() {
       try {
@@ -129,6 +161,7 @@ export default function App() {
           employeesService.getEmployees(),
           vacationPlansService.getVacationPlans()
         ]);
+        if (cancelled) return;
         setEmpresas(empRows);
         setCoordenacoes(coordRows);
         setUnidades(unitRows);
@@ -138,13 +171,32 @@ export default function App() {
       } catch (err) {
         console.error('Erro ao carregar dados do Supabase:', err);
       } finally {
-        setIsDbLoading(false);
-        setIsLoaded(true);
+        if (!cancelled) setIsDbLoading(false);
+      }
+
+      if (cancelled) return;
+
+      // Fotos em segundo plano: a interface já está utilizável enquanto chegam.
+      try {
+        const fotos = await employeesService.getEmployeePhotos();
+        if (cancelled) return;
+        setEmployees((prev) =>
+          prev.map((emp) => {
+            if (!emp.fotoPendente) return emp; // já atualizado/salvo nesse meio-tempo
+            const { fotoPendente: _pendente, ...rest } = emp;
+            return { ...rest, foto: fotos.get(emp.id) || '' };
+          })
+        );
+      } catch (err) {
+        console.error('Erro ao carregar fotos dos funcionários:', err);
       }
     }
 
     loadDbData();
-  }, [user?.id]);
+    return () => {
+      cancelled = true;
+    };
+  }, [sessionUserId]);
 
   // Exibe modal de boas-vindas no primeiro acesso do usuário autenticado.
   useEffect(() => {
@@ -343,19 +395,16 @@ export default function App() {
     }
   };
 
-  if (isLoading || isDbLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-radial from-brand-panel via-brand-bg to-[#011B3D]">
-        <svg className="animate-spin h-10 w-10 text-brand-accent" fill="none" viewBox="0 0 24 24">
-          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-        </svg>
-      </div>
-    );
+  if (isLoading) {
+    return <FullScreenSpinner />;
   }
 
   if (!user) {
-    return <AuthScreen />;
+    return (
+      <Suspense fallback={<FullScreenSpinner />}>
+        <AuthScreen />
+      </Suspense>
+    );
   }
 
   return (
@@ -522,7 +571,8 @@ export default function App() {
               </div>
             </nav>
 
-            {/* Injetando o Widget do Mapa de Lotações */}
+            {/* Widget do Mapa de Lotações (Leaflet carregado sob demanda) */}
+            <Suspense fallback={<div className="sit-panel h-64 animate-pulse" />}>
             <MapaLotacoesWidget 
               unidades={unidades} 
               employees={filteredEmployees} 
@@ -536,12 +586,17 @@ export default function App() {
                 setIsFormModalOpen(true);
               }}
             />
+            </Suspense>
 
           </aside>
 
           {/* Main Content Area */}
           <div className="order-1 lg:order-none flex-1 min-w-0">
-            {renderContent()}
+            {isDbLoading ? (
+              <ContentSkeleton />
+            ) : (
+              <Suspense fallback={<ContentSkeleton />}>{renderContent()}</Suspense>
+            )}
           </div>
         </div>
       </main>
@@ -558,7 +613,8 @@ export default function App() {
         </div>
       </footer>
 
-      {/* Modals */}
+      {/* Modals (carregados sob demanda, sem bloquear a primeira renderização) */}
+      <Suspense fallback={null}>
       <EmployeeModal
         isOpen={isFormModalOpen}
         onClose={() => setIsFormModalOpen(false)}
@@ -606,10 +662,12 @@ export default function App() {
         onView={handleViewDriver}
       />
 
-      <PWAInstallPrompt />
       <BirthdayToasts employees={employees} />
       <WelcomeModal isOpen={isWelcomeOpen} onClose={() => setIsWelcomeOpen(false)} />
       <CorporateFABMenu empresas={empresas} onNavigateToConfig={() => handleNavigate('configuracao')} />
+      </Suspense>
+
+      <PWAInstallPrompt />
       <MobileBottomNav currentView={currentView} onNavigate={handleNavigate} />
 
       {/* Toast: app already installed */}

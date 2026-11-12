@@ -2,43 +2,78 @@ import { supabase } from '../lib/supabase';
 import { Employee } from '../types';
 import { maskCPF } from '../utils';
 
+const RELACOES = `
+  lotacao:unidades (nome),
+  coordenacao:coordenacoes (nome),
+  empresa:empresas (razao_social),
+  contrato:contratos (numero)
+`;
+
+// Colunas da listagem SEM `foto_url`. As fotos ficam gravadas como data URL
+// (base64) e representam quase todo o volume da tabela; baixá-las junto com a
+// lista atrasava a abertura do sistema em vários segundos.
+const COLUNAS_LISTA = `
+  id, nome, matricula, cpf, especialidade, sexo, telefone, endereco,
+  data_nascimento, data_admissao, escala_trabalho, camisa, calca, spt,
+  autorizado_dirigir,
+  ${RELACOES}
+`;
+
+const SELECT_COMPLETO = `*, ${RELACOES}`;
+
+function mapRow(row: any, fotoPendente = false): Employee {
+  const employee: Employee = {
+    id: row.id,
+    foto: row.foto_url || '',
+    nome: row.nome,
+    matricula: row.matricula,
+    cpf: maskCPF(row.cpf || ''),
+    especialidade: row.especialidade,
+    lotacao: row.lotacao?.nome || '',
+    coordenacao: row.coordenacao?.nome || '',
+    empresa: row.empresa?.razao_social || '',
+    sexo: row.sexo || '',
+    telefone: row.telefone || '',
+    endereco: row.endereco || '',
+    dataNascimento: row.data_nascimento || '',
+    dataAdmissao: row.data_admissao || '',
+    escalaTrabalho: row.escala_trabalho || '',
+    contrato: row.contrato?.numero || '',
+    camisa: row.camisa || '',
+    calca: row.calca || '',
+    spt: row.spt || '',
+    autorizadoDirigir: !!row.autorizado_dirigir
+  };
+  if (fotoPendente) employee.fotoPendente = true;
+  return employee;
+}
+
 export const employeesService = {
+  /** Lista leve (sem fotos). As fotos chegam depois via `getEmployeePhotos`. */
   async getEmployees(): Promise<Employee[]> {
     const { data, error } = await supabase
       .from('employees')
-      .select(`
-        *,
-        lotacao:unidades (nome),
-        coordenacao:coordenacoes (nome),
-        empresa:empresas (razao_social),
-        contrato:contratos (numero)
-      `)
+      .select(COLUNAS_LISTA)
       .order('nome', { ascending: true });
 
     if (error) throw error;
+    return (data || []).map((row: any) => mapRow(row, true));
+  },
 
-    return (data || []).map((row: any) => ({
-      id: row.id,
-      foto: row.foto_url || '',
-      nome: row.nome,
-      matricula: row.matricula,
-      cpf: maskCPF(row.cpf || ''),
-      especialidade: row.especialidade,
-      lotacao: row.lotacao?.nome || '',
-      coordenacao: row.coordenacao?.nome || '',
-      empresa: row.empresa?.razao_social || '',
-      sexo: row.sexo || '',
-      telefone: row.telefone || '',
-      endereco: row.endereco || '',
-      dataNascimento: row.data_nascimento || '',
-      dataAdmissao: row.data_admissao || '',
-      escalaTrabalho: row.escala_trabalho || '',
-      contrato: row.contrato?.numero || '',
-      camisa: row.camisa || '',
-      calca: row.calca || '',
-      spt: row.spt || '',
-      autorizadoDirigir: !!row.autorizado_dirigir
-    }));
+  /** Mapa id → foto (data URL), carregado em segundo plano após a primeira renderização. */
+  async getEmployeePhotos(): Promise<Map<string, string>> {
+    const { data, error } = await supabase
+      .from('employees')
+      .select('id, foto_url')
+      .not('foto_url', 'is', null)
+      .neq('foto_url', '');
+
+    if (error) throw error;
+    const fotos = new Map<string, string>();
+    (data || []).forEach((row: any) => {
+      if (row.foto_url) fotos.set(row.id, row.foto_url);
+    });
+    return fotos;
   },
 
   async resolveIds(employee: Omit<Employee, 'id'>) {
@@ -88,47 +123,18 @@ export const employeesService = {
     const { data, error } = await supabase
       .from('employees')
       .insert([payload])
-      .select(`
-        *,
-        lotacao:unidades (nome),
-        coordenacao:coordenacoes (nome),
-        empresa:empresas (razao_social),
-        contrato:contratos (numero)
-      `)
+      .select(SELECT_COMPLETO)
       .single();
 
     if (error) throw error;
 
-    return {
-      id: data.id,
-      foto: data.foto_url || '',
-      nome: data.nome,
-      matricula: data.matricula,
-      cpf: maskCPF(data.cpf || ''),
-      especialidade: data.especialidade,
-      lotacao: data.lotacao?.nome || '',
-      coordenacao: data.coordenacao?.nome || '',
-      empresa: data.empresa?.razao_social || '',
-      sexo: data.sexo || '',
-      telefone: data.telefone || '',
-      endereco: data.endereco || '',
-      dataNascimento: data.data_nascimento || '',
-      dataAdmissao: data.data_admissao || '',
-      escalaTrabalho: data.escala_trabalho || '',
-      contrato: data.contrato?.numero || '',
-      camisa: data.camisa || '',
-      calca: data.calca || '',
-      spt: data.spt || '',
-      autorizadoDirigir: !!data.autorizado_dirigir
-    };
+    return mapRow(data);
   },
 
   async updateEmployee(employee: Employee): Promise<Employee> {
     const ids = await employeesService.resolveIds(employee);
 
-    const { data, error } = await supabase
-      .from('employees')
-      .update({
+    const payload: Record<string, unknown> = {
         nome: employee.nome,
         matricula: employee.matricula,
         cpf: employee.cpf.replace(/[^\d]/g, ''),
@@ -147,42 +153,22 @@ export const employeesService = {
         calca: employee.calca || null,
         spt: employee.spt ? String(employee.spt) : null,
         autorizado_dirigir: !!employee.autorizadoDirigir,
-        foto_url: employee.foto || null
-      })
+    };
+    // Foto ainda não baixada: não envia o campo, preservando a foto gravada.
+    if (!employee.fotoPendente) {
+      payload.foto_url = employee.foto || null;
+    }
+
+    const { data, error } = await supabase
+      .from('employees')
+      .update(payload)
       .eq('id', employee.id)
-      .select(`
-        *,
-        lotacao:unidades (nome),
-        coordenacao:coordenacoes (nome),
-        empresa:empresas (razao_social),
-        contrato:contratos (numero)
-      `)
+      .select(SELECT_COMPLETO)
       .single();
 
     if (error) throw error;
 
-    return {
-      id: data.id,
-      foto: data.foto_url || '',
-      nome: data.nome,
-      matricula: data.matricula,
-      cpf: maskCPF(data.cpf || ''),
-      especialidade: data.especialidade,
-      lotacao: data.lotacao?.nome || '',
-      coordenacao: data.coordenacao?.nome || '',
-      empresa: data.empresa?.razao_social || '',
-      sexo: data.sexo || '',
-      telefone: data.telefone || '',
-      endereco: data.endereco || '',
-      dataNascimento: data.data_nascimento || '',
-      dataAdmissao: data.data_admissao || '',
-      escalaTrabalho: data.escala_trabalho || '',
-      contrato: data.contrato?.numero || '',
-      camisa: data.camisa || '',
-      calca: data.calca || '',
-      spt: data.spt || '',
-      autorizadoDirigir: !!data.autorizado_dirigir
-    };
+    return mapRow(data);
   },
 
   /**

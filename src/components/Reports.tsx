@@ -30,7 +30,16 @@ import {
   ChevronDown
 } from 'lucide-react';
 import { Employee, Coordenacao, Contrato, Unidade, Empresa, VacationPlan } from '../types';
-import { exportReportToPDF, exportReportToXLSX, exportReportToODS } from '../utils/exportReports';
+import type { ReportExportData } from '../utils/exportReports';
+// jsPDF e SheetJS somam centenas de KB: só são baixados quando o usuário exporta.
+type ExportFn = 'exportReportToPDF' | 'exportReportToXLSX' | 'exportReportToODS';
+const runExport = (fn: ExportFn, args: ReportExportData) =>
+  import('../utils/exportReports')
+    .then((mod) => mod[fn](args))
+    .catch((err) => {
+      console.error('Falha ao exportar relatório:', err);
+      alert('Não foi possível gerar o arquivo de exportação. Tente novamente.');
+    });
 import { parseLocalDate } from '../utils';
 // @ts-ignore
 import carBlueprintImg from '../assets/images/blue_car_blueprint_1781386584651.jpg';
@@ -619,7 +628,7 @@ export function Reports({ employees, coordenacoes, contratos, unidades, empresas
                   role="menuitem"
                   onClick={() => {
                     setExportMenuOpen(false);
-                    exportReportToPDF({
+                    runExport('exportReportToPDF', {
                       selectedYear, selectedCompanyFilter, selectedCoordFilter,
                       filteredEmployees, vacationPlans, stats
                     });
@@ -636,7 +645,7 @@ export function Reports({ employees, coordenacoes, contratos, unidades, empresas
                   role="menuitem"
                   onClick={() => {
                     setExportMenuOpen(false);
-                    exportReportToXLSX({
+                    runExport('exportReportToXLSX', {
                       selectedYear, selectedCompanyFilter, selectedCoordFilter,
                       filteredEmployees, vacationPlans, stats
                     });
@@ -653,7 +662,7 @@ export function Reports({ employees, coordenacoes, contratos, unidades, empresas
                   role="menuitem"
                   onClick={() => {
                     setExportMenuOpen(false);
-                    exportReportToODS({
+                    runExport('exportReportToODS', {
                       selectedYear, selectedCompanyFilter, selectedCoordFilter,
                       filteredEmployees, vacationPlans, stats
                     });

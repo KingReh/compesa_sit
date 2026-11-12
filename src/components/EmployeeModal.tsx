@@ -186,7 +186,7 @@ export function EmployeeModal({ isOpen, onClose, onSave, employeeToEdit, coorden
       // A foto é gravada como data URL no banco e baixada junto com a lista de
       // funcionários; reduzir para ~400px evita fotos de 1 MB na carga inicial.
       const compressed = await compressImageToDataUrl(file);
-      setFormData((prev) => ({ ...prev, foto: compressed }));
+      setFormData((prev) => ({ ...prev, foto: compressed, fotoPendente: false }));
     } catch (err) {
       console.error('Falha ao processar a foto:', err);
       alert('Não foi possível processar a imagem selecionada.');

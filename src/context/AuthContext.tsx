@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { Session } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 import { UserProfile } from '../types';
@@ -50,17 +50,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return null;
   };
 
+  // Id do usuário cujo perfil já está carregado (ou sendo carregado). Evita
+  // buscar o mesmo perfil várias vezes: o Supabase emite INITIAL_SESSION e,
+  // às vezes, SIGNED_IN repetido ao voltar o foco para a aba.
+  const loadedUidRef = useRef<string | null>(null);
+
   const loadUserData = async (currentSession: Session | null) => {
     if (currentSession?.user) {
       setSession(currentSession);
-      const profile = await fetchProfileWithRetry(currentSession.user.id);
+      const uid = currentSession.user.id;
+      if (loadedUidRef.current === uid) return;
+      loadedUidRef.current = uid;
+      const profile = await fetchProfileWithRetry(uid);
+      if (loadedUidRef.current !== uid) return; // sessão mudou durante a busca
       if (profile) {
         setUser(profile);
       } else {
-        console.error('Failed to load profile for user ID:', currentSession.user.id);
+        console.error('Failed to load profile for user ID:', uid);
+        loadedUidRef.current = null;
         setUser(null);
       }
     } else {
+      loadedUidRef.current = null;
       setSession(null);
       setUser(null);
     }
@@ -78,6 +89,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signOut = async () => {
     setIsLoading(true);
+    loadedUidRef.current = null;
     try {
       await supabase.auth.signOut();
     } catch (err) {
@@ -90,18 +102,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
-    // Check active session immediately
-    supabase.auth.getSession().then(({ data: { session: activeSession } }) => {
-      loadUserData(activeSession);
-    });
-
-    // Listen for auth changes — avoid unnecessary profile re-fetches on token refresh
+    // onAuthStateChange já emite INITIAL_SESSION com a sessão salva, então não
+    // é preciso chamar getSession() à parte (isso duplicava a busca do perfil).
+    // As consultas são adiadas com setTimeout para não rodar dentro do callback
+    // do Supabase, o que pode travar o cliente de autenticação.
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, changedSession) => {
       if (event === 'TOKEN_REFRESHED') {
         setSession(changedSession);
         return;
       }
-      loadUserData(changedSession);
+      setTimeout(() => loadUserData(changedSession), 0);
     });
 
     return () => {
